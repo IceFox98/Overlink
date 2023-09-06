@@ -12,13 +12,12 @@
 #include "Player/Input/OBM_InputComponent.h"
 #include "Player/Input/OBM_InputConfig.h"
 #include "Components/StaticMeshComponent.h"
+#include "EnhancedInputSubsystems.h"
 #include "../OBM_GameplayTags.h"
 
 APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	bAbilitiesInitialized = false;
 
 	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
@@ -50,6 +49,14 @@ void APlayerCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+
+	for (const UOBM_AbilitySet* AbilitySet : AbilitySets)
+	{
+		if (AbilitySet)
+		{
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
 		}
 	}
 }
@@ -103,10 +110,10 @@ void APlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 
 void APlayerCharacter::HandleHealthChanged(float DeltaValue, const FGameplayTagContainer& EventTags)
 {
-	if (bAbilitiesInitialized)
-	{
-		OnHealthChanged(DeltaValue, EventTags);
-	}
+	//if (bAbilitiesInitialized)
+	//{
+	//	OnHealthChanged(DeltaValue, EventTags);
+	//}
 }
 
 void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

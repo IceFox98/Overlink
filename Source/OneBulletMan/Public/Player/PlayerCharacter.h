@@ -13,6 +13,9 @@ class UOBM_AbilitySystemComponent;
 class UOBM_InputConfig;
 class UOBM_AbilitySet;
 
+struct FInputActionValue;
+struct FGameplayTag;
+
 /**
  *
  */
