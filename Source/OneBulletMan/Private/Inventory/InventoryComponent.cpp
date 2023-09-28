@@ -40,21 +40,14 @@ UItemInstance* UInventoryComponent::AddItemDefinition(TSubclassOf<UItemDefinitio
 			const UEquipmentDefinition* EquipmentDef = GetDefault<UEquipmentDefinition>(EquipDefClass);
 
 			AEquipmentInstance* EquippedItem = GetWorld()->SpawnActor<AEquipmentInstance>(EquipmentDef->InstanceType);
+			EquippedItem->EquipmentDefinition = EquipDefClass;
 			EquippedItem->SetOwner(GetOwner());
-			EquippedItem->OnEquipped();
-
-			if (UOBM_AbilitySystemComponent* ASC = GetAbilitySystemComponent())
-			{
-				// When the item is equipped, we give all its abilities/effects/attributes to player's ASC
-				for (TObjectPtr<const UOBM_AbilitySet> AbilitySet : EquipmentDef->AbilitySetsToGrant)
-				{
-					AbilitySet->GiveToAbilitySystem(ASC, /*inout*/ &EquippedItem->GrantedHandles, EquippedItem);
-				}
-			}
 
 			EquippedItems.Emplace(EquippedItem);
 		}
 	}
+
+	SetActiveSlotIndex(EquippedItems.Num() - 1);
 
 	return ItemInstance;
 }
@@ -66,31 +59,49 @@ UOBM_AbilitySystemComponent* UInventoryComponent::GetAbilitySystemComponent() co
 
 void UInventoryComponent::SetActiveSlotIndex(int32 NewIndex)
 {
+	UnequipItemInSlot();
+
+	SelectedIndex = NewIndex;
+
+	EquipItemInSlot();
 }
 
 void UInventoryComponent::EquipItemInSlot()
 {
-	//// You can equip a new Item only if there's no current equipped item.
-	//// Be sure to call UnequipCurrentItem first
-	//if (!SelectedItem && EquippedItems.IsValidIndex(SelectedIndex))
-	//{
-	//	APuzzleGuyEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
-	//	EquipInstance->OnEquipped();
+	// You can equip a new Item only if there's no current equipped item.
+	// Be sure to call UnequipCurrentItem first
+	if (!SelectedItem && EquippedItems.IsValidIndex(SelectedIndex))
+	{
+		AEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
+		EquipInstance->OnEquipped();
 
-	//	if (UPuzzleGuyAbilitySystemComponent* ASC = GetAbilitySystemComponent())
-	//	{
-	//		// When the item is equipped, we give all its abilities/effects/attributes to player's ASC
-	//		for (TObjectPtr<const UPuzzleGuyAbilitySet> AbilitySet : EquipInstance->EquipmentItem->AbilitySetsToGrant)
-	//		{
-	//			AbilitySet->GiveToAbilitySystem(ASC, /*inout*/ &EquipInstance->GrantedHandles, EquipInstance);
-	//		}
-	//	}
+		const UEquipmentDefinition* EquipmentDef = GetDefault<UEquipmentDefinition>(EquipInstance->EquipmentDefinition);
 
-	//	SelectedItem = EquipInstance;
-	//}
+		if (UOBM_AbilitySystemComponent* ASC = GetAbilitySystemComponent())
+		{
+			// When the item is equipped, we give all its abilities/effects/attributes to player's ASC
+			for (TObjectPtr<const UOBM_AbilitySet> AbilitySet : EquipmentDef->AbilitySetsToGrant)
+			{
+				AbilitySet->GiveToAbilitySystem(ASC, /*inout*/ &EquipInstance->GrantedHandles, EquipInstance);
+			}
+		}
+
+		SelectedItem = EquipInstance;
+	}
 }
 
 void UInventoryComponent::UnequipItemInSlot()
 {
+	if (SelectedItem)
+	{
+		SelectedItem->OnUnequipped();
 
+		if (UOBM_AbilitySystemComponent* ASC = GetAbilitySystemComponent())
+		{
+			// When unequip the item, remove all given abilities/effects/attributes from player's ASC
+			SelectedItem->GrantedHandles.TakeFromAbilitySystem(ASC);
+		}
+
+		SelectedItem = nullptr;
+	}
 }

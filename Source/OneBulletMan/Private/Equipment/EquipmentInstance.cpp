@@ -36,8 +36,7 @@ void AEquipmentInstance::OnEquipped()
 			AttachTarget = Char->GetMesh();
 		}
 		
-		FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-		AttachToComponent(AttachTarget, AttachmentRules, FName(TEXT("GripPoint")));
+		AttachToComponent(AttachTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("GripPoint")));
 	}
 
 	SetActorHiddenInGame(false);
