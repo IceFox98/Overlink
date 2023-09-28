@@ -9,6 +9,7 @@
 
 class UCameraComponent;
 class UInteractionComponent;
+class UInventoryComponent;
 class UOBM_AbilitySystemComponent;
 class UOBM_InputConfig;
 class UOBM_AbilitySet;
@@ -87,8 +88,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 		class USceneComponent* ItemHoldingPoint;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//	class UInventoryComponent* InventoryComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UInventoryComponent* InventoryComponent;
 
 public:
 

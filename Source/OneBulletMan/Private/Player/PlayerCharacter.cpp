@@ -6,13 +6,14 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/Components/HealthComponent.h"
 #include "Player/Components/InteractionComponent.h"
-#include "Player/Components/InventoryComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "AbilitySystem/OBM_AbilitySet.h"
 #include "AbilitySystem/OBM_AbilitySystemComponent.h"
 #include "Player/Input/OBM_InputComponent.h"
 #include "Player/Input/OBM_InputConfig.h"
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "AbilitySystem/Attributes/OBM_HealthSet.h"
 #include "../OBM_GameplayTags.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -28,9 +29,10 @@ APlayerCharacter::APlayerCharacter()
 	ItemHoldingPoint->SetupAttachment(CameraComp);
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
-	//InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UOBM_AbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
+	HealthComp->HealthSet = CreateDefaultSubobject<UOBM_HealthSet>(TEXT("HealthSet"));
 	//Attributes = CreateDefaultSubobject<UPuzzleGuyAttributeSet>(TEXT("Attributes"));
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
@@ -56,7 +58,7 @@ void APlayerCharacter::BeginPlay()
 	{
 		if (AbilitySet)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
 		}
 	}
 }

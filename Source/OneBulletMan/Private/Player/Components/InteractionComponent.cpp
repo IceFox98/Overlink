@@ -68,7 +68,7 @@ FInteractionData UInteractionComponent::FindInteractiveObject()
 	//GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, LineTraceEnd, ECollisionChannel::ECC_Visibility);
 
 	FInteractionData InteractionData;
-	//InteractionData.IsInteractive = false;
+	InteractionData.IsInteractive = false;
 
 	//if (AActor* HitActor = Hit.GetActor())
 	//{

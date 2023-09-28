@@ -7,11 +7,11 @@ void UOBM_AbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 {
 	if (InputTag.IsValid())
 	{
-		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+		for (FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
 		{
 			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
 			{
-				AbilityLocalInputPressed(AbilitySpec.InputID);
+				TryActivateAbility(AbilitySpec.Handle);
 			}
 		}
 	}
@@ -21,11 +21,11 @@ void UOBM_AbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 {
 	if (InputTag.IsValid())
 	{
-		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+		for (FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
 		{
 			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
 			{
-				AbilityLocalInputPressed(AbilitySpec.InputID);
+				AbilitySpecInputReleased(AbilitySpec);
 			}
 		}
 	}

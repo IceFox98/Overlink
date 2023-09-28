@@ -6,6 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
+class UOBM_HealthSet;
+
 // OnHealthChanged event
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangedSignature, UHealthComponent*, HealthComp, float, Health, float, HealthDelta, const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
 
@@ -18,45 +20,24 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
 private:
 
-
-protected:
-
-	/** The current Health */
-	UPROPERTY(VisibleAnywhere, Category = "Health Component")
-		float Health;
-
-	UPROPERTY(EditAnywhere, Category = "Health Component")
-		float MaxHealth;
-
-	UPROPERTY(VisibleAnywhere, Category = "Health Component")
-		bool bIsDead;
-
+	UFUNCTION()
+		void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 		FOnHealthChangedSignature OnHealthChanged;
 
-	/**
-	 * FUNCTIONS
-	 */
-private:
-
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-	UFUNCTION()
-		void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-
 public:
 
-	FORCEINLINE float GetHealth() const { return Health; }
-	FORCEINLINE float IsDead() const { return bIsDead; }
+	UPROPERTY(VisibleAnywhere, Category = "Health Component")
+		TObjectPtr<UOBM_HealthSet> HealthSet;
 
-	UFUNCTION(BlueprintCallable, Category = "Health Component")
-		void Heal(float HealAmount);
-
+	UPROPERTY(VisibleAnywhere, Category = "Health Component")
+		bool bIsDead;
 };
