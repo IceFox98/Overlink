@@ -35,7 +35,7 @@ public:
 
 public:
 
-	UPROPERTY(VisibleAnywhere, Category = "Health Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health Component")
 		TObjectPtr<UOBM_HealthSet> HealthSet;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health Component")
