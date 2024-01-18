@@ -9,13 +9,14 @@
 
 class UEquipmentDefinition;
 class UInventoryComponent;
+class UItemInstance;
 
 UCLASS()
 class ONEBULLETMAN_API AEquipmentInstance : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AEquipmentInstance();
 
@@ -23,7 +24,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -32,17 +33,24 @@ public:
 	virtual void OnEquipped();
 	virtual void OnUnequipped();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = Equipment, meta = (DisplayName = "OnEquipped"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "Equipment Instance", meta = (DisplayName = "OnEquipped"))
 		void K2_OnEquipped();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = Equipment, meta = (DisplayName = "OnUnequipped"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "Equipment Instance", meta = (DisplayName = "OnUnequipped"))
 		void K2_OnUnequipped();
 
-private:
+	UItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+
+protected:
 
 	// The equipment class that got equipped
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "Equipment Instance")
 		TSubclassOf<UEquipmentDefinition> EquipmentDefinition;
+
+	//UPROPERTY(BlueprintReadOnly, Category = "Equipment Instance")
+	UItemInstance* AssociatedItem;
+
+private:
 
 	friend class UInventoryComponent;
 

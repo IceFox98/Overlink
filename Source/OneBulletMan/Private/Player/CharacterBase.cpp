@@ -26,12 +26,3 @@ void ACharacterBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 }
-
-//void ACharacterBase::OnHealthChanged(UHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
-//{
-//	if (HealthComp->IsDead())
-//	{
-//		// Do stuff
-//	}
-//}
-

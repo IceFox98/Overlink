@@ -10,13 +10,13 @@ class AEquipmentInstance;
 class UOBM_AbilitySet;
 
 /**
- * 
+ *
  */
 UCLASS(Blueprintable, BlueprintType, Const, Abstract)
 class ONEBULLETMAN_API UEquipmentDefinition : public UObject
 {
 	GENERATED_BODY()
-	
+
 public:
 
 	/**The mesh to display for this items pickup*/
@@ -25,4 +25,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 		TArray<TObjectPtr<UOBM_AbilitySet>> AbilitySetsToGrant;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+		FTransform RelativeTransform;
 };

@@ -33,7 +33,6 @@ APlayerCharacter::APlayerCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UOBM_AbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
 	HealthComp->HealthSet = CreateDefaultSubobject<UOBM_HealthSet>(TEXT("HealthSet"));
-	//Attributes = CreateDefaultSubobject<UPuzzleGuyAttributeSet>(TEXT("Attributes"));
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
@@ -76,7 +75,6 @@ void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 
 		OBM_IC->BindNativeAction(InputConfig, OBM_GameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OBM_IC->BindNativeAction(InputConfig, OBM_GameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
-		//OBM_IC->BindNativeAction(InputConfig, OBM_GameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
 	}
 }
 
@@ -95,27 +93,6 @@ void APlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 	{
 		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 	}
-}
-
-//void APlayerCharacter::OnHealthChanged(UHealthComponent* OwningHealthComp, float Health, float HealthDelta, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser)
-//{
-//	Super::OnHealthChanged(OwningHealthComp, Health, HealthDelta, DamageType, InstigatedBy, DamageCauser);
-//
-//	if (HealthComp->IsDead())
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("You're dead!"));
-//		return;
-//	}
-//
-//	// Do other stuff
-//}
-
-void APlayerCharacter::HandleHealthChanged(float DeltaValue, const FGameplayTagContainer& EventTags)
-{
-	//if (bAbilitiesInitialized)
-	//{
-	//	OnHealthChanged(DeltaValue, EventTags);
-	//}
 }
 
 void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

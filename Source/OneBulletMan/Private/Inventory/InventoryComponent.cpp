@@ -41,6 +41,7 @@ UItemInstance* UInventoryComponent::AddItemDefinition(TSubclassOf<UItemDefinitio
 
 			AEquipmentInstance* EquippedItem = GetWorld()->SpawnActor<AEquipmentInstance>(EquipmentDef->InstanceType);
 			EquippedItem->EquipmentDefinition = EquipDefClass;
+			EquippedItem->AssociatedItem = ItemInstance;
 			EquippedItem->SetOwner(GetOwner());
 			EquippedItem->SetInstigator(Cast<APawn>(GetOwner()));
 

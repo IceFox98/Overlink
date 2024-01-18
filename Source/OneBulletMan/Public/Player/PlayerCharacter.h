@@ -39,12 +39,6 @@ public:
 
 public:
 
-	// Called when health is changed, either from healing or from being damaged
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
-
-	virtual void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
-
 	// ------ MOVEMENT ------
 
 	void Input_Move(const FInputActionValue& InputActionValue);
@@ -59,9 +53,6 @@ public:
 
 	FORCEINLINE USceneComponent* GetItemHoldingPoint() const { return ItemHoldingPoint; }
 	FORCEINLINE USceneComponent* GetCameraComp() const { return (USceneComponent*)CameraComp; }
-
-	UFUNCTION(BlueprintImplementableEvent)
-		bool HasKey(FGuid Key);
 
 private:
 	void OnAbilityInputPressed(FGameplayTag InputTag);

@@ -54,6 +54,8 @@ public:
 	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
 	void RemoveStack(FGameplayTag Tag, int32 StackCount);
 
+	int32 GetTagStackCount(FGameplayTag Tag) const { return TagToCountMap.FindRef(Tag); };
+
 	void SetItemDef(TSubclassOf<UItemDefinition> InDef);
 
 	FORCEINLINE TSubclassOf<UItemDefinition> GetItemDef() const { return ItemDef; }
@@ -74,5 +76,8 @@ private:
 	// List of gameplay tag stacks
 	UPROPERTY()
 		TArray<FGameplayTagStack> Stacks;
+
+	// Accelerated list of tag stacks for queries
+	TMap<FGameplayTag, int32> TagToCountMap;
 
 };

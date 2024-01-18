@@ -2,7 +2,8 @@
 
 
 #include "Equipment/EquipmentInstance.h"
-#include "GameFramework/Character.h"
+#include "Equipment/EquipmentDefinition.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values
 AEquipmentInstance::AEquipmentInstance()
@@ -30,13 +31,16 @@ void AEquipmentInstance::OnEquipped()
 {
 	if (APawn* OwningPawn = Cast<APawn>(GetOwner()))
 	{
-		USceneComponent* AttachTarget = OwningPawn->GetRootComponent();
-		if (ACharacter* Char = Cast<ACharacter>(OwningPawn))
+		USceneComponent* AttachTarget = OwningPawn->GetComponentByClass<UCameraComponent>();
+		if (!AttachTarget)
 		{
-			AttachTarget = Char->GetMesh();
+			AttachTarget = OwningPawn->GetRootComponent();
 		}
+
+		AttachToComponent(AttachTarget, FAttachmentTransformRules::KeepRelativeTransform);
 		
-		AttachToComponent(AttachTarget, FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("GripPoint")));
+		FTransform RelativeTransform = GetDefault<UEquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
+		SetActorRelativeTransform(RelativeTransform);
 	}
 
 	SetActorHiddenInGame(false);

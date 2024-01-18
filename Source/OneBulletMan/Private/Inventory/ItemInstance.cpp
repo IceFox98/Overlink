@@ -20,11 +20,13 @@ void UItemInstance::AddStack(FGameplayTag Tag, int32 StackCount)
 			{
 				const int32 NewCount = Stack.StackCount + StackCount;
 				Stack.StackCount = NewCount;
+				TagToCountMap[Tag] = NewCount;
 				return;
 			}
 		}
 
 		Stacks.Emplace(Tag, StackCount);
+		TagToCountMap.Add(Tag, StackCount);
 	}
 }
 
@@ -46,11 +48,13 @@ void UItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
 				if (Stack.StackCount <= StackCount)
 				{
 					It.RemoveCurrent();
+					TagToCountMap.Remove(Tag);
 				}
 				else
 				{
 					const int32 NewCount = Stack.StackCount - StackCount;
 					Stack.StackCount = NewCount;
+					TagToCountMap[Tag] = NewCount;
 				}
 				return;
 			}
