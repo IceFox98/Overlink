@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "CharacterBase.h"
-#include "Misc/Guid.h"
+#include "AbilitySystemInterface.h"
+
 #include "PlayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -21,7 +21,7 @@ struct FGameplayTag;
  *
  */
 UCLASS(Blueprintable)
-class ONEBULLETMAN_API APlayerCharacter : public ACharacterBase
+class ONEBULLETMAN_API APlayerCharacter : public ACharacterBase, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -54,10 +54,15 @@ public:
 	FORCEINLINE USceneComponent* GetItemHoldingPoint() const { return ItemHoldingPoint; }
 	FORCEINLINE USceneComponent* GetCameraComp() const { return (USceneComponent*)CameraComp; }
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
+
 private:
+
 	void OnAbilityInputPressed(FGameplayTag InputTag);
 
 	void OnAbilityInputReleased(FGameplayTag InputTag);
+
+	virtual void HandleHealthChanged(const struct FOnAttributeChangeData& ChangeData);
 
 protected:
 

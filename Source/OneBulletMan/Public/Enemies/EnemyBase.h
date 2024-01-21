@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "AbilitySystemInterface.h"
+
 #include "EnemyBase.generated.h"
 
 class UHealthComponent;
@@ -11,7 +12,7 @@ class UOBM_AbilitySystemComponent;
 class UOBM_AbilitySet;
 
 UCLASS()
-class ONEBULLETMAN_API AEnemyBase : public APawn
+class ONEBULLETMAN_API AEnemyBase : public APawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -27,11 +28,20 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { 
+		return Cast<UAbilitySystemComponent>(AbilitySystemComponent); 
+	};
+
 protected:
 
 	/** Components that manages the player abilities */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UHealthComponent* HealthComp;
 
 public:
 

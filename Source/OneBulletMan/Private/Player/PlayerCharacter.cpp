@@ -15,6 +15,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "AbilitySystem/Attributes/OBM_HealthSet.h"
 #include "../OBM_GameplayTags.h"
+#include "GameplayEffectTypes.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -53,6 +54,8 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UOBM_HealthSet::GetHealthAttribute()).AddUObject(this, &APlayerCharacter::HandleHealthChanged);
+
 	for (const UOBM_AbilitySet* AbilitySet : AbilitySets)
 	{
 		if (AbilitySet)
@@ -78,7 +81,6 @@ void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	}
 }
 
-
 void APlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
 {
 	if (AbilitySystemComponent)
@@ -93,6 +95,11 @@ void APlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 	{
 		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 	}
+}
+
+void APlayerCharacter::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
+{
+	UE_LOG(LogTemp, Warning, TEXT("dd"));
 }
 
 void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
