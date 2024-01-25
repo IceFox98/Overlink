@@ -7,7 +7,6 @@
 #include "Player/Components/HealthComponent.h"
 #include "Player/Components/InteractionComponent.h"
 #include "Inventory/InventoryComponent.h"
-#include "AbilitySystem/OBM_AbilitySet.h"
 #include "AbilitySystem/OBM_AbilitySystemComponent.h"
 #include "Player/Input/OBM_InputComponent.h"
 #include "Player/Input/OBM_InputConfig.h"
@@ -31,9 +30,6 @@ APlayerCharacter::APlayerCharacter()
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
-	AbilitySystemComponent = CreateDefaultSubobject<UOBM_AbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-
-	HealthComp->HealthSet = CreateDefaultSubobject<UOBM_HealthSet>(TEXT("HealthSet"));
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
@@ -51,16 +47,6 @@ void APlayerCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
-
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UOBM_HealthSet::GetHealthAttribute()).AddUObject(this, &APlayerCharacter::HandleHealthChanged);
-
-	for (const UOBM_AbilitySet* AbilitySet : AbilitySets)
-	{
-		if (AbilitySet)
-		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
 		}
 	}
 }
@@ -95,11 +81,6 @@ void APlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 	{
 		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 	}
-}
-
-void APlayerCharacter::HandleHealthChanged(const FOnAttributeChangeData& ChangeData)
-{
-	UE_LOG(LogTemp, Warning, TEXT("dd"));
 }
 
 void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

@@ -10,9 +10,7 @@
 class UCameraComponent;
 class UInteractionComponent;
 class UInventoryComponent;
-class UOBM_AbilitySystemComponent;
 class UOBM_InputConfig;
-class UOBM_AbilitySet;
 
 struct FInputActionValue;
 struct FGameplayTag;
@@ -21,7 +19,7 @@ struct FGameplayTag;
  *
  */
 UCLASS(Blueprintable)
-class ONEBULLETMAN_API APlayerCharacter : public ACharacterBase, public IAbilitySystemInterface
+class ONEBULLETMAN_API APlayerCharacter : public ACharacterBase
 {
 	GENERATED_BODY()
 
@@ -54,15 +52,11 @@ public:
 	FORCEINLINE USceneComponent* GetItemHoldingPoint() const { return ItemHoldingPoint; }
 	FORCEINLINE USceneComponent* GetCameraComp() const { return (USceneComponent*)CameraComp; }
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
-
 private:
 
 	void OnAbilityInputPressed(FGameplayTag InputTag);
 
 	void OnAbilityInputReleased(FGameplayTag InputTag);
-
-	virtual void HandleHealthChanged(const struct FOnAttributeChangeData& ChangeData);
 
 protected:
 
@@ -75,10 +69,6 @@ protected:
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UInteractionComponent* InteractionComponent;
-
-	/** Components that manages the player abilities */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
 
 	/** The location where the current selected object is hold */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
@@ -98,11 +88,6 @@ public:
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Input")
 		TObjectPtr<UOBM_InputConfig> InputConfig;
-
-	// Ability sets to grant to this pawn's ability system.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Abilities")
-		TArray<TObjectPtr<UOBM_AbilitySet>> AbilitySets;
-
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throwing")

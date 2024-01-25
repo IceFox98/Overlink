@@ -7,9 +7,12 @@
 #include "HealthComponent.generated.h"
 
 class UOBM_HealthSet;
+class UOBM_AbilitySystemComponent;
+struct FOnAttributeChangeData;
 
 // OnHealthChanged event
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangedSignature, UHealthComponent*, HealthComp, float, Health, float, HealthDelta, const class UDamageType*, DamageType, class AController*, InstigatedBy, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangedSignature, UHealthComponent*, HealthComp, float, OldValue, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOutOfHealthSignature, AActor*, Instigator);
 
 UCLASS(ClassGroup = (Custom))
 class ONEBULLETMAN_API UHealthComponent : public UActorComponent
@@ -20,22 +23,34 @@ public:
 	// Sets default values for this component's properties
 	UHealthComponent();
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
-private:
-
-	UFUNCTION()
-		void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 public:
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
+	void InitializeWithASC(UOBM_AbilitySystemComponent* ASC);
+
+protected:
+
+	void HandleHealthChanged(const FOnAttributeChangeData& Data);
+
+	void HandleMaxHealthChanged(const FOnAttributeChangeData& Data);
+
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "Health Component|Events")
 		FOnHealthChangedSignature OnHealthChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Health Component|Events")
+		FOnHealthChangedSignature OnMaxHealthChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Health Component|Events")
+		FOnOutOfHealthSignature OnOutOfHealth;
 public:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health Component")
+	// Ability system used by this component.
+	UPROPERTY()
+		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
+
+	// Health set used by this component.
+	UPROPERTY()
 		TObjectPtr<const UOBM_HealthSet> HealthSet;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health Component")

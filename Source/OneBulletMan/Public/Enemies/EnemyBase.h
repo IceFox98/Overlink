@@ -2,17 +2,12 @@
 
 #pragma once
 
-#include "GameFramework/Pawn.h"
-#include "AbilitySystemInterface.h"
-
+#include "../Pawn/OBM_PawnBase.h"
 #include "EnemyBase.generated.h"
 
-class UHealthComponent;
-class UOBM_AbilitySystemComponent;
-class UOBM_AbilitySet;
 
 UCLASS()
-class ONEBULLETMAN_API AEnemyBase : public APawn, public IAbilitySystemInterface
+class ONEBULLETMAN_API AEnemyBase : public AOBM_PawnBase
 {
 	GENERATED_BODY()
 
@@ -24,28 +19,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 public:
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { 
-		return Cast<UAbilitySystemComponent>(AbilitySystemComponent); 
-	};
-
-protected:
-
-	/** Components that manages the player abilities */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UHealthComponent* HealthComp;
-
-public:
-
-	// Ability sets to grant to this pawn's ability system.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Abilities")
-		TArray<TObjectPtr<UOBM_AbilitySet>> AbilitySets;
 };

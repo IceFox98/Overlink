@@ -1,17 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/CharacterBase.h"
-#include "Player/Components/HealthComponent.h"
+#include "Pawn/OBM_PawnBase.h"
 #include "AbilitySystem/OBM_AbilitySet.h"
 #include "AbilitySystem/OBM_AbilitySystemComponent.h"
+#include "AbilitySystem/Attributes/OBM_HealthSet.h"
+#include "Player/Components/HealthComponent.h"
+#include "UObject/UObjectBaseUtility.h"
 
 #include "../OBM_Utils.h"
 
 // Sets default values
-ACharacterBase::ACharacterBase()
+AOBM_PawnBase::AOBM_PawnBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+ 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
@@ -19,12 +21,12 @@ ACharacterBase::ACharacterBase()
 }
 
 // Called when the game starts or when spawned
-void ACharacterBase::BeginPlay()
+void AOBM_PawnBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	HealthComponent->InitializeWithASC(AbilitySystemComponent);
-	HealthComponent->OnOutOfHealth.AddDynamic(this, &ACharacterBase::HandleDeath);
+	HealthComponent->OnOutOfHealth.AddDynamic(this, &AOBM_PawnBase::HandleDeath);
 
 	for (const UOBM_AbilitySet* AbilitySet : AbilitySets)
 	{
@@ -36,15 +38,16 @@ void ACharacterBase::BeginPlay()
 }
 
 // Called every frame
-void ACharacterBase::Tick(float DeltaTime)
+void AOBM_PawnBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 }
 
-void ACharacterBase::HandleDeath(AActor* InInstigator)
+void AOBM_PawnBase::HandleDeath(AActor* InInstigator)
 {
 	OBM_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
 
 	Destroy();
 }
+

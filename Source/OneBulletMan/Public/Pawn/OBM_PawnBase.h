@@ -2,23 +2,23 @@
 
 #pragma once
 
-#include "GameFramework/Character.h"
+#include "GameFramework/Pawn.h"
 #include "AbilitySystemInterface.h"
 
-#include "CharacterBase.generated.h"
+#include "OBM_PawnBase.generated.h"
 
 class UHealthComponent;
 class UOBM_AbilitySystemComponent;
 class UOBM_AbilitySet;
 
 UCLASS()
-class ONEBULLETMAN_API ACharacterBase : public ACharacter, public IAbilitySystemInterface
+class ONEBULLETMAN_API AOBM_PawnBase : public APawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	ACharacterBase();
+	// Sets default values for this pawn's properties
+	AOBM_PawnBase();
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,13 +30,12 @@ public:
 
 public:
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
+
 	UFUNCTION()
 		virtual void HandleDeath(AActor* InInstigator);
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
-
 protected:
-
 
 	/** Components that manages the player abilities */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "OBM|Components")
