@@ -62,6 +62,16 @@ void UItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
 	}
 }
 
+int32 UItemInstance::GetTagStackCount(FGameplayTag Tag) const
+{
+	if (TagToCountMap.IsEmpty())
+	{
+		return 0;
+	}
+
+	return TagToCountMap.FindRef(Tag);
+}
+
 void UItemInstance::SetItemDef(TSubclassOf<UItemDefinition> InDef)
 {
 	ItemDef = InDef;

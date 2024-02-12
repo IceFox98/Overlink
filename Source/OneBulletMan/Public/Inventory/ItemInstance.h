@@ -54,7 +54,7 @@ public:
 	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
 	void RemoveStack(FGameplayTag Tag, int32 StackCount);
 
-	int32 GetTagStackCount(FGameplayTag Tag) const { return TagToCountMap.FindRef(Tag); };
+	int32 GetTagStackCount(FGameplayTag Tag) const;
 
 	void SetItemDef(TSubclassOf<UItemDefinition> InDef);
 
