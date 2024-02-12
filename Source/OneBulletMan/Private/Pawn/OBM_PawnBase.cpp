@@ -3,8 +3,8 @@
 
 #include "Pawn/OBM_PawnBase.h"
 #include "AbilitySystem/OBM_AbilitySet.h"
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OBM_HealthSet.h"
+#include "AbilitySystem/OBM_AbilitySystemComponent.h"
 #include "Player/Components/HealthComponent.h"
 #include "UObject/UObjectBaseUtility.h"
 
@@ -42,6 +42,11 @@ void AOBM_PawnBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+UAbilitySystemComponent* AOBM_PawnBase::GetAbilitySystemComponent() const
+{
+	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
 }
 
 void AOBM_PawnBase::HandleDeath(AActor* InInstigator)

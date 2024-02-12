@@ -30,7 +30,7 @@ public:
 
 public:
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION()
 		virtual void HandleDeath(AActor* InInstigator);

@@ -30,13 +30,12 @@ public:
 
 public:
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
+
 	UFUNCTION()
 		virtual void HandleDeath(AActor* InInstigator);
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return Cast<UAbilitySystemComponent>(AbilitySystemComponent); };
-
 protected:
-
 
 	/** Components that manages the player abilities */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "OBM|Components")
