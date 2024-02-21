@@ -2,16 +2,11 @@
 
 
 #include "Weapons/WeaponInstance.h"
-#include "Components/SphereComponent.h"
 
 AWeaponInstance::AWeaponInstance()
 {
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
-
-	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
-	SphereCollision->SetupAttachment(WeaponMesh);
-
 }
 
 void AWeaponInstance::Tick(float DeltaSeconds)
@@ -21,7 +16,12 @@ void AWeaponInstance::Tick(float DeltaSeconds)
 
 }
 
-void AWeaponInstance::UpdateFiringTime()
+void AWeaponInstance::Fire()
 {
-	TimeLastFired = GetWorld()->GetTimeSeconds();
+
+}
+
+void AWeaponInstance::Reload()
+{
+
 }

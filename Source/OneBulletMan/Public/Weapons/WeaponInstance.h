@@ -26,26 +26,24 @@ public:
 
 public:
 
-	UFUNCTION(BlueprintCallable)
-		void UpdateFiringTime();
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+		virtual void Fire();
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+		virtual void Reload();
 
 public:
 
-	// ---- COMPONENTS ----
+	// ----- COMPONENTS -----
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USkeletalMeshComponent* WeaponMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		USphereComponent* SphereCollision;
-
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-		UAnimMontage* WeaponEquipMontage;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	//	UAnimMontage* WeaponEquipMontage;
 
 private:
-
-	bool bHitSomething;
 
 	double TimeLastFired = 0.0;
 
