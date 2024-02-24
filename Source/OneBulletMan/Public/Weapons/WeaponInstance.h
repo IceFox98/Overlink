@@ -37,7 +37,10 @@ public:
 	// ----- COMPONENTS -----
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		USkeletalMeshComponent* WeaponMesh;
+		TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		TObjectPtr<USphereComponent> PickupSphere;
 
 public:
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")

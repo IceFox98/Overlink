@@ -2,17 +2,18 @@
 
 
 #include "Weapons/ProjectileWeapon.h"
-#include "Components/SphereComponent.h"
+//#include "Components/SphereComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 #include "../OBM_Utils.h"
 
 AProjectileWeapon::AProjectileWeapon()
 {
-	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
-	PickupSphere->SetupAttachment(RootComponent);
+	//PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
+	//PickupSphere->SetupAttachment(RootComponent);
 
 	ThrowForce = 3200.f;
+	MuzzleSocketName = "Muzzle";
 }
 
 void AProjectileWeapon::Fire()
@@ -91,4 +92,10 @@ void AProjectileWeapon::Reload()
 
 		bIsReloading = false;
 	}
+}
+
+FTransform AProjectileWeapon::GetMuzzleTransform() const
+{
+	check(WeaponMesh);
+	return WeaponMesh->GetSocketTransform(MuzzleSocketName);
 }

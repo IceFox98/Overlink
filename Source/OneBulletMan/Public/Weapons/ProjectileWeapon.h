@@ -9,7 +9,7 @@
 class USphereComponent;
 
 /**
- * 
+ *
  */
 UCLASS()
 class ONEBULLETMAN_API AProjectileWeapon : public AWeaponInstance
@@ -26,12 +26,15 @@ public:
 
 	virtual void Reload() override;
 
+	UFUNCTION(BlueprintCallable, Category = "Projectile Weapon")
+		FTransform GetMuzzleTransform() const;
+
 public:
 
-	// ----- COMPONENTS -----
+	//// ----- COMPONENTS -----
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USphereComponent> PickupSphere;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//	TObjectPtr<USphereComponent> PickupSphere;
 
 public:
 
@@ -40,6 +43,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
 		float ThrowForce;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
+		FName MuzzleSocketName;
 
 protected:
 
