@@ -64,7 +64,7 @@ void UItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
 
 int32 UItemInstance::GetTagStackCount(FGameplayTag Tag) const
 {
-	if (TagToCountMap.IsEmpty())
+	if (TagToCountMap.IsEmpty() || TagToCountMap.Num() <= 0)
 	{
 		return 0;
 	}

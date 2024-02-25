@@ -12,6 +12,8 @@ AProjectileWeapon::AProjectileWeapon()
 	//PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
 	//PickupSphere->SetupAttachment(RootComponent);
 
+	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	ThrowForce = 3200.f;
 	MuzzleSocketName = "Muzzle";
 }
@@ -41,6 +43,7 @@ void AProjectileWeapon::Reload()
 		// Detach weapon from player
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 		WeaponMesh->SetNotifyRigidBodyCollision(true);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		WeaponMesh->SetSimulatePhysics(true);
 
 		FVector OutLocation;
@@ -53,32 +56,33 @@ void AProjectileWeapon::Reload()
 	}
 	else
 	{
-		if (!GE_ReloadDamage)
+		if (GE_ReloadDamage)
 		{
-			OBM_LOG_ERR(LogTemp, true, "GE_ReloadDamage is NULL!");
-			return;
-		}
+			FCollisionQueryParams QueryParams;
+			QueryParams.AddIgnoredActor(this);
+			QueryParams.AddIgnoredActor(Owner);
 
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.AddIgnoredActor(Owner);
+			// Search for any pawn between the weapon and the player
+			TArray<FHitResult> HitResults;
+			GetWorld()->LineTraceMultiByObjectType(HitResults, GetActorLocation(), Owner->GetActorLocation(), ECC_Pawn, QueryParams);
 
-		// Search for any pawn between the weapon and the player
-		TArray<FHitResult> HitResults;
-		GetWorld()->LineTraceMultiByObjectType(HitResults, GetActorLocation(), Owner->GetActorLocation(), ECC_Pawn, QueryParams);
+			DrawDebugLine(GetWorld(), GetActorLocation(), Owner->GetActorLocation(), FColor::Red, false, 2.f);
 
-		DrawDebugLine(GetWorld(), GetActorLocation(), Owner->GetActorLocation(), FColor::Red, false, 2.f);
-
-		if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator()))
-		{
-			for (const FHitResult& HitResult : HitResults)
+			if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator()))
 			{
-				if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor()))
+				for (const FHitResult& HitResult : HitResults)
 				{
-					// Apply damage to each pawn
-					ASC->ApplyGameplayEffectToTarget(GE_ReloadDamage->GetDefaultObject<UGameplayEffect>(), TargetASC, 1.f, ASC->MakeEffectContext());
+					if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor()))
+					{
+						// Apply damage to each pawn
+						ASC->ApplyGameplayEffectToTarget(GE_ReloadDamage->GetDefaultObject<UGameplayEffect>(), TargetASC, 1.f, ASC->MakeEffectContext());
+					}
 				}
 			}
+		}
+		else
+		{
+			OBM_LOG_ERR(LogTemp, true, "GE_ReloadDamage is NULL!");
 		}
 
 		// TODO: Play VFX
@@ -87,6 +91,7 @@ void AProjectileWeapon::Reload()
 		WeaponMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
 		WeaponMesh->SetNotifyRigidBodyCollision(false);
 		WeaponMesh->SetSimulatePhysics(false);
+		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		OnEquipped();
 
