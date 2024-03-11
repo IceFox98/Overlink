@@ -47,8 +47,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Equipment Instance")
 		TSubclassOf<UEquipmentDefinition> EquipmentDefinition;
 
-	//UPROPERTY(BlueprintReadOnly, Category = "Equipment Instance")
-	UItemInstance* AssociatedItem;
+	UPROPERTY()
+		UItemInstance* AssociatedItem;
 
 private:
 
