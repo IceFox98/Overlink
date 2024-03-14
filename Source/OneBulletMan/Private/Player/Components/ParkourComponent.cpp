@@ -1,0 +1,179 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Player/Components/ParkourComponent.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+
+// Sets default values for this component's properties
+UParkourComponent::UParkourComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+
+	WallrunCheckDistance = 75.f;
+	WallrunCheckAngle = 35.f;
+	WallrunCameraTiltAngle = 15.f;
+	WallrunResetTime = .35f;
+	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
+}
+
+// Called when the game starts
+void UParkourComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
+
+// Called every frame
+void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+}
+
+void UParkourComponent::Initialize(ACharacter* InCharacter)
+{
+	check(InCharacter);
+
+	Character = InCharacter;
+	CharacterMovement = Character->GetCharacterMovement();
+
+	// Save original character values due to reset them after applying parkour movement.
+	DefaultGravity = CharacterMovement->GravityScale;
+	DefaultMaxWalkSpeed = CharacterMovement->MaxWalkSpeed;
+	DefaultMaxWalkSpeedCrouched = CharacterMovement->MaxWalkSpeedCrouched;
+	DefaultGroundFriction = CharacterMovement->GroundFriction;
+	DefaultBrakingDecelerationWalking = CharacterMovement->BrakingDecelerationWalking;
+}
+
+void UParkourComponent::OnPlayerJumped()
+{
+	if (MovementType == EParkourMovementType::None)
+	{
+		// The player will still be on the ground (not falling) when the Jump function is called
+		if (!CharacterMovement->IsFalling())
+		{
+			bCanCheckWallrun = true;
+		}
+	}
+	else
+	{
+
+	}
+}
+
+void UParkourComponent::OnPlayerLanded()
+{
+	EndWallrun();
+}
+
+void UParkourComponent::OnPlayerCrouchChanged(bool bHasCrouched)
+{
+
+}
+
+void UParkourComponent::HandleWallrun(float DeltaTime)
+{
+	if (!bCanCheckWallrun)
+		return;
+
+	const FVector PlayerInputVector = CharacterMovement->GetLastInputVector();
+	const FVector PlayerForwardVector = Character->GetActorForwardVector();
+
+	const bool bIsPlayerNotGrounded = CharacterMovement->IsFalling();
+	//const bool bIsPlayerMoving = !PlayerInputVector.IsZero();
+	const bool bIsPlayerMovingForward = FVector::DotProduct(PlayerInputVector, PlayerForwardVector) > 0;
+
+	if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
+	{
+		bool bWallrunHandled = HandleWallrunMovement(true);
+		MovementType = EParkourMovementType::WallrunLeft; // Assume it's been handled
+
+		if (!bWallrunHandled)
+		{
+			// Try the right side
+			bWallrunHandled = HandleWallrunMovement(false);
+			MovementType = bWallrunHandled ? EParkourMovementType::WallrunRight : EParkourMovementType::None;
+		}
+	}
+
+	HandleWallrunCameraTilt(DeltaTime);
+}
+
+bool UParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
+{
+	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
+
+	const FVector BackwardVector = (Character->GetActorRightVector() * WallrunCheckDistance * WallDirection) + Character->GetActorForwardVector() * -WallrunCheckAngle;
+
+	const FVector StartTrace = Character->GetActorLocation();
+	const FVector EndTrace = Character->GetActorLocation() + BackwardVector;
+
+	FHitResult OutHit;
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, OutHit, true);
+
+	bool bHandled = false;
+
+	if (OutHit.bBlockingHit)
+	{
+		WallrunNormal = OutHit.Normal;
+
+		// Returns the direction of where the player should be launched. It follows the wall surface.
+		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, FVector::UpVector);
+		const FVector LaunchVelocity = WallForwardDirection * DefaultMaxWalkSpeed * -WallDirection;
+
+		Character->LaunchCharacter(LaunchVelocity, true, true);
+		bHandled = true;
+	}
+
+	return bHandled;
+}
+
+void UParkourComponent::HandleWallrunCameraTilt(float DeltaTime)
+{
+	FRotator TargetRotation = Character->GetControlRotation();
+
+	if (IsWallrunning())
+	{
+		// Tilt camera depending on which wall the player is on.
+		TargetRotation.Roll = MovementType == EParkourMovementType::WallrunLeft ? WallrunCameraTiltAngle : -WallrunCameraTiltAngle;
+	}
+	else
+	{
+		TargetRotation.Roll = 0.f;
+	}
+
+	// Lerp and apply rotation
+	const FRotator FinalRotation = UKismetMathLibrary::RInterpTo(Character->GetControlRotation(), TargetRotation, DeltaTime, 10.f);
+	Character->GetController()->SetControlRotation(FinalRotation);
+}
+
+void UParkourComponent::HandleWallrunJump()
+{
+	if (IsWallrunning())
+	{
+		EndWallrun();
+		
+		const FVector LaunchVelocity = FVector(WallrunNormal.X, WallrunNormal.Y, 1.f) * WallrunJumpVelocity;
+		Character->LaunchCharacter(LaunchVelocity, false, true);
+	}
+}
+
+void UParkourComponent::ResetWallrun()
+{
+	if (MovementType == EParkourMovementType::None)
+	{
+		bCanCheckWallrun = true;
+	}
+}
+
+void UParkourComponent::EndWallrun()
+{
+	bCanCheckWallrun = false;
+
+	MovementType = EParkourMovementType::None;
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UParkourComponent::ResetWallrun, WallrunResetTime, false);
+}

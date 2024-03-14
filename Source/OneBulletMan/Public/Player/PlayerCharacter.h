@@ -79,7 +79,7 @@ protected:
 
 public:
 
-	// ------ COMPONENTS ------
+	// ------ INPUT ------
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "OBM|Input")
