@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "../OBM_Utils.h"
 
 // Sets default values for this component's properties
 UParkourComponent::UParkourComponent()
@@ -17,6 +18,12 @@ UParkourComponent::UParkourComponent()
 	WallrunCameraTiltAngle = 15.f;
 	WallrunResetTime = .35f;
 	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
+
+	SlideVectorCheck = FVector(0.f, 0.f, -200.f);
+	SlideForce = 800.f;
+	SlideGroundFriction = 0.f;
+	SlideBraking = 1000.f;
+	SlideMaxWalkSpeedCrouched = 0.f;
 }
 
 // Called when the game starts
@@ -31,6 +38,14 @@ void UParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	HandleWallrun(DeltaTime);
+
+	if (ShouldCancelSliding())
+	{
+		// TODO: Replace with Gameplay Ability
+		Character->UnCrouch();
+		CancelSliding();
+	}
 }
 
 void UParkourComponent::Initialize(ACharacter* InCharacter)
@@ -60,7 +75,7 @@ void UParkourComponent::OnPlayerJumped()
 	}
 	else
 	{
-
+		HandleWallrunJump();
 	}
 }
 
@@ -71,31 +86,38 @@ void UParkourComponent::OnPlayerLanded()
 
 void UParkourComponent::OnPlayerCrouchChanged(bool bHasCrouched)
 {
-
+	if (bHasCrouched)
+	{
+		HandleSliding();
+	}
+	else
+	{
+		CancelSliding();
+	}
 }
 
 void UParkourComponent::HandleWallrun(float DeltaTime)
 {
-	if (!bCanCheckWallrun)
-		return;
-
-	const FVector PlayerInputVector = CharacterMovement->GetLastInputVector();
-	const FVector PlayerForwardVector = Character->GetActorForwardVector();
-
-	const bool bIsPlayerNotGrounded = CharacterMovement->IsFalling();
-	//const bool bIsPlayerMoving = !PlayerInputVector.IsZero();
-	const bool bIsPlayerMovingForward = FVector::DotProduct(PlayerInputVector, PlayerForwardVector) > 0;
-
-	if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
+	if (bCanCheckWallrun)
 	{
-		bool bWallrunHandled = HandleWallrunMovement(true);
-		MovementType = EParkourMovementType::WallrunLeft; // Assume it's been handled
+		const FVector PlayerInputVector = CharacterMovement->GetLastInputVector();
+		const FVector PlayerForwardVector = Character->GetActorForwardVector();
 
-		if (!bWallrunHandled)
+		const bool bIsPlayerNotGrounded = CharacterMovement->IsFalling();
+		//const bool bIsPlayerMoving = !PlayerInputVector.IsZero();
+		const bool bIsPlayerMovingForward = FVector::DotProduct(PlayerInputVector, PlayerForwardVector) > 0;
+
+		if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
 		{
-			// Try the right side
-			bWallrunHandled = HandleWallrunMovement(false);
-			MovementType = bWallrunHandled ? EParkourMovementType::WallrunRight : EParkourMovementType::None;
+			bool bWallrunHandled = HandleWallrunMovement(true);
+			MovementType = EParkourMovementType::WallrunLeft; // Assume it's been handled
+
+			if (!bWallrunHandled)
+			{
+				// Try the right side
+				bWallrunHandled = HandleWallrunMovement(false);
+				MovementType = bWallrunHandled ? EParkourMovementType::WallrunRight : EParkourMovementType::None;
+			}
 		}
 	}
 
@@ -155,7 +177,7 @@ void UParkourComponent::HandleWallrunJump()
 	if (IsWallrunning())
 	{
 		EndWallrun();
-		
+
 		const FVector LaunchVelocity = FVector(WallrunNormal.X, WallrunNormal.Y, 1.f) * WallrunJumpVelocity;
 		Character->LaunchCharacter(LaunchVelocity, false, true);
 	}
@@ -176,4 +198,53 @@ void UParkourComponent::EndWallrun()
 	MovementType = EParkourMovementType::None;
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UParkourComponent::ResetWallrun, WallrunResetTime, false);
+}
+
+void UParkourComponent::HandleSliding()
+{
+	if (IsSliding())
+		return;
+
+	const bool bIsPlayerGrounded = !CharacterMovement->IsFalling();
+	const bool bIsPlayerMoving = CharacterMovement->GetLastUpdateVelocity().Length() > 0;
+
+	if (bIsPlayerGrounded && bIsPlayerMoving)
+	{
+		// Trace a down vector to check if sliding is available.
+		const FVector StartTrace = Character->GetActorLocation();
+		const FVector EndTrace = StartTrace + SlideVectorCheck;
+
+		FHitResult OutHit;
+		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForDuration, OutHit, true);
+
+		if (OutHit.bBlockingHit)
+		{
+			CharacterMovement->GroundFriction = SlideGroundFriction;
+			CharacterMovement->BrakingDecelerationWalking = SlideBraking;
+			CharacterMovement->MaxWalkSpeedCrouched = SlideMaxWalkSpeedCrouched;
+
+			// Cross with floor normal to get the direction of where to launche the character
+			const FVector FloorSlopeDirection = FVector::CrossProduct(Character->GetActorRightVector(), OutHit.Normal);
+			CharacterMovement->AddImpulse(FloorSlopeDirection * SlideForce, true);
+
+			MovementType = EParkourMovementType::Sliding;
+		}
+	}
+}
+
+bool UParkourComponent::ShouldCancelSliding()
+{
+	if(!IsSliding())
+		return false;
+
+	return CharacterMovement->GetLastUpdateVelocity().Length() <= 575.f;
+}
+
+void UParkourComponent::CancelSliding()
+{
+	CharacterMovement->GroundFriction = DefaultGroundFriction;
+	CharacterMovement->BrakingDecelerationWalking = DefaultBrakingDecelerationWalking;
+	CharacterMovement->MaxWalkSpeedCrouched = DefaultMaxWalkSpeedCrouched;
+
+	MovementType = EParkourMovementType::None;
 }

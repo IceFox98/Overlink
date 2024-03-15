@@ -9,9 +9,11 @@
 
 class UCameraComponent;
 class UInteractionComponent;
+class USceneComponent;
 class UInventoryComponent;
+class UParkourComponent;
 class UOBM_InputConfig;
-
+class UInputMappingContext;
 struct FInputActionValue;
 struct FGameplayTag;
 
@@ -64,18 +66,21 @@ protected:
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UCameraComponent* CameraComp;
+		TObjectPtr<UCameraComponent> CameraComp;
 
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UInteractionComponent* InteractionComponent;
+		TObjectPtr<UInteractionComponent> InteractionComponent;
 
 	/** The location where the current selected object is hold */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-		class USceneComponent* ItemHoldingPoint;
+		TObjectPtr<USceneComponent> ItemHoldingPoint;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UInventoryComponent* InventoryComponent;
+		TObjectPtr<UInventoryComponent> InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		TObjectPtr<UParkourComponent> ParkourComponent;
 
 public:
 
@@ -83,7 +88,7 @@ public:
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "OBM|Input")
-		class UInputMappingContext* DefaultMappingContext;
+		TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Input")

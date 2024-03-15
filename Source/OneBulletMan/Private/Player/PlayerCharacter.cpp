@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/Components/HealthComponent.h"
 #include "Player/Components/InteractionComponent.h"
+#include "Player/Components/ParkourComponent.h"
 #include "Inventory/InventoryComponent.h"
 #include "AbilitySystem/OBM_AbilitySystemComponent.h"
 #include "Player/Input/OBM_InputComponent.h"
@@ -30,6 +31,7 @@ APlayerCharacter::APlayerCharacter()
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	ParkourComponent = CreateDefaultSubobject<UParkourComponent>(TEXT("ParkourComponent"));
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
@@ -40,6 +42,8 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ParkourComponent->Initialize(this);
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))

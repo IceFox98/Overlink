@@ -6,17 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "ParkourComponent.generated.h"
 
-//USTRUCT(BlueprintType)
-//struct FInteractionData
-//{
-//public:
-//
-//	GENERATED_USTRUCT_BODY()
-//
-//public:
-//
-//};
-
 enum class EParkourMovementType : uint8
 {
 	None,
@@ -45,9 +34,10 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-protected:
+public:
 
-	void Initialize(ACharacter* InCharacter);
+	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
+		void Initialize(ACharacter* InCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
 		void OnPlayerJumped();
@@ -57,6 +47,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
 		void OnPlayerCrouchChanged(bool bHasCrouched);
+
+protected:
 
 	// ------ WALLRUN ------
 
@@ -71,7 +63,15 @@ protected:
 
 	FORCEINLINE bool IsWallrunning() const { return MovementType == EParkourMovementType::WallrunLeft || MovementType == EParkourMovementType::WallrunRight; };
 
-protected:
+	// ------ SLIDE ------
+
+	void HandleSliding();
+	bool ShouldCancelSliding();
+	void CancelSliding();
+
+	FORCEINLINE bool IsSliding() const { return MovementType == EParkourMovementType::Sliding; };
+
+public:
 
 	// ------ WALLRUN VARS ------
 
@@ -89,6 +89,25 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Wallrun")
 		FVector WallrunJumpVelocity;
+
+
+	// ------ SLIDING VARS ------
+
+	// Vector that will be added to the player position, used to get the slope of the floor.
+	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
+		FVector SlideVectorCheck;
+
+	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
+		float SlideForce;
+
+	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
+		float SlideGroundFriction;
+
+	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
+		float SlideBraking;
+
+	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
+		float SlideMaxWalkSpeedCrouched;
 
 private:
 
