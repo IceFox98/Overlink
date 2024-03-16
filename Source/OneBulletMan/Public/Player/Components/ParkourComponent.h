@@ -132,4 +132,7 @@ private:
 	bool bCanCheckWallrun;
 	FVector WallrunNormal;
 
+	// ------ SLIDING VARS ------
+
+	bool bShouldSlideOnLanded;
 };

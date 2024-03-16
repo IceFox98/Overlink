@@ -65,6 +65,8 @@ void UParkourComponent::Initialize(ACharacter* InCharacter)
 
 void UParkourComponent::OnPlayerJumped()
 {
+	bShouldSlideOnLanded = false;
+
 	if (MovementType == EParkourMovementType::None)
 	{
 		// The player will still be on the ground (not falling) when the Jump function is called
@@ -82,6 +84,17 @@ void UParkourComponent::OnPlayerJumped()
 void UParkourComponent::OnPlayerLanded()
 {
 	EndWallrun();
+
+	if (bShouldSlideOnLanded)
+	{
+		// Player still moving
+		if (CharacterMovement->GetLastUpdateVelocity().Length() > 0)
+		{
+			HandleSliding();
+		}
+
+		bShouldSlideOnLanded = false;
+	}
 }
 
 void UParkourComponent::OnPlayerCrouchChanged(bool bHasCrouched)
@@ -193,11 +206,14 @@ void UParkourComponent::ResetWallrun()
 
 void UParkourComponent::EndWallrun()
 {
-	bCanCheckWallrun = false;
+	if (IsWallrunning())
+	{
+		bCanCheckWallrun = false;
 
-	MovementType = EParkourMovementType::None;
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UParkourComponent::ResetWallrun, WallrunResetTime, false);
+		MovementType = EParkourMovementType::None;
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UParkourComponent::ResetWallrun, WallrunResetTime, false);
+	}
 }
 
 void UParkourComponent::HandleSliding()
@@ -207,6 +223,8 @@ void UParkourComponent::HandleSliding()
 
 	const bool bIsPlayerGrounded = !CharacterMovement->IsFalling();
 	const bool bIsPlayerMoving = CharacterMovement->GetLastUpdateVelocity().Length() > 0;
+
+	bShouldSlideOnLanded = !bIsPlayerGrounded;
 
 	if (bIsPlayerGrounded && bIsPlayerMoving)
 	{
@@ -234,8 +252,10 @@ void UParkourComponent::HandleSliding()
 
 bool UParkourComponent::ShouldCancelSliding()
 {
-	if(!IsSliding())
+	if (!IsSliding())
 		return false;
+
+	//OBM_LOG("%f", CharacterMovement->GetLastUpdateVelocity().Length());
 
 	return CharacterMovement->GetLastUpdateVelocity().Length() <= 575.f;
 }
