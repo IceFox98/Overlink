@@ -41,10 +41,13 @@ public:
 
 	// ------ MOVEMENT ------
 
+	virtual void Crouch() override;
+	virtual void UnCrouch() override;
+
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 
-	// ------ MOVEMENT ------
+	// ------ INTERACTION ------
 
 	void Interact();
 

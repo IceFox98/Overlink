@@ -87,6 +87,18 @@ void APlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 	}
 }
 
+void APlayerCharacter::Crouch()
+{
+	// I don't call the parent function, I need to implement it in other way
+
+
+}
+
+void APlayerCharacter::UnCrouch()
+{
+
+}
+
 void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
 	const FVector2D Value = InputActionValue.Get<FVector2D>();
