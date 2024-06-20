@@ -2,7 +2,7 @@
 
 
 #include "Player/PlayerCharacter.h"
-#include "Camera/CameraComponent.h"
+#include "Player/Components/OBM_CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/Components/HealthComponent.h"
 #include "Player/Components/InteractionComponent.h"
@@ -22,7 +22,7 @@ APlayerCharacter::APlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Create a follow camera
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
+	CameraComp = CreateDefaultSubobject<UOBM_CameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(RootComponent);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 
@@ -85,18 +85,6 @@ void APlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 	{
 		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
 	}
-}
-
-void APlayerCharacter::Crouch()
-{
-	// I don't call the parent function, I need to implement it in other way
-
-
-}
-
-void APlayerCharacter::UnCrouch()
-{
-
 }
 
 void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)

@@ -7,7 +7,7 @@
 
 #include "PlayerCharacter.generated.h"
 
-class UCameraComponent;
+class UOBM_CameraComponent;
 class UInteractionComponent;
 class USceneComponent;
 class UInventoryComponent;
@@ -41,9 +41,6 @@ public:
 
 	// ------ MOVEMENT ------
 
-	virtual void Crouch() override;
-	virtual void UnCrouch() override;
-
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 
@@ -69,7 +66,7 @@ protected:
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UCameraComponent> CameraComp;
+		TObjectPtr<UOBM_CameraComponent> CameraComp;
 
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
