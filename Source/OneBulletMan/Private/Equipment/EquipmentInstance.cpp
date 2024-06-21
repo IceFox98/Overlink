@@ -5,10 +5,12 @@
 #include "Equipment/EquipmentDefinition.h"
 #include "Camera/CameraComponent.h"
 
+#include "Kismet/KismetMathLibrary.h"
+
 // Sets default values
 AEquipmentInstance::AEquipmentInstance()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -17,7 +19,7 @@ AEquipmentInstance::AEquipmentInstance()
 void AEquipmentInstance::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -25,33 +27,53 @@ void AEquipmentInstance::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (IsEquipped())
+	{
+		// Follow target
+		const FTransform TargetTransform = TargetToFollow->GetComponentTransform();
+
+		const FTransform RelativeTransform = GetDefault<UEquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
+		const FTransform FinalTransform = UKismetMathLibrary::TInterpTo(GetActorTransform(), RelativeTransform * TargetTransform, DeltaTime, 10.f);
+
+		SetActorTransform(FinalTransform);
+	}
 }
 
 void AEquipmentInstance::OnEquipped()
 {
-	if (APawn* OwningPawn = Cast<APawn>(GetOwner()))
+	if (!TargetToFollow) // First time equipping?
 	{
-		USceneComponent* AttachTarget = OwningPawn->GetComponentByClass<UCameraComponent>();
-		if (!AttachTarget)
+		if (APawn* OwningPawn = Cast<APawn>(GetOwner()))
 		{
-			AttachTarget = OwningPawn->GetRootComponent();
-		}
+			TargetToFollow = OwningPawn->GetComponentByClass<UCameraComponent>();
+			if (!TargetToFollow)
+			{
+				TargetToFollow = OwningPawn->GetRootComponent();
+			}
 
-		AttachToComponent(AttachTarget, FAttachmentTransformRules::KeepRelativeTransform);
-		
-		FTransform RelativeTransform = GetDefault<UEquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
-		SetActorRelativeTransform(RelativeTransform);
+			check(TargetToFollow); // If even here is null, there's could be a problem...
+
+
+		}
 	}
 
-	SetActorHiddenInGame(false);
+	const FTransform RelativeTransform = GetDefault<UEquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
+	const FTransform TargetTransform = TargetToFollow->GetComponentTransform();
 
+	// Convert the RelativeTransform to world space
+	SetActorTransform(RelativeTransform * TargetTransform);
+
+	bIsEquipped = true;
+
+	SetActorHiddenInGame(false);
 	K2_OnEquipped();
 }
 
 void AEquipmentInstance::OnUnequipped()
 {
-	SetActorHiddenInGame(true);
+	bIsEquipped = false;
 
+	SetActorHiddenInGame(true);
 	K2_OnUnequipped();
 }
 

@@ -39,7 +39,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Equipment Instance", meta = (DisplayName = "OnUnequipped"))
 		void K2_OnUnequipped();
 
-	UItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+	FORCEINLINE UItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+
+	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 
 protected:
 
@@ -56,4 +58,9 @@ private:
 
 	// List of granted handles
 	FOBM_AbilitySet_GrantedHandles GrantedHandles;
+
+	bool bIsEquipped = false;
+
+	UPROPERTY()
+		TObjectPtr<USceneComponent> TargetToFollow;
 };
