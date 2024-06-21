@@ -87,7 +87,9 @@ void UParkourComponent::OnPlayerLanded()
 
 	if (bShouldSlideOnLanded)
 	{
-		// Player still moving
+		Character->Crouch();
+
+		// Is Player still moving?
 		if (CharacterMovement->GetLastUpdateVelocity().Length() > 0)
 		{
 			HandleSliding();
@@ -97,14 +99,23 @@ void UParkourComponent::OnPlayerLanded()
 	}
 }
 
-void UParkourComponent::OnPlayerCrouchChanged(bool bHasCrouched)
+void UParkourComponent::HandleCrouching(bool bWantsToCrouch)
 {
-	if (bHasCrouched)
+	const bool bIsPlayerGrounded = !CharacterMovement->IsFalling();
+
+	if (bWantsToCrouch)
 	{
+		if (bIsPlayerGrounded)
+		{
+			Character->Crouch();
+		}
+
 		HandleSliding();
 	}
 	else
 	{
+		Character->UnCrouch();
+
 		CancelSliding();
 	}
 }
@@ -122,14 +133,13 @@ void UParkourComponent::HandleWallrun(float DeltaTime)
 
 		if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
 		{
-			bool bWallrunHandled = HandleWallrunMovement(true);
-			MovementType = EParkourMovementType::WallrunLeft; // Assume it's been handled
-
-			if (!bWallrunHandled)
+			if (HandleWallrunMovement(true))
 			{
-				// Try the right side
-				bWallrunHandled = HandleWallrunMovement(false);
-				MovementType = bWallrunHandled ? EParkourMovementType::WallrunRight : EParkourMovementType::None;
+				MovementType = EParkourMovementType::WallrunLeft;
+			}
+			else if(HandleWallrunMovement(false)) // Try the right side
+			{
+				MovementType = EParkourMovementType::WallrunRight;
 			}
 		}
 	}
@@ -228,6 +238,7 @@ void UParkourComponent::HandleSliding()
 
 	if (bIsPlayerGrounded && bIsPlayerMoving)
 	{
+
 		// Trace a down vector to check if sliding is available.
 		const FVector StartTrace = Character->GetActorLocation();
 		const FVector EndTrace = StartTrace + SlideVectorCheck;

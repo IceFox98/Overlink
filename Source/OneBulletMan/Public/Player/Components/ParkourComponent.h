@@ -46,7 +46,7 @@ public:
 		void OnPlayerLanded();
 
 	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
-		void OnPlayerCrouchChanged(bool bHasCrouched);
+		void HandleCrouching(bool bWantsToCrouch);
 
 protected:
 
