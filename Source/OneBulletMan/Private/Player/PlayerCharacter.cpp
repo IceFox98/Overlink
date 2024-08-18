@@ -26,8 +26,11 @@ APlayerCharacter::APlayerCharacter()
 	CameraComp->SetupAttachment(RootComponent);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 
-	ItemHoldingPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ItemHoldingPoint"));
-	ItemHoldingPoint->SetupAttachment(CameraComp);
+	//ItemHoldingPoint = CreateDefaultSubobject<USceneComponent>(TEXT("ItemHoldingPoint"));
+	//ItemHoldingPoint->SetupAttachment(CameraComp);
+
+	FirstPersonMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FirstPersonMesh"));
+	FirstPersonMesh->SetupAttachment(CameraComp);
 
 	InteractionComponent = CreateDefaultSubobject<UInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));

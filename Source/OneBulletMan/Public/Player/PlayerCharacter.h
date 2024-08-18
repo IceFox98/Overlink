@@ -51,8 +51,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ThrowEquippedObject();
 
-	FORCEINLINE USceneComponent* GetItemHoldingPoint() const { return ItemHoldingPoint; }
-	FORCEINLINE USceneComponent* GetCameraComp() const { return (USceneComponent*)CameraComp; }
+	//FORCEINLINE USceneComponent* GetItemHoldingPoint() const { return ItemHoldingPoint; }
+	//FORCEINLINE USceneComponent* GetCameraComp() const { return CameraComp; }
+
+	virtual USceneComponent* GetItemHoldingComponent() const override { return Cast<USceneComponent>(FirstPersonMesh); }
 
 private:
 
@@ -72,9 +74,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UInteractionComponent> InteractionComponent;
 
-	/** The location where the current selected object is hold */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-		TObjectPtr<USceneComponent> ItemHoldingPoint;
+	///** The location where the current selected object is hold */
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+	//	TObjectPtr<USceneComponent> ItemHoldingPoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
+		TObjectPtr<USkeletalMeshComponent> FirstPersonMesh;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UInventoryComponent> InventoryComponent;

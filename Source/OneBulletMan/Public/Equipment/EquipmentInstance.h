@@ -63,4 +63,7 @@ private:
 
 	UPROPERTY()
 		TObjectPtr<USceneComponent> TargetToFollow;
+
+
+	FVector RelativeLocation;
 };
