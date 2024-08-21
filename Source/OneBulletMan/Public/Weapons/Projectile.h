@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class UProjectileMovementComponent;
+class UGameplayEffect;
 
 UCLASS(config = Game)
 class AProjectile : public AActor
@@ -19,6 +20,9 @@ public:
 
 	AProjectile();
 
+protected:
+	virtual void BeginPlay() override;
+
 public:
 
 
@@ -26,6 +30,11 @@ public:
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
+
+	UFUNCTION()
+	void OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	void SetDamage(const TSubclassOf<UGameplayEffect>& DamageClass) { GE_Damage = DamageClass; };
 
 protected:
 
@@ -35,5 +44,10 @@ protected:
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
 		UProjectileMovementComponent* ProjectileMovement;
+
+private:
+
+	UPROPERTY()
+		TSubclassOf<UGameplayEffect> GE_Damage;
 };
 

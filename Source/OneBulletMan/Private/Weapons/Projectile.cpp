@@ -3,6 +3,9 @@
 #include "Weapons/Projectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffect.h"
+#include "AbilitySystemGlobals.h"
 
 AProjectile::AProjectile()
 {
@@ -23,9 +26,35 @@ AProjectile::AProjectile()
 	ProjectileMovement->UpdatedComponent = CollisionComp;
 	ProjectileMovement->InitialSpeed = 3000.f;
 	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->ProjectileGravityScale = 0.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = true;
+	ProjectileMovement->bShouldBounce = false;
+	ProjectileMovement->bSweepCollision = false;
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+}
+
+void AProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnProjectileHit);
+}
+
+void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (APawn* HitPawn = Cast<APawn>(OtherActor))
+	{
+		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitPawn);
+		UAbilitySystemComponent* InstigatorASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator());
+
+		if (InstigatorASC)
+		{
+			UGameplayEffect* GameplayEffect = GE_Damage->GetDefaultObject<UGameplayEffect>();
+			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, InstigatorASC->MakeEffectContext());
+		}
+	}
+
+	Destroy();
 }

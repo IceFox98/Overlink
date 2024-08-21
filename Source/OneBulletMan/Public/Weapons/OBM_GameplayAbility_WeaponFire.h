@@ -6,6 +6,8 @@
 #include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
 #include "OBM_GameplayAbility_WeaponFire.generated.h"
 
+class AProjectile;
+
 /**
  *
  */
@@ -18,7 +20,15 @@ public:
 
 	UOBM_GameplayAbility_WeaponFire();
 
+protected:
+
+	/** Actually activate ability, do not call this directly */
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData);
+
 public:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Fire")
+		TSubclassOf<AProjectile> ProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Fire")
 		TSubclassOf<UGameplayEffect> GE_Damage;

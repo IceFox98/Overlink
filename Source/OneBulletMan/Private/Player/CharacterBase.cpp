@@ -16,6 +16,8 @@ ACharacterBase::ACharacterBase()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UOBM_AbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+
+	GripPointName = FName("GripPoint");
 }
 
 // Called when the game starts or when spawned

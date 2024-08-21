@@ -8,6 +8,8 @@
 
 void UOBM_CameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
+	Super::GetCameraView(DeltaTime, DesiredView);
+
 	UpdateForOwner();
 	UpdateCrouchOffset(DeltaTime);
 

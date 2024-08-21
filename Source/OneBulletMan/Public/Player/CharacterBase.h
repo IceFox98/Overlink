@@ -51,4 +51,7 @@ public:
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Abilities")
 		TArray<TObjectPtr<UOBM_AbilitySet>> AbilitySets;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Grip")
+		FName GripPointName;
 };
