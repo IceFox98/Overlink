@@ -24,8 +24,8 @@ AProjectile::AProjectile()
 	// Use a ProjectileMovementComponent to govern this projectile's movement
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 11000.f;
+	ProjectileMovement->MaxSpeed = 11000.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = false;
@@ -39,10 +39,10 @@ void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnProjectileHit);
+	CollisionComp->OnComponentHit.AddDynamic(this, &AProjectile::OnProjectileHit);
 }
 
-void AProjectile::OnProjectileHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (APawn* HitPawn = Cast<APawn>(OtherActor))
 	{
