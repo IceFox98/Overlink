@@ -36,15 +36,18 @@ void AProjectileWeapon::Reload()
 		return;
 	}
 
-	if (!bIsReloading)
+	if (!bIsReloading) // Throw the weapon
 	{
 		bIsReloading = true;
 
 		// Detach weapon from player
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-		WeaponMesh->SetNotifyRigidBodyCollision(true);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		WeaponMesh->SetSimulatePhysics(true);
+
+		ToggleWeaponPhysics(true);
+
+		//WeaponMesh->SetNotifyRigidBodyCollision(true);
+		//WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//WeaponMesh->SetSimulatePhysics(true);
 
 		FVector OutLocation;
 		FRotator OutRotation;
@@ -88,10 +91,12 @@ void AProjectileWeapon::Reload()
 		// TODO: Play VFX
 
 		// Reset physics
-		WeaponMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
-		WeaponMesh->SetNotifyRigidBodyCollision(false);
-		WeaponMesh->SetSimulatePhysics(false);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ToggleWeaponPhysics(false);
+
+		//WeaponMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
+		//WeaponMesh->SetNotifyRigidBodyCollision(false);
+		//WeaponMesh->SetSimulatePhysics(false);
+		//WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		OnEquipped();
 

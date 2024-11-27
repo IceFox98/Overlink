@@ -24,6 +24,10 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+protected:
+
+	virtual void BeginPlay() override;
+
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
@@ -31,6 +35,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 		virtual void Reload();
+
+	void ToggleWeaponPhysics(bool bEnable);
+
+	UFUNCTION()
+		void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:
 
