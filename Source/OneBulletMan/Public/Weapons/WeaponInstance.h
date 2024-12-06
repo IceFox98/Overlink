@@ -20,10 +20,6 @@ public:
 
 	AWeaponInstance();
 	
-public:
-
-	virtual void Tick(float DeltaSeconds) override;
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -31,7 +27,10 @@ protected:
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
-		virtual void Fire();
+		virtual void Fire(const FHitResult& HitData);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon", meta = (DisplayName = "On Fire"))
+		void K2_OnFire(const FHitResult& HitData);
 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 		virtual void Reload();

@@ -18,12 +18,12 @@ AProjectileWeapon::AProjectileWeapon()
 	MuzzleSocketName = "Muzzle";
 }
 
-void AProjectileWeapon::Fire()
+void AProjectileWeapon::Fire(const FHitResult& HitData)
 {
 	if (bIsReloading)
 		return;
 
-	Super::Fire();
+	Super::Fire(HitData);
 }
 
 void AProjectileWeapon::Reload()

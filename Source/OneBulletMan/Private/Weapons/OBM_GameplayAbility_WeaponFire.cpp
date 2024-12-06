@@ -22,42 +22,46 @@ void UOBM_GameplayAbility_WeaponFire::ActivateAbility(const FGameplayAbilitySpec
 
 	if (PC)
 	{
-		if (AProjectileWeapon* ProjectileWeapon = Cast<AProjectileWeapon>(GetCurrentSourceObject()))
+		if (AWeaponInstance* WeaponInstance = Cast<AWeaponInstance>(GetCurrentSourceObject()))
 		{
 			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
 			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * 20000.f;
 
 			FCollisionQueryParams Params;
-			Params.AddIgnoredActor(ProjectileWeapon);
-			Params.AddIgnoredActor(ProjectileWeapon->GetOwner());
+			Params.AddIgnoredActor(WeaponInstance);
+			Params.AddIgnoredActor(WeaponInstance->GetOwner());
 
 			FHitResult Hit;
 			GetWorld()->LineTraceSingleByChannel(Hit, HitTraceStart, HitTraceEnd, ECC_Visibility, Params);
 
-			const FVector MuzzleLocation = ProjectileWeapon->GetMuzzleTransform().GetLocation();
-
-			FRotator SpawnRotation = PC->PlayerCameraManager->GetCameraRotation();
-
-			if (Hit.bBlockingHit)
+			if (AProjectileWeapon* ProjectileWeapon = Cast<AProjectileWeapon>(WeaponInstance))
 			{
-				// Get rotation of the vector that start from Muzzle Location to Impact Point
-				//SpawnRotation = FRotationMatrix::MakeFromX(Hit.ImpactPoint - MuzzleLocation).Rotator();
+				const FVector MuzzleLocation = ProjectileWeapon->GetMuzzleTransform().GetLocation();
 
-				SpawnRotation = (Hit.ImpactPoint - MuzzleLocation).Rotation();
+				FRotator SpawnRotation = PC->PlayerCameraManager->GetCameraRotation();
+
+				if (Hit.bBlockingHit)
+				{
+					// Get rotation of the vector that start from Muzzle Location to Impact Point
+					//SpawnRotation = FRotationMatrix::MakeFromX(Hit.ImpactPoint - MuzzleLocation).Rotator();
+
+					SpawnRotation = (Hit.ImpactPoint - MuzzleLocation).Rotation();
+				}
+
+				const FTransform SpawnTransform(SpawnRotation, MuzzleLocation);
+
+				AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, SpawnTransform, ProjectileWeapon->GetOwner(), ProjectileWeapon->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+				if (Projectile)
+				{
+					Projectile->SetDamage(GE_Damage);
+				}
+
+				UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
+
 			}
 
-			const FTransform SpawnTransform(SpawnRotation, MuzzleLocation);
-
-			AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, SpawnTransform, ProjectileWeapon->GetOwner(), ProjectileWeapon->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-
-			if (Projectile)
-			{
-				Projectile->SetDamage(GE_Damage);
-			}
-
-			UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
-
-			ProjectileWeapon->Fire(); // Best time to implement VFX/Sounds/...
+			WeaponInstance->Fire(Hit); // Best time to implement VFX/Sounds/...
 		}
 	}
 

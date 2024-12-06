@@ -20,14 +20,9 @@ void AWeaponInstance::BeginPlay()
 	WeaponMesh->OnComponentHit.AddDynamic(this, &AWeaponInstance::OnWeaponHit);
 }
 
-void AWeaponInstance::Tick(float DeltaSeconds)
+void AWeaponInstance::Fire(const FHitResult& HitData)
 {
-	Super::Tick(DeltaSeconds);
-}
-
-void AWeaponInstance::Fire()
-{
-	// No implementation
+	K2_OnFire(HitData);
 }
 
 void AWeaponInstance::Reload()

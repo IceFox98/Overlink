@@ -22,7 +22,7 @@ public:
 
 public:
 
-	virtual void Fire() override;
+	virtual void Fire(const FHitResult& HitData) override;
 
 	virtual void Reload() override;
 
