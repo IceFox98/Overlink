@@ -2,6 +2,7 @@
 
 
 #include "Equipment/EquipmentInstance.h"
+#include "Equipment/EquipmentDefinition.h"
 
 #include "Player/CharacterBase.h"
 
@@ -33,7 +34,9 @@ void AEquipmentInstance::OnEquipped()
 	{
 		AttachToComponent(OwningPawn->GetItemHoldingComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
 
-		//const FTransform RelativeTransform = GetDefault<UEquipmentDefinition>(EquipmentDefinition)->RelativeTransform.GetRotation();
+		const FTransform RelativeTransform = GetDefault<UEquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
+		SetActorRelativeRotation(RelativeTransform.GetRotation());
+		SetActorRelativeLocation(RelativeTransform.GetLocation());
 
 		bIsEquipped = true;
 
