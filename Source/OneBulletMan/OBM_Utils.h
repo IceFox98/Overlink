@@ -23,29 +23,35 @@
 //Current Class and Line Number where this is called
 #define JOYSTR_CUR_CLASS_LINE (JOYSTR_CUR_CLASS + "(" + JOYSTR_CUR_LINE + ")")
 
+//Current Class and Line Number where this is called
+#define JOYSTR_CUR_FUNC_CLASS_LINE (JOYSTR_CUR_CLASS_FUNC + "(" + JOYSTR_CUR_LINE + ")")
+
 //Current Function Signature where this is called
 #define JOYSTR_CUR_FUNCSIG (FString(__FUNCSIG__))
 
 #if LOG_ENABLED
 #define OBM_LOG_INTERNAL(LogCat, PrintScreen, Verbosity, Color, FormatString, ...) \
  \
-	UE_LOG(LogCat, Verbosity, TEXT("%s: %s"), *JOYSTR_CUR_CLASS_LINE, *FString::Printf(TEXT(FormatString), ##__VA_ARGS__)); \
-	if(PrintScreen) { GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, *(JOYSTR_CUR_CLASS_LINE + ": " + FString::Printf(TEXT(FormatString), ##__VA_ARGS__))); }
+	UE_LOG(LogCat, Verbosity, TEXT("%s: %s"), *JOYSTR_CUR_FUNC_CLASS_LINE, *FString::Printf(TEXT(FormatString), ##__VA_ARGS__)); \
+	if(PrintScreen) \
+		{ \
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, *(JOYSTR_CUR_FUNC_CLASS_LINE + ": " + FString::Printf(TEXT(FormatString), ##__VA_ARGS__)));\
+	    }
 #else
 #define OBM_LOG_INTERNAL(LogCat, PrintScreen, Verbosity, Color, FormatString, ...)
 #endif
 
 // Fast logging
-#define OBM_LOG(FormatString, ...) OBM_LOG_INTERNAL(LogTemp, true, Warning, FColor::FromHex("00D4FFFF"), FormatString, __VA_ARGS__)
+#define OBM_LOG(FormatString, ...) OBM_LOG_INTERNAL(LogTemp, true, Warning, FColor::FromHex("00D4FFFF"), FormatString, ##__VA_ARGS__)
 
 // Error log
-#define OBM_LOG_ERR(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Error, FColor::Red, FormatString, __VA_ARGS__)
+#define OBM_LOG_ERR(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Error, FColor::Red, FormatString, ##__VA_ARGS__)
 
 // Info log
-#define OBM_LOG_INFO(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Display, FColor::FromHex("00D4FFFF"), FormatString, __VA_ARGS__)
+#define OBM_LOG_INFO(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Display, FColor::FromHex("00D4FFFF"), FormatString, ##__VA_ARGS__)
 
 // Warning log
-#define OBM_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, __VA_ARGS__)
+#define OBM_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, ##__VA_ARGS__)
 
 /**
  *

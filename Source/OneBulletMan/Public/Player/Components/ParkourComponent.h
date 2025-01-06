@@ -6,7 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "ParkourComponent.generated.h"
 
-enum class EParkourMovementType : uint8
+enum EParkourMovementType : uint8
 {
 	None,
 	WallrunLeft,
