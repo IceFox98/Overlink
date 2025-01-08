@@ -72,4 +72,12 @@ public:
 #endif
 	}
 
+	// Converts a rotation from world space to gravity relative space.
+	UFUNCTION(BlueprintPure)
+		static FRotator GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection);
+
+	// Converts a rotation from gravity relative space to world space.
+	UFUNCTION(BlueprintPure)
+		static FRotator GetGravityWorldRotation(FRotator Rotation, FVector GravityDirection);
+
 };
