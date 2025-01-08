@@ -8,7 +8,7 @@
 #include "Player/Components/HealthComponent.h"
 #include "UObject/UObjectBaseUtility.h"
 
-#include "../OBM_Utils.h"
+#include "OBM_Utils.h"
 
 // Sets default values
 AEnemyBase::AEnemyBase()

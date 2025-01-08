@@ -8,7 +8,7 @@
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
 
-#include "../OBM_Utils.h"
+#include "OBM_Utils.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()

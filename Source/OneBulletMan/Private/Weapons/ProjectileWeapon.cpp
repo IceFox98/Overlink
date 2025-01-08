@@ -5,7 +5,7 @@
 //#include "Components/SphereComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
-#include "../OBM_Utils.h"
+#include "OBM_Utils.h"
 
 AProjectileWeapon::AProjectileWeapon()
 {
