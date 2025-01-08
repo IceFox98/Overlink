@@ -18,7 +18,7 @@ class ONEBULLETMAN_API ACharacterBase : public ACharacter, public IAbilitySystem
 
 public:
 	// Sets default values for this character's properties
-	ACharacterBase();
+	ACharacterBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned

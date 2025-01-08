@@ -16,8 +16,10 @@
 #include "AbilitySystem/Attributes/OBM_HealthSet.h"
 #include "../OBM_GameplayTags.h"
 #include "GameplayEffectTypes.h"
+#include "OBM_Utils.h"
 
-APlayerCharacter::APlayerCharacter()
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOBM_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -57,6 +59,11 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 }
+//
+//UGravityMovementComponent* APlayerCharacter::GetOBMMovementComponent()
+//{
+//	return Cast<UGravityMovementComponent>(GetOBMMovementComponent());
+//}
 
 void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -94,16 +101,32 @@ void APlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
 	const FVector2D Value = InputActionValue.Get<FVector2D>();
 
-	const FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
+	FRotator MovementRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 
 	if (Value.X != 0.0f)
 	{
+		if (true)
+		{
+			MovementRotation = UOBM_Utils::GetGravityRelativeRotation(Controller->GetControlRotation(), GetCharacterMovement()->GetGravityDirection());
+			MovementRotation.Pitch = 0.f;
+			MovementRotation = UOBM_Utils::GetGravityWorldRotation(MovementRotation, GetCharacterMovement()->GetGravityDirection());
+		}
+
 		const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
 		AddMovementInput(MovementDirection, Value.X);
 	}
 
 	if (Value.Y != 0.0f)
 	{
+		if (true)
+		{
+			MovementRotation = UOBM_Utils::GetGravityRelativeRotation(Controller->GetControlRotation(), GetCharacterMovement()->GetGravityDirection());
+			MovementRotation.Roll = 0.f;
+			MovementRotation.Pitch = 0.f;
+
+			MovementRotation = UOBM_Utils::GetGravityWorldRotation(MovementRotation, GetCharacterMovement()->GetGravityDirection());
+		}
+
 		const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
 		AddMovementInput(MovementDirection, Value.Y);
 	}

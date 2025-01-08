@@ -5,20 +5,23 @@
 
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 void UOBM_CameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
 	Super::GetCameraView(DeltaTime, DesiredView);
 
+	//return;
+
 	UpdateForOwner();
 	UpdateCrouchOffset(DeltaTime);
 
 	FVector PivotLocation = GetPivotLocation() + CurrentCrouchOffset;
-	FRotator PivotRotation = GetPivotRotation();
+	//FRotator PivotRotation = GetPivotRotation();
 
 	// Update current camera view, without moving the actual camera object
 	DesiredView.Location = PivotLocation;
-	DesiredView.Rotation = PivotRotation;
+	//DesiredView.Rotation = PivotRotation;
 }
 
 FVector UOBM_CameraComponent::GetPivotLocation() const
@@ -40,11 +43,14 @@ FVector UOBM_CameraComponent::GetPivotLocation() const
 			const UCapsuleComponent* CapsuleCompCDO = TargetCharacterCDO->GetCapsuleComponent();
 			check(CapsuleCompCDO);
 
+			const UCharacterMovementComponent* MoveComp = TargetCharacter->GetCharacterMovement();
+			check(MoveComp);
+
 			const float DefaultHalfHeight = CapsuleCompCDO->GetUnscaledCapsuleHalfHeight();
 			const float ActualHalfHeight = CapsuleComp->GetUnscaledCapsuleHalfHeight();
 			const float HeightAdjustment = (DefaultHalfHeight - ActualHalfHeight) + TargetCharacterCDO->BaseEyeHeight;
 
-			return TargetCharacter->GetActorLocation() + (FVector::UpVector * HeightAdjustment);
+			return TargetCharacter->GetActorLocation() + (-MoveComp->GetGravityDirection() * HeightAdjustment);
 		}
 
 		return TargetPawn->GetPawnViewLocation();
@@ -78,7 +84,10 @@ void UOBM_CameraComponent::UpdateForOwner()
 			// Get the offset between base and crouched eye position
 			const float CrouchedHeightAdjustment = TargetCharacterCDO->CrouchedEyeHeight - TargetCharacterCDO->BaseEyeHeight;
 
-			SetTargetCrouchOffset(FVector(0.f, 0.f, CrouchedHeightAdjustment));
+			const UCharacterMovementComponent* MoveComp = TargetCharacter->GetCharacterMovement();
+
+			//SetTargetCrouchOffset(FVector(0.f, 0.f, CrouchedHeightAdjustment));
+			SetTargetCrouchOffset(-MoveComp->GetGravityDirection().GetSafeNormal() * CrouchedHeightAdjustment);
 
 			return;
 		}

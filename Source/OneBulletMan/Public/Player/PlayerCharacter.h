@@ -4,10 +4,12 @@
 
 #include "CharacterBase.h"
 #include "AbilitySystemInterface.h"
+#include "Player/Components/OBM_CharacterMovementComponent.h"
 
 #include "PlayerCharacter.generated.h"
 
 class UOBM_CameraComponent;
+class UOBM_CharacterMovementComponent;
 class UInteractionComponent;
 class USceneComponent;
 class UInventoryComponent;
@@ -27,10 +29,16 @@ class ONEBULLETMAN_API APlayerCharacter : public ACharacterBase
 
 public:
 
-	APlayerCharacter();
+	// Sets default values for this character's properties
+	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
+
+//
+//protected:
+//	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
+//		UOBM_CharacterMovementComponent* GetOBMMovementComponent();
 
 public:
 
@@ -65,6 +73,10 @@ private:
 protected:
 
 	// ------ COMPONENTS ------
+
+	//	/** Camera boom positioning the camera behind the character */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	//	TObjectPtr<USpringArmComponent>* CameraBoom;
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
