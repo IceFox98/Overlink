@@ -48,6 +48,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
 		void HandleCrouching(bool bWantsToCrouch);
 
+	FORCEINLINE bool IsWallrunning() const { return MovementType == EParkourMovementType::WallrunLeft || MovementType == EParkourMovementType::WallrunRight; };
+
+	FORCEINLINE bool IsSliding() const { return MovementType == EParkourMovementType::Sliding; };
+
+	FORCEINLINE EParkourMovementType GetMovementType() const { return MovementType; };
+
 protected:
 
 	// ------ WALLRUN ------
@@ -61,7 +67,6 @@ protected:
 	void ResetWallrun();
 	void EndWallrun();
 
-	FORCEINLINE bool IsWallrunning() const { return MovementType == EParkourMovementType::WallrunLeft || MovementType == EParkourMovementType::WallrunRight; };
 
 	// ------ SLIDE ------
 
@@ -69,7 +74,6 @@ protected:
 	bool ShouldCancelSliding();
 	void CancelSliding();
 
-	FORCEINLINE bool IsSliding() const { return MovementType == EParkourMovementType::Sliding; };
 
 public:
 

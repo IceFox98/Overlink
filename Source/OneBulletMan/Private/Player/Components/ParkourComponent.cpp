@@ -144,7 +144,7 @@ void UParkourComponent::HandleWallrun(float DeltaTime)
 		}
 	}
 	
-	HandleWallrunCameraTilt(DeltaTime);
+	//HandleWallrunCameraTilt(DeltaTime);
 }
 
 bool UParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
@@ -187,7 +187,7 @@ void UParkourComponent::HandleWallrunCameraTilt(float DeltaTime)
 	}
 	else
 	{
-		//TargetRotation.Roll = 0.f;
+		TargetRotation.Roll = 0.f;
 	}
 
 	// Lerp and apply rotation

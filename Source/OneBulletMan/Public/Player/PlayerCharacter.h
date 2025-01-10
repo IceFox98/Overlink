@@ -64,6 +64,8 @@ public:
 
 	virtual USceneComponent* GetItemHoldingComponent() const override { return Cast<USceneComponent>(FirstPersonMesh); }
 
+	UParkourComponent* GetParkourComponent() const { return ParkourComponent; }
+
 private:
 
 	void OnAbilityInputPressed(FGameplayTag InputTag);

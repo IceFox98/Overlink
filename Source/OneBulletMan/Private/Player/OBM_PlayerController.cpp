@@ -2,7 +2,10 @@
 
 
 #include "Player/OBM_PlayerController.h"
-#include "GameFramework/Character.h"
+#include "Player/PlayerCharacter.h"
+#include "Player/Components/ParkourComponent.h"
+
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 #include "OBM_Utils.h"
@@ -13,7 +16,9 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 	//return;
 
 	FVector GravityDirection = FVector::DownVector;
-	if (ACharacter* PlayerCharacter = Cast<ACharacter>(GetPawn()))
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn());
+
+	if (PlayerCharacter)
 	{
 		if (UCharacterMovementComponent* MoveComp = PlayerCharacter->GetCharacterMovement())
 		{
@@ -44,12 +49,24 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 
 	if (PlayerCameraManager)
 	{
-		//ACharacter* PlayerCharacter = Cast<ACharacter>(GetPawn());
+		double TargetRoll = 0;
 
-		PlayerCameraManager->ProcessViewRotation(DeltaTime, ViewRotation, DeltaRot);
+		if (const UParkourComponent* ParkourComponent = PlayerCharacter->GetParkourComponent())
+		{
+			if (ParkourComponent->IsWallrunning())
+			{
+				TargetRoll = ParkourComponent->GetMovementType() == EParkourMovementType::WallrunLeft ? ParkourComponent->WallrunCameraTiltAngle : -ParkourComponent->WallrunCameraTiltAngle;
+			}
+		}
+		
+		// Add Delta Rotation
+		ViewRotation += DeltaRot;
 
-		// Zero the roll of the camera as we always want it horizontal in relation to the gravity.
-		ViewRotation.Roll = 0;
+		// Limit Player View Axes (skip Roll to avoid rotation optimizations)
+		PlayerCameraManager->LimitViewPitch(ViewRotation, PlayerCameraManager->ViewPitchMin, PlayerCameraManager->ViewPitchMax);
+		PlayerCameraManager->LimitViewYaw(ViewRotation, PlayerCameraManager->ViewYawMin, PlayerCameraManager->ViewYawMax);
+
+		ViewRotation.Roll = UKismetMathLibrary::FInterpTo(ViewRotation.Roll, TargetRoll, DeltaTime, 10.f);
 
 		// Convert the rotation back to world space, and set it as the current control rotation.
 		SetControlRotation(UOBM_Utils::GetGravityWorldRotation(ViewRotation, GravityDirection));
