@@ -41,6 +41,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
 
+	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
+
 	ThrowForce = 1200.f;
 }
 
