@@ -26,10 +26,6 @@ public:
 	// Sets default values for this component's properties
 	UParkourComponent();
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -99,7 +95,7 @@ public:
 
 	// Vector that will be added to the player position, used to get the slope of the floor.
 	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
-		FVector SlideVectorCheck;
+		float SlideDistanceCheck;
 
 	UPROPERTY(EditAnywhere, Category = "ParkourComponent|Sliding")
 		float SlideForce;

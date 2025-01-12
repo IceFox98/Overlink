@@ -19,18 +19,11 @@ UParkourComponent::UParkourComponent()
 	WallrunResetTime = .35f;
 	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
 
-	SlideVectorCheck = FVector(0.f, 0.f, -200.f);
+	SlideDistanceCheck = 200.f;
 	SlideForce = 800.f;
 	SlideGroundFriction = 0.f;
 	SlideBraking = 1000.f;
 	SlideMaxWalkSpeedCrouched = 0.f;
-}
-
-// Called when the game starts
-void UParkourComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -144,6 +137,7 @@ void UParkourComponent::HandleWallrun(float DeltaTime)
 		}
 	}
 	
+	// The tilting is now managed in the PlayerController class
 	//HandleWallrunCameraTilt(DeltaTime);
 }
 
@@ -166,7 +160,7 @@ bool UParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
 		WallrunNormal = OutHit.Normal;
 
 		// Returns the direction of where the player should be launched. It follows the wall surface.
-		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, FVector::UpVector);
+		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -CharacterMovement->GetGravityDirection());
 		const FVector LaunchVelocity = WallForwardDirection * DefaultMaxWalkSpeed * -WallDirection;
 
 		Character->LaunchCharacter(LaunchVelocity, true, true);
@@ -199,9 +193,22 @@ void UParkourComponent::HandleWallrunJump()
 {
 	if (IsWallrunning())
 	{
+		const float WallDirection = GetMovementType() == EParkourMovementType::WallrunLeft ? -1.f : 1.f;
+
 		EndWallrun();
 
-		const FVector LaunchVelocity = FVector(WallrunNormal.X, WallrunNormal.Y, 1.f) * WallrunJumpVelocity;
+		const float AwayVelocity = WallrunJumpVelocity.X;
+		const float ForwardVelocity = WallrunJumpVelocity.Y;
+		const float UpwardVelocity = WallrunJumpVelocity.Z;
+
+		// Get the wall forward vector as forward vector for the direction
+		const FVector ForwardDirection = FVector::CrossProduct(WallrunNormal, -CharacterMovement->GetGravityDirection()) * -WallDirection;
+
+		// Combine all directions together
+		const FVector LaunchVelocity = (WallrunNormal * AwayVelocity) + (ForwardDirection * ForwardVelocity) + (-CharacterMovement->GetGravityDirection() * UpwardVelocity);
+
+		//UKismetSystemLibrary::DrawDebugArrow(this, Character->GetActorLocation(), Character->GetActorLocation() + LaunchVelocity, 4.f, FLinearColor::Green, 10.f, 5.f);
+
 		Character->LaunchCharacter(LaunchVelocity, false, true);
 	}
 }
@@ -238,10 +245,9 @@ void UParkourComponent::HandleSliding()
 
 	if (bIsPlayerGrounded && bIsPlayerMoving)
 	{
-
 		// Trace a down vector to check if sliding is available.
 		const FVector StartTrace = Character->GetActorLocation();
-		const FVector EndTrace = StartTrace + SlideVectorCheck;
+		const FVector EndTrace = StartTrace + CharacterMovement->GetGravityDirection() * SlideDistanceCheck;
 
 		FHitResult OutHit;
 		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForDuration, OutHit, true);
