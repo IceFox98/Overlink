@@ -5,7 +5,8 @@
 #include "AbilitySystem/OBM_AbilitySet.h"
 #include "AbilitySystem/Attributes/OBM_HealthSet.h"
 #include "AbilitySystem/OBM_AbilitySystemComponent.h"
-#include "Player/Components/HealthComponent.h"
+#include "Player/Components/OBM_HealthComponent.h"
+
 #include "UObject/UObjectBaseUtility.h"
 
 #include "OBM_Utils.h"
@@ -16,7 +17,7 @@ AOBM_PawnBase::AOBM_PawnBase()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent = CreateDefaultSubobject<UOBM_HealthComponent>(TEXT("HealthComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UOBM_AbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
 

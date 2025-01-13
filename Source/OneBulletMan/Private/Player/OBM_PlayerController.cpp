@@ -2,8 +2,8 @@
 
 
 #include "Player/OBM_PlayerController.h"
-#include "Player/PlayerCharacter.h"
-#include "Player/Components/ParkourComponent.h"
+#include "Player/OBM_PlayerCharacter.h"
+#include "Player/Components/OBM_ParkourComponent.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,7 +16,7 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 	//return;
 
 	FVector GravityDirection = FVector::DownVector;
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetPawn());
+	AOBM_PlayerCharacter* PlayerCharacter = Cast<AOBM_PlayerCharacter>(GetPawn());
 
 	if (PlayerCharacter)
 	{
@@ -29,17 +29,6 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 	// Get the current control rotation in world space
 	FRotator ViewRotation = GetControlRotation();
 
-	//// Add any rotation from the gravity changes, if any happened.
-	//// Delete this code block if you don't want the camera to automatically compensate for gravity rotation.
-	//if (!LastFrameGravity.Equals(FVector::ZeroVector))
-	//{
-	//	const FQuat DeltaGravityRotation = FQuat::FindBetweenNormals(LastFrameGravity, GravityDirection);
-	//	const FQuat WarpedCameraRotation = DeltaGravityRotation * FQuat(ViewRotation);
-
-	//	ViewRotation = WarpedCameraRotation.Rotator();
-	//}
-	//LastFrameGravity = GravityDirection;
-
 	// Convert the view rotation from world space to gravity relative space.
 	// Now we can work with the rotation as if no custom gravity was affecting it.
 	ViewRotation = UOBM_Utils::GetGravityRelativeRotation(ViewRotation, GravityDirection);
@@ -51,7 +40,7 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 	{
 		double TargetRoll = 0;
 
-		if (const UParkourComponent* ParkourComponent = PlayerCharacter->GetParkourComponent())
+		if (const UOBM_ParkourComponent* ParkourComponent = PlayerCharacter->GetParkourComponent())
 		{
 			if (ParkourComponent->IsWallrunning())
 			{

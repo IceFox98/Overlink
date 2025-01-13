@@ -2,8 +2,8 @@
 
 
 #include "Weapons/OBM_GameplayAbility_WeaponFire.h"
-#include "Weapons/ProjectileWeapon.h"
-#include "Weapons/Projectile.h"
+#include "Weapons/OBM_ProjectileWeapon.h"
+#include "Weapons/OBM_Projectile.h"
 
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -22,7 +22,7 @@ void UOBM_GameplayAbility_WeaponFire::ActivateAbility(const FGameplayAbilitySpec
 
 	if (PC)
 	{
-		if (AWeaponInstance* WeaponInstance = Cast<AWeaponInstance>(GetCurrentSourceObject()))
+		if (AOBM_WeaponInstance* WeaponInstance = Cast<AOBM_WeaponInstance>(GetCurrentSourceObject()))
 		{
 			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
 			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * 20000.f;
@@ -34,7 +34,7 @@ void UOBM_GameplayAbility_WeaponFire::ActivateAbility(const FGameplayAbilitySpec
 			FHitResult Hit;
 			GetWorld()->LineTraceSingleByChannel(Hit, HitTraceStart, HitTraceEnd, ECC_Visibility, Params);
 
-			if (AProjectileWeapon* ProjectileWeapon = Cast<AProjectileWeapon>(WeaponInstance))
+			if (AOBM_ProjectileWeapon* ProjectileWeapon = Cast<AOBM_ProjectileWeapon>(WeaponInstance))
 			{
 				const FVector MuzzleLocation = ProjectileWeapon->GetMuzzleTransform().GetLocation();
 
@@ -50,7 +50,7 @@ void UOBM_GameplayAbility_WeaponFire::ActivateAbility(const FGameplayAbilitySpec
 
 				const FTransform SpawnTransform(SpawnRotation, MuzzleLocation);
 
-				AProjectile* Projectile = GetWorld()->SpawnActorDeferred<AProjectile>(ProjectileClass, SpawnTransform, ProjectileWeapon->GetOwner(), ProjectileWeapon->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+				AOBM_Projectile* Projectile = GetWorld()->SpawnActorDeferred<AOBM_Projectile>(ProjectileClass, SpawnTransform, ProjectileWeapon->GetOwner(), ProjectileWeapon->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 				if (Projectile)
 				{

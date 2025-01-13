@@ -6,7 +6,7 @@
 #include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
 #include "OBM_GameplayAbility_WeaponFire.generated.h"
 
-class AProjectile;
+class AOBM_Projectile;
 
 /**
  *
@@ -28,7 +28,7 @@ protected:
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Fire")
-		TSubclassOf<AProjectile> ProjectileClass;
+		TSubclassOf<AOBM_Projectile> ProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon Fire")
 		TSubclassOf<UGameplayEffect> GE_Damage;

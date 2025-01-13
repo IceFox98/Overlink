@@ -7,7 +7,7 @@
 
 #include "OBM_PawnBase.generated.h"
 
-class UHealthComponent;
+class UOBM_HealthComponent;
 class UOBM_AbilitySystemComponent;
 class UOBM_AbilitySet;
 
@@ -42,7 +42,7 @@ protected:
 		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "OBM|Components")
-		UHealthComponent* HealthComponent;
+		UOBM_HealthComponent* HealthComponent;
 
 public:
 

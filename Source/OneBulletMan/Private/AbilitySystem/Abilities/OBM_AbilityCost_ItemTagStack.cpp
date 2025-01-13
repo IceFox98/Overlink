@@ -5,8 +5,8 @@
 
 #include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
 #include "NativeGameplayTags.h"
-#include "Equipment/EquipmentInstance.h"
-#include "Inventory/ItemInstance.h"
+#include "Equipment/OBM_EquipmentInstance.h"
+#include "Inventory/OBM_ItemInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(OBM_AbilityCost_ItemTagStack)
 
@@ -22,9 +22,9 @@ bool UOBM_AbilityCost_ItemTagStack::CheckCost(const UOBM_GameplayAbility* Abilit
 {
 	if (FGameplayAbilitySpec* Spec = Ability->GetCurrentAbilitySpec())
 	{
-		if (AEquipmentInstance* EquipmentInstance = Cast<AEquipmentInstance>(Spec->SourceObject.Get()))
+		if (AOBM_EquipmentInstance* EquipmentInstance = Cast<AOBM_EquipmentInstance>(Spec->SourceObject.Get()))
 		{
-			if (UItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
+			if (UOBM_ItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
 			{
 				const bool bCanApplyCost = ItemInstance->GetTagStackCount(Tag) >= Quantity;
 
@@ -46,9 +46,9 @@ void UOBM_AbilityCost_ItemTagStack::ApplyCost(const UOBM_GameplayAbility* Abilit
 {
 	if (FGameplayAbilitySpec* Spec = Ability->GetCurrentAbilitySpec())
 	{
-		if (AEquipmentInstance* EquipmentInstance = Cast<AEquipmentInstance>(Spec->SourceObject.Get()))
+		if (AOBM_EquipmentInstance* EquipmentInstance = Cast<AOBM_EquipmentInstance>(Spec->SourceObject.Get()))
 		{
-			if (UItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
+			if (UOBM_ItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
 			{
 				ItemInstance->RemoveStack(Tag, Quantity);
 			}
