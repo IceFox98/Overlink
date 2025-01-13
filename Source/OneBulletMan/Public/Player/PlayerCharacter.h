@@ -76,10 +76,6 @@ protected:
 
 	// ------ COMPONENTS ------
 
-	//	/** Camera boom positioning the camera behind the character */
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	//	TObjectPtr<USpringArmComponent>* CameraBoom;
-
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_CameraComponent> CameraComp;

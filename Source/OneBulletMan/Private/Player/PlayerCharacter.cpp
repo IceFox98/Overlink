@@ -14,7 +14,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "AbilitySystem/Attributes/OBM_HealthSet.h"
-#include "../OBM_GameplayTags.h"
+#include "OBM_GameplayTags.h"
 #include "GameplayEffectTypes.h"
 #include "OBM_Utils.h"
 
@@ -61,11 +61,6 @@ void APlayerCharacter::BeginPlay()
 		}
 	}
 }
-//
-//UGravityMovementComponent* APlayerCharacter::GetOBMMovementComponent()
-//{
-//	return Cast<UGravityMovementComponent>(GetOBMMovementComponent());
-//}
 
 void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
