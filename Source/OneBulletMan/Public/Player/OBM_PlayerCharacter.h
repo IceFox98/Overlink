@@ -35,11 +35,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-//
-//protected:
-//	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character")
-//		UOBM_CharacterMovementComponent* GetOBMMovementComponent();
-
 public:
 
 	// Called to bind functionality to input
@@ -58,11 +53,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void ThrowEquippedObject();
-
-	//FORCEINLINE USceneComponent* GetItemHoldingPoint() const { return ItemHoldingPoint; }
-	//FORCEINLINE USceneComponent* GetCameraComp() const { return CameraComp; }
-
-	virtual USceneComponent* GetItemHoldingComponent() const override { return Cast<USceneComponent>(FirstPersonMesh); }
 
 	UOBM_ParkourComponent* GetParkourComponent() const { return ParkourComponent; }
 
@@ -83,14 +73,6 @@ protected:
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_InteractionComponent> InteractionComponent;
-
-	///** The location where the current selected object is hold */
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
-	//	TObjectPtr<USceneComponent> ItemHoldingPoint;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USkeletalMeshComponent> FirstPersonMesh;
-
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_InventoryComponent> InventoryComponent;
