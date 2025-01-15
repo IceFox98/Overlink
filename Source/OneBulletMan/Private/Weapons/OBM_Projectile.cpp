@@ -8,6 +8,8 @@
 #include "GameplayEffect.h"
 #include "AbilitySystemGlobals.h"
 
+#include "Kismet/GameplayStatics.h"
+
 AOBM_Projectile::AOBM_Projectile()
 {
 	// Use a sphere as a simple collision representation
@@ -55,7 +57,10 @@ void AOBM_Projectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor*
 			UGameplayEffect* GameplayEffect = GE_Damage->GetDefaultObject<UGameplayEffect>();
 			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, InstigatorASC->MakeEffectContext());
 		}
+
 	}
 
+	UGameplayStatics::ApplyDamage(OtherActor, 20.f, nullptr, this, UDamageType::StaticClass());
+	
 	Destroy();
 }
