@@ -15,6 +15,7 @@ class USceneComponent;
 class UOBM_InventoryComponent;
 class UOBM_ParkourComponent;
 class UOBM_InputConfig;
+class USpringArmComponent;
 class UInputMappingContext;
 struct FInputActionValue;
 struct FGameplayTag;
@@ -69,6 +70,9 @@ protected:
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_CameraComponent> CameraComp;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//	TObjectPtr<USpringArmComponent> CameraBoom;
 
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
