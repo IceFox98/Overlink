@@ -71,9 +71,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_CameraComponent> CameraComp;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//	TObjectPtr<USpringArmComponent> CameraBoom;
-
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_InteractionComponent> InteractionComponent;

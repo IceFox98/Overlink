@@ -32,11 +32,11 @@ void AOBM_EquipmentInstance::OnEquipped()
 {
 	if (AOBM_CharacterBase* OwningPawn = Cast<AOBM_CharacterBase>(GetOwner()))
 	{
-		AttachToComponent(OwningPawn->GetItemHoldingComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
+		AttachToComponent(OwningPawn->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
 
-		const FTransform RelativeTransform = GetDefault<UOBM_EquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
-		SetActorRelativeRotation(RelativeTransform.GetRotation());
-		SetActorRelativeLocation(RelativeTransform.GetLocation());
+		//const FTransform RelativeTransform = GetDefault<UOBM_EquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
+		//SetActorRelativeRotation(RelativeTransform.GetRotation());
+		//SetActorRelativeLocation(RelativeTransform.GetLocation());
 
 		bIsEquipped = true;
 

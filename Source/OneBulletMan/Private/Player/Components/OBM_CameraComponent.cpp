@@ -20,7 +20,7 @@ void UOBM_CameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& Desi
 	//FRotator PivotRotation = GetPivotRotation();
 
 	// Update current camera view, without moving the actual camera object
-	DesiredView.Location = PivotLocation;
+	//DesiredView.Location = PivotLocation;
 	//DesiredView.Rotation = PivotRotation;
 }
 

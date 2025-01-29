@@ -30,9 +30,7 @@ AOBM_PlayerCharacter::AOBM_PlayerCharacter(const FObjectInitializer& ObjectIniti
 	CameraComp = CreateDefaultSubobject<UOBM_CameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(RootComponent);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
-
-	//// Attach Character mesh to camera
-	//GetMesh()->SetupAttachment(CameraComp);
+	CameraComp->SetupAttachment(GetMesh(), TEXT("head"));
 
 	InteractionComponent = CreateDefaultSubobject<UOBM_InteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOBM_InventoryComponent>(TEXT("InventoryComponent"));
