@@ -13,12 +13,12 @@
 #include "Inventory/OBM_InventoryComponent.h"
 #include "AbilitySystem/OBM_AbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OBM_HealthSet.h"
+#include "Player/Components/OBM_CharacterMovementComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameplayEffectTypes.h"
 
-#include "OBM_GameplayTags.h"
 #include "OBM_Utils.h"
 
 AOBM_PlayerCharacter::AOBM_PlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -71,8 +71,8 @@ void AOBM_PlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		TArray<uint32> BindHandles;
 		OBM_IC->BindAbilityActions(InputConfig, this, &ThisClass::OnAbilityInputPressed, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
 
-		OBM_IC->BindNativeAction(InputConfig, OBM_GameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
-		OBM_IC->BindNativeAction(InputConfig, OBM_GameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+		OBM_IC->BindNativeAction(InputConfig, OBM_InputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
+		OBM_IC->BindNativeAction(InputConfig, OBM_InputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
 	}
 }
 
@@ -140,6 +140,76 @@ void AOBM_PlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	{
 		AddControllerPitchInput(Value.Y);
 	}
+}
+
+void AOBM_PlayerCharacter::Crouch(bool bClientSimulation)
+{
+	Super::Crouch();
+
+	SetStance(OBM_StanceTags::Crouching);
+}
+
+void AOBM_PlayerCharacter::UnCrouch(bool bClientSimulation)
+{
+	Super::UnCrouch();
+
+	SetStance(OBM_StanceTags::Standing);
+}
+
+void AOBM_PlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	// Use the character movement mode to set the locomotion mode to the right value. This allows you to have a
+	// custom set of movement modes but still use the functionality of the default character movement component.
+
+	switch (GetCharacterMovement()->MovementMode)
+	{
+	case MOVE_Walking:
+	case MOVE_NavWalking:
+		SetLocomotionMode(OBM_LocomotionModeTags::Grounded);
+		break;
+
+	case MOVE_Falling:
+		SetLocomotionMode(OBM_LocomotionModeTags::InAir);
+		break;
+
+	default:
+		SetLocomotionMode(FGameplayTag::EmptyTag);
+		break;
+	}
+
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
+void AOBM_PlayerCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
+{
+	if (LocomotionMode == NewLocomotionMode)
+		return;
+
+	LocomotionMode = NewLocomotionMode;
+}
+
+void AOBM_PlayerCharacter::SetStance(const FGameplayTag& NewStance)
+{
+	if (Stance == NewStance)
+		return;
+
+	Stance = NewStance;
+}
+
+void AOBM_PlayerCharacter::SetGait(const FGameplayTag& NewGait)
+{
+	if (Gait == NewGait)
+		return;
+
+	Gait = NewGait;
+}
+
+void AOBM_PlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
+{
+	if (OverlayMode == NewOverlayMode)
+		return;
+
+	OverlayMode = NewOverlayMode;
 }
 
 void AOBM_PlayerCharacter::Interact()

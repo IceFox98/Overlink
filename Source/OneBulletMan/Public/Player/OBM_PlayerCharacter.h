@@ -4,7 +4,7 @@
 
 #include "OBM_CharacterBase.h"
 #include "AbilitySystemInterface.h"
-#include "Player/Components/OBM_CharacterMovementComponent.h"
+#include "OBM_GameplayTags.h"
 
 #include "OBM_PlayerCharacter.generated.h"
 
@@ -18,7 +18,6 @@ class UOBM_InputConfig;
 class USpringArmComponent;
 class UInputMappingContext;
 struct FInputActionValue;
-struct FGameplayTag;
 
 /**
  *
@@ -47,6 +46,27 @@ public:
 
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
+
+	virtual void Crouch(bool bClientSimulation) override;
+	virtual void UnCrouch(bool bClientSimulation) override;
+
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
+
+	// ------ LOCOMOTION ------
+
+	FORCEINLINE const FGameplayTag& GetLocomotionMode() const { return LocomotionMode; }
+	FORCEINLINE const FGameplayTag& GetStance() const { return Stance; }
+	FORCEINLINE const FGameplayTag& GetGait() const { return Gait; }
+	FORCEINLINE const FGameplayTag& GetOverlayMode() const { return OverlayMode; }
+	FORCEINLINE bool IsAiming() const { return bIsAiming; }
+
+	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
+	void SetStance(const FGameplayTag& NewStance);
+	void SetGait(const FGameplayTag& NewGait);
+	void SetOverlayMode(const FGameplayTag& NewOverlayMode);
+
+	UFUNCTION(BlueprintCallable, Category = "OBM|Player")
+		void SetIsAiming(bool bNewIsAiming) { bIsAiming = bNewIsAiming; };
 
 	// ------ INTERACTION ------
 
@@ -81,6 +101,25 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOBM_ParkourComponent> ParkourComponent;
 
+	// ------ LOCOMOTION ------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+		FGameplayTag LocomotionMode = OBM_LocomotionModeTags::Grounded;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+		FGameplayTag Stance = OBM_StanceTags::Standing;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+		FGameplayTag Gait = OBM_GaitTags::Walking;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+		FGameplayTag OverlayMode = OBM_OverlayModeTags::Default;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+		bool bIsAiming;
 public:
 
 	// ------ INPUT ------
