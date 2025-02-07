@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/Input/OBM_InputConfig.h"
+#include "Player/Input/OvrlInputConfig.h"
 
-UOBM_InputConfig::UOBM_InputConfig(const FObjectInitializer& ObjectInitializer)
+UOvrlInputConfig::UOvrlInputConfig(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-const UInputAction* UOBM_InputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
+const UInputAction* UOvrlInputConfig::FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
-	for (const FOBM_InputAction& Action : NativeInputActions)
+	for (const FOvrlInputAction& Action : NativeInputActions)
 	{
 		if (Action.InputAction && (Action.InputTag == InputTag))
 		{
@@ -25,9 +25,9 @@ const UInputAction* UOBM_InputConfig::FindNativeInputActionForTag(const FGamepla
 	return nullptr;
 }
 
-const UInputAction* UOBM_InputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
+const UInputAction* UOvrlInputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
-	for (const FOBM_InputAction& Action : AbilityInputActions)
+	for (const FOvrlInputAction& Action : AbilityInputActions)
 	{
 		if (Action.InputAction && (Action.InputTag == InputTag))
 		{

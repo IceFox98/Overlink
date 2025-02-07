@@ -2,19 +2,19 @@
 
 #pragma once
 
-#include "Pawn/OBM_PawnBase.h"
+#include "Pawn/OvrlPawnBase.h"
 
-#include "OBM_EnemyBase.generated.h"
+#include "OvrlEnemyBase.generated.h"
 
 
 UCLASS()
-class OVERLINK_API AOBM_EnemyBase : public AOBM_PawnBase
+class OVERLINK_API AOvrlEnemyBase : public AOvrlPawnBase
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	AOBM_EnemyBase();
+	AOvrlEnemyBase();
 
 protected:
 	// Called when the game starts or when spawned

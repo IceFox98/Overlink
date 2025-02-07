@@ -1,22 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/OBM_PlayerController.h"
-#include "Player/OBM_PlayerCharacter.h"
-#include "Player/Components/OBM_ParkourComponent.h"
+#include "Player/OvrlPlayerController.h"
+#include "Player/OvrlPlayerCharacter.h"
+#include "Player/Components/OvrlParkourComponent.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
-void AOBM_PlayerController::UpdateRotation(float DeltaTime)
+void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 {
 	//Super::UpdateRotation(DeltaTime);
 	//return;
 
 	FVector GravityDirection = FVector::DownVector;
-	AOBM_PlayerCharacter* PlayerCharacter = Cast<AOBM_PlayerCharacter>(GetPawn());
+	AOvrlPlayerCharacter* PlayerCharacter = Cast<AOvrlPlayerCharacter>(GetPawn());
 
 	if (PlayerCharacter)
 	{
@@ -31,7 +31,7 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 
 	// Convert the view rotation from world space to gravity relative space.
 	// Now we can work with the rotation as if no custom gravity was affecting it.
-	ViewRotation = UOBM_Utils::GetGravityRelativeRotation(ViewRotation, GravityDirection);
+	ViewRotation = UOvrlUtils::GetGravityRelativeRotation(ViewRotation, GravityDirection);
 
 	// Calculate Delta to be applied on ViewRotation
 	FRotator DeltaRot(RotationInput);
@@ -40,7 +40,7 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 	{
 		double TargetRoll = 0;
 
-		if (const UOBM_ParkourComponent* ParkourComponent = PlayerCharacter->GetParkourComponent())
+		if (const UOvrlParkourComponent* ParkourComponent = PlayerCharacter->GetParkourComponent())
 		{
 			if (ParkourComponent->IsWallrunning())
 			{
@@ -58,7 +58,7 @@ void AOBM_PlayerController::UpdateRotation(float DeltaTime)
 		ViewRotation.Roll = UKismetMathLibrary::FInterpTo(ViewRotation.Roll, TargetRoll, DeltaTime, 10.f);
 
 		// Convert the rotation back to world space, and set it as the current control rotation.
-		SetControlRotation(UOBM_Utils::GetGravityWorldRotation(ViewRotation, GravityDirection));
+		SetControlRotation(UOvrlUtils::GetGravityWorldRotation(ViewRotation, GravityDirection));
 	}
 
 	APawn* const P = GetPawnOrSpectator();

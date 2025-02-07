@@ -6,10 +6,10 @@
 #include "UObject/NoExportTypes.h"
 #include "GameplayTagContainer.h"
 
-#include "OBM_ItemInstance.generated.h"
+#include "OvrlItemInstance.generated.h"
 
-class UOBM_ItemDefinition;
-class UOBM_ItemFragment;
+class UOvrlItemDefinition;
+class UOvrlItemFragment;
 
 /**
  * Represents one stack of a gameplay tag (tag + count)
@@ -30,7 +30,7 @@ public:
 
 private:
 
-	friend class UOBM_ItemInstance;
+	friend class UOvrlItemInstance;
 
 	UPROPERTY()
 		FGameplayTag Tag;
@@ -43,7 +43,7 @@ private:
  *
  */
 UCLASS(BlueprintType)
-class OVERLINK_API UOBM_ItemInstance : public UObject
+class OVERLINK_API UOvrlItemInstance : public UObject
 {
 	GENERATED_BODY()
 
@@ -56,12 +56,12 @@ public:
 
 	int32 GetTagStackCount(FGameplayTag Tag) const;
 
-	void SetItemDef(TSubclassOf<UOBM_ItemDefinition> InDef);
+	void SetItemDef(TSubclassOf<UOvrlItemDefinition> InDef);
 
-	FORCEINLINE TSubclassOf<UOBM_ItemDefinition> GetItemDef() const { return ItemDef; }
+	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDef() const { return ItemDef; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))
-		const UOBM_ItemFragment* FindFragmentByClass(TSubclassOf<UOBM_ItemFragment> FragmentClass) const;
+		const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
 	template <typename ResultClass>
 	const ResultClass* FindFragmentByClass() const
@@ -71,7 +71,7 @@ public:
 
 private:
 
-	TSubclassOf<UOBM_ItemDefinition> ItemDef;
+	TSubclassOf<UOvrlItemDefinition> ItemDef;
 
 	// List of gameplay tag stacks
 	UPROPERTY()

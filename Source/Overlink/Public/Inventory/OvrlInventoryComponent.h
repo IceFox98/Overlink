@@ -4,21 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "OBM_InventoryComponent.generated.h"
+#include "OvrlInventoryComponent.generated.h"
 
-class UOBM_AbilitySystemComponent;
-class UOBM_ItemDefinition;
-class UOBM_ItemInstance;
-class AOBM_EquipmentInstance;
+class UOvrlAbilitySystemComponent;
+class UOvrlItemDefinition;
+class UOvrlItemInstance;
+class AOvrlEquipmentInstance;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class OVERLINK_API UOBM_InventoryComponent : public UActorComponent
+class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UOBM_InventoryComponent();
+	UOvrlInventoryComponent();
 
 	//protected:
 	//	// Called when the game starts
@@ -46,11 +46,11 @@ public:
 		//	AActor* DropSelectedItem();
 
 	UFUNCTION(BlueprintCallable)
-		UOBM_ItemInstance* AddItemDefinition(TSubclassOf<UOBM_ItemDefinition> ItemDef, int32 StackCount);
+		UOvrlItemInstance* AddItemDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount);
 
 private:
 
-	UOBM_AbilitySystemComponent* GetAbilitySystemComponent() const;
+	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
 
 	//void EquipItemInSlot();
 	//void UnequipCurrentItem();
@@ -69,13 +69,13 @@ private:
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<UOBM_ItemDefinition*> Items;
+		TArray<UOvrlItemDefinition*> Items;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<AOBM_EquipmentInstance*> EquippedItems;
+		TArray<AOvrlEquipmentInstance*> EquippedItems;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		AOBM_EquipmentInstance* SelectedItem;
+		AOvrlEquipmentInstance* SelectedItem;
 
 	int32 SelectedIndex;
 

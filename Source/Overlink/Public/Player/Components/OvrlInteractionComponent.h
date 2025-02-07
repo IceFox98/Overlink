@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 //#include "Interactives/Interactable.h"
-#include "OBM_InteractionComponent.generated.h"
+#include "OvrlInteractionComponent.generated.h"
 
 USTRUCT(BlueprintType)
 struct FInteractionData
@@ -26,13 +26,13 @@ public:
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class OVERLINK_API UOBM_InteractionComponent : public UActorComponent
+class OVERLINK_API UOvrlInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UOBM_InteractionComponent();
+	UOvrlInteractionComponent();
 
 protected:
 	// Called when the game starts
@@ -50,7 +50,7 @@ public:
 protected:
 
 	UPROPERTY()
-		class AOBM_CharacterBase* CharacterRef;
+		class AOvrlCharacterBase* CharacterRef;
 
 	UPROPERTY(EditAnywhere, Category = "Item Picker", meta = (ClampMin = 0.1f))
 		float Range;

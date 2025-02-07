@@ -5,20 +5,20 @@
 #include "GameFramework/Pawn.h"
 #include "AbilitySystemInterface.h"
 
-#include "OBM_PawnBase.generated.h"
+#include "OvrlPawnBase.generated.h"
 
-class UOBM_HealthComponent;
-class UOBM_AbilitySystemComponent;
-class UOBM_AbilitySet;
+class UOvrlHealthComponent;
+class UOvrlAbilitySystemComponent;
+class UOvrlAbilitySet;
 
 UCLASS()
-class OVERLINK_API AOBM_PawnBase : public APawn, public IAbilitySystemInterface
+class OVERLINK_API AOvrlPawnBase : public APawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	AOBM_PawnBase();
+	AOvrlPawnBase();
 
 protected:
 	// Called when the game starts or when spawned
@@ -38,15 +38,15 @@ public:
 protected:
 
 	/** Components that manages the player abilities */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "OBM|Components")
-		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
+		TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "OBM|Components")
-		UOBM_HealthComponent* HealthComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
+		UOvrlHealthComponent* HealthComponent;
 
 public:
 
 	// Ability sets to grant to this pawn's ability system.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Abilities")
-		TArray<TObjectPtr<UOBM_AbilitySet>> AbilitySets;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Abilities")
+		TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
 };

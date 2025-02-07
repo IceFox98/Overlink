@@ -1,25 +1,25 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapons/OBM_GameplayAbility_ProjectileWeaponFire.h"
-#include "Weapons/OBM_ProjectileWeapon.h"
-#include "Weapons/OBM_Projectile.h"
+#include "Weapons/OvrlGameplayAbility_ProjectileWeaponFire.h"
+#include "Weapons/OvrlProjectileWeapon.h"
+#include "Weapons/OvrlProjectile.h"
 
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
-UOBM_GameplayAbility_ProjectileWeaponFire::UOBM_GameplayAbility_ProjectileWeaponFire()
+UOvrlGameplayAbility_ProjectileWeaponFire::UOvrlGameplayAbility_ProjectileWeaponFire()
 {
 	TraceMaxDistance = 25000.f;
 }
 
-void UOBM_GameplayAbility_ProjectileWeaponFire::FireProjectile(const FHitResult& HitResult)
+void UOvrlGameplayAbility_ProjectileWeaponFire::FireProjectile(const FHitResult& HitResult)
 {
 	if (const APlayerController* PC = UGameplayStatics::GetPlayerController(GetCurrentSourceObject(), 0))
 	{
-		if (AOBM_WeaponInstance* WeaponInstance = Cast<AOBM_WeaponInstance>(GetCurrentSourceObject()))
+		if (AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(GetCurrentSourceObject()))
 		{
-			if (const AOBM_ProjectileWeapon* ProjectileWeapon = Cast<AOBM_ProjectileWeapon>(WeaponInstance))
+			if (const AOvrlProjectileWeapon* ProjectileWeapon = Cast<AOvrlProjectileWeapon>(WeaponInstance))
 			{
 				const FVector MuzzleLocation = ProjectileWeapon->GetMuzzleTransform().GetLocation();
 
@@ -33,7 +33,7 @@ void UOBM_GameplayAbility_ProjectileWeaponFire::FireProjectile(const FHitResult&
 
 				const FTransform SpawnTransform(SpawnRotation, MuzzleLocation);
 
-				AOBM_Projectile* Projectile = GetWorld()->SpawnActorDeferred<AOBM_Projectile>(ProjectileClass, SpawnTransform, ProjectileWeapon->GetOwner(), ProjectileWeapon->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+				AOvrlProjectile* Projectile = GetWorld()->SpawnActorDeferred<AOvrlProjectile>(ProjectileClass, SpawnTransform, ProjectileWeapon->GetOwner(), ProjectileWeapon->GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 				if (Projectile)
 				{

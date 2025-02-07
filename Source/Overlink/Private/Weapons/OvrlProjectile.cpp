@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Weapons/OBM_Projectile.h"
+#include "Weapons/OvrlProjectile.h"
 
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
@@ -10,7 +10,7 @@
 
 #include "Kismet/GameplayStatics.h"
 
-AOBM_Projectile::AOBM_Projectile()
+AOvrlProjectile::AOvrlProjectile()
 {
 	// Use a sphere as a simple collision representation
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
@@ -38,14 +38,14 @@ AOBM_Projectile::AOBM_Projectile()
 	InitialLifeSpan = 3.0f;
 }
 
-void AOBM_Projectile::BeginPlay()
+void AOvrlProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CollisionComp->OnComponentHit.AddDynamic(this, &AOBM_Projectile::OnProjectileHit);
+	CollisionComp->OnComponentHit.AddDynamic(this, &AOvrlProjectile::OnProjectileHit);
 }
 
-void AOBM_Projectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AOvrlProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (APawn* HitPawn = Cast<APawn>(OtherActor))
 	{

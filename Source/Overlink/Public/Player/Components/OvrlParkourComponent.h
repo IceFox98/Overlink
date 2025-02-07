@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "OBM_ParkourComponent.generated.h"
+#include "OvrlParkourComponent.generated.h"
 
 enum EParkourMovementType : uint8
 {
@@ -18,13 +18,13 @@ class ACharacter;
 class UCharacterMovementComponent;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class OVERLINK_API UOBM_ParkourComponent : public UActorComponent
+class OVERLINK_API UOvrlParkourComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UOBM_ParkourComponent();
+	UOvrlParkourComponent();
 
 public:
 	// Called every frame

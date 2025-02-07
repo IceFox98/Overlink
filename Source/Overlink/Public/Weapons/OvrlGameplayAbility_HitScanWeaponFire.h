@@ -3,29 +3,29 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
+#include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
 
-#include "OBM_GameplayAbility_HitScanWeaponFire.generated.h"
+#include "OvrlGameplayAbility_HitScanWeaponFire.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API UOBM_GameplayAbility_HitScanWeaponFire : public UOBM_GameplayAbility
+class OVERLINK_API UOvrlGameplayAbility_HitScanWeaponFire : public UOvrlGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
 
-	UOBM_GameplayAbility_HitScanWeaponFire();
+	UOvrlGameplayAbility_HitScanWeaponFire();
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "OBM|Hit-Scan Weapon Fire")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl|Hit-Scan Weapon Fire")
 		void StartRangedWeaponTargeting();
 
 	// Called when target data is ready
-	UFUNCTION(BlueprintImplementableEvent, Category = "OBM|Hit-Scan Weapon Fire")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl|Hit-Scan Weapon Fire")
 		void OnRangedWeaponTargetDataReady(const FHitResult& TargetData);
 
 protected:
@@ -35,9 +35,9 @@ protected:
 
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Hit-Scan Weapon Fire")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Hit-Scan Weapon Fire")
 		TSubclassOf<UGameplayEffect> GE_Damage;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Hit-Scan Weapon Fire")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Hit-Scan Weapon Fire")
 		float TraceMaxDistance;
 };

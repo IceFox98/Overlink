@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
-FRotator UOBM_Utils::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
+FRotator UOvrlUtils::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
 {
 	if (!GravityDirection.Equals(FVector::DownVector))
 	{
@@ -17,7 +17,7 @@ FRotator UOBM_Utils::GetGravityRelativeRotation(FRotator Rotation, FVector Gravi
 	return Rotation;
 }
 
-FRotator UOBM_Utils::GetGravityWorldRotation(FRotator Rotation, FVector GravityDirection)
+FRotator UOvrlUtils::GetGravityWorldRotation(FRotator Rotation, FVector GravityDirection)
 {
 	if (!GravityDirection.Equals(FVector::DownVector))
 	{

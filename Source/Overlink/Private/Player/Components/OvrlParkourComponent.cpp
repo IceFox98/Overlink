@@ -1,17 +1,17 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/Components/OBM_ParkourComponent.h"
+#include "Player/Components/OvrlParkourComponent.h"
 
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
 // Sets default values for this component's properties
-UOBM_ParkourComponent::UOBM_ParkourComponent()
+UOvrlParkourComponent::UOvrlParkourComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -29,7 +29,7 @@ UOBM_ParkourComponent::UOBM_ParkourComponent()
 }
 
 // Called every frame
-void UOBM_ParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UOvrlParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -43,7 +43,7 @@ void UOBM_ParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	}
 }
 
-void UOBM_ParkourComponent::Initialize(ACharacter* InCharacter)
+void UOvrlParkourComponent::Initialize(ACharacter* InCharacter)
 {
 	check(InCharacter);
 
@@ -58,7 +58,7 @@ void UOBM_ParkourComponent::Initialize(ACharacter* InCharacter)
 	DefaultBrakingDecelerationWalking = CharacterMovement->BrakingDecelerationWalking;
 }
 
-void UOBM_ParkourComponent::OnPlayerJumped()
+void UOvrlParkourComponent::OnPlayerJumped()
 {
 	bShouldSlideOnLanded = false;
 
@@ -76,7 +76,7 @@ void UOBM_ParkourComponent::OnPlayerJumped()
 	}
 }
 
-void UOBM_ParkourComponent::OnPlayerLanded()
+void UOvrlParkourComponent::OnPlayerLanded()
 {
 	EndWallrun();
 
@@ -94,7 +94,7 @@ void UOBM_ParkourComponent::OnPlayerLanded()
 	}
 }
 
-void UOBM_ParkourComponent::HandleCrouching(bool bWantsToCrouch)
+void UOvrlParkourComponent::HandleCrouching(bool bWantsToCrouch)
 {
 	const bool bIsPlayerGrounded = !CharacterMovement->IsFalling();
 
@@ -115,7 +115,7 @@ void UOBM_ParkourComponent::HandleCrouching(bool bWantsToCrouch)
 	}
 }
 
-void UOBM_ParkourComponent::HandleWallrun(float DeltaTime)
+void UOvrlParkourComponent::HandleWallrun(float DeltaTime)
 {
 	if (bCanCheckWallrun)
 	{
@@ -143,7 +143,7 @@ void UOBM_ParkourComponent::HandleWallrun(float DeltaTime)
 	//HandleWallrunCameraTilt(DeltaTime);
 }
 
-bool UOBM_ParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
+bool UOvrlParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
 {
 	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 
@@ -172,7 +172,7 @@ bool UOBM_ParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
 	return bHandled;
 }
 
-void UOBM_ParkourComponent::HandleWallrunCameraTilt(float DeltaTime)
+void UOvrlParkourComponent::HandleWallrunCameraTilt(float DeltaTime)
 {
 	FRotator TargetRotation = Character->GetControlRotation();
 
@@ -191,7 +191,7 @@ void UOBM_ParkourComponent::HandleWallrunCameraTilt(float DeltaTime)
 	Character->GetController()->SetControlRotation(FinalRotation);
 }
 
-void UOBM_ParkourComponent::HandleWallrunJump()
+void UOvrlParkourComponent::HandleWallrunJump()
 {
 	if (IsWallrunning())
 	{
@@ -215,7 +215,7 @@ void UOBM_ParkourComponent::HandleWallrunJump()
 	}
 }
 
-void UOBM_ParkourComponent::ResetWallrun()
+void UOvrlParkourComponent::ResetWallrun()
 {
 	if (MovementType == EParkourMovementType::None)
 	{
@@ -223,7 +223,7 @@ void UOBM_ParkourComponent::ResetWallrun()
 	}
 }
 
-void UOBM_ParkourComponent::EndWallrun()
+void UOvrlParkourComponent::EndWallrun()
 {
 	if (IsWallrunning())
 	{
@@ -231,11 +231,11 @@ void UOBM_ParkourComponent::EndWallrun()
 
 		MovementType = EParkourMovementType::None;
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UOBM_ParkourComponent::ResetWallrun, WallrunResetTime, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UOvrlParkourComponent::ResetWallrun, WallrunResetTime, false);
 	}
 }
 
-void UOBM_ParkourComponent::HandleSliding()
+void UOvrlParkourComponent::HandleSliding()
 {
 	if (IsSliding())
 		return;
@@ -269,17 +269,17 @@ void UOBM_ParkourComponent::HandleSliding()
 	}
 }
 
-bool UOBM_ParkourComponent::ShouldCancelSliding()
+bool UOvrlParkourComponent::ShouldCancelSliding()
 {
 	if (!IsSliding())
 		return false;
 
-	//OBM_LOG("%f", CharacterMovement->GetLastUpdateVelocity().Length());
+	//OvrlLOG("%f", CharacterMovement->GetLastUpdateVelocity().Length());
 
 	return CharacterMovement->GetLastUpdateVelocity().Length() <= 575.f;
 }
 
-void UOBM_ParkourComponent::CancelSliding()
+void UOvrlParkourComponent::CancelSliding()
 {
 	CharacterMovement->GroundFriction = DefaultGroundFriction;
 	CharacterMovement->BrakingDecelerationWalking = DefaultBrakingDecelerationWalking;

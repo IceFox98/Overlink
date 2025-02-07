@@ -1,13 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Equipment/OBM_EquipmentInstance.h"
-#include "Equipment/OBM_EquipmentDefinition.h"
+#include "Equipment/OvrlEquipmentInstance.h"
+#include "Equipment/OvrlEquipmentDefinition.h"
+#include "Animations/OvrlLinkedAnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
 
-#include "Player/OBM_CharacterBase.h"
+#include "Player/OvrlCharacterBase.h"
 
 // Sets default values
-AOBM_EquipmentInstance::AOBM_EquipmentInstance()
+AOvrlEquipmentInstance::AOvrlEquipmentInstance()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -15,41 +17,50 @@ AOBM_EquipmentInstance::AOBM_EquipmentInstance()
 }
 
 // Called when the game starts or when spawned
-void AOBM_EquipmentInstance::BeginPlay()
+void AOvrlEquipmentInstance::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
 // Called every frame
-void AOBM_EquipmentInstance::Tick(float DeltaTime)
+void AOvrlEquipmentInstance::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-void AOBM_EquipmentInstance::OnEquipped()
+void AOvrlEquipmentInstance::OnEquipped()
 {
-	if (AOBM_CharacterBase* OwningPawn = Cast<AOBM_CharacterBase>(GetOwner()))
+	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		AttachToComponent(OwningPawn->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
-
-		//const FTransform RelativeTransform = GetDefault<UOBM_EquipmentDefinition>(EquipmentDefinition)->RelativeTransform;
-		//SetActorRelativeRotation(RelativeTransform.GetRotation());
-		//SetActorRelativeLocation(RelativeTransform.GetLocation());
-
 		bIsEquipped = true;
+
+		ApplyOverlayAnimation();
 
 		SetActorHiddenInGame(false);
 		K2_OnEquipped();
 	}
 }
 
-void AOBM_EquipmentInstance::OnUnequipped()
+void AOvrlEquipmentInstance::OnUnequipped()
 {
 	bIsEquipped = false;
 
 	SetActorHiddenInGame(true);
 	K2_OnUnequipped();
+}
+
+void AOvrlEquipmentInstance::ApplyOverlayAnimation()
+{
+	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
+	{
+		if (USkeletalMeshComponent* PawnMesh = OwningPawn->GetMesh())
+		{
+			const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
+			PawnMesh->LinkAnimClassLayers(EquipmentDefinition->OverlayAnimInstance);
+		}
+	}
 }
 

@@ -1,14 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapons/OBM_ProjectileWeapon.h"
+#include "Weapons/OvrlProjectileWeapon.h"
 
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
-AOBM_ProjectileWeapon::AOBM_ProjectileWeapon()
+AOvrlProjectileWeapon::AOvrlProjectileWeapon()
 {
 	//PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
 	//PickupSphere->SetupAttachment(RootComponent);
@@ -19,7 +19,7 @@ AOBM_ProjectileWeapon::AOBM_ProjectileWeapon()
 	MuzzleSocketName = "Muzzle";
 }
 
-void AOBM_ProjectileWeapon::Fire(const FHitResult& HitData)
+void AOvrlProjectileWeapon::Fire(const FHitResult& HitData)
 {
 	if (bIsReloading)
 		return;
@@ -27,13 +27,13 @@ void AOBM_ProjectileWeapon::Fire(const FHitResult& HitData)
 	Super::Fire(HitData);
 }
 
-void AOBM_ProjectileWeapon::Reload()
+void AOvrlProjectileWeapon::Reload()
 {
 	Super::Reload();
 
 	if (!Owner)
 	{
-		OBM_LOG_ERR(LogTemp, true, "Owner is NULL!");
+		OVRL_LOG_ERR(LogTemp, true, "Owner is NULL!");
 		return;
 	}
 
@@ -86,7 +86,7 @@ void AOBM_ProjectileWeapon::Reload()
 		}
 		else
 		{
-			OBM_LOG_ERR(LogTemp, true, "GE_ReloadDamage is NULL!");
+			OVRL_LOG_ERR(LogTemp, true, "GE_ReloadDamage is NULL!");
 		}
 
 		// TODO: Play VFX
@@ -105,7 +105,7 @@ void AOBM_ProjectileWeapon::Reload()
 	}
 }
 
-FTransform AOBM_ProjectileWeapon::GetMuzzleTransform() const
+FTransform AOvrlProjectileWeapon::GetMuzzleTransform() const
 {
 	check(WeaponMesh);
 	return WeaponMesh->GetSocketTransform(MuzzleSocketName);

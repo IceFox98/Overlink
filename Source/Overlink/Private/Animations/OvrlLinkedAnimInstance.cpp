@@ -1,22 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Animations/OBM_LinkedAnimInstance.h"
+#include "Animations/OvrlLinkedAnimInstance.h"
 
-#include "Player/OBM_PlayerAnimInstance.h"
-#include "Player/OBM_PlayerCharacter.h"
+#include "Player/OvrlPlayerAnimInstance.h"
+#include "Player/OvrlPlayerCharacter.h"
 
-UOBM_LinkedAnimInstance::UOBM_LinkedAnimInstance()
+UOvrlLinkedAnimInstance::UOvrlLinkedAnimInstance()
 {
 	bUseMainInstanceMontageEvaluationData = true;
 }
 
-void UOBM_LinkedAnimInstance::NativeInitializeAnimation()
+void UOvrlLinkedAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Parent = Cast<UOBM_PlayerAnimInstance>(GetSkelMeshComponent()->GetAnimInstance());
-	Character = Cast<AOBM_PlayerCharacter>(GetOwningActor());
+	Parent = Cast<UOvrlPlayerAnimInstance>(GetSkelMeshComponent()->GetAnimInstance());
+	Character = Cast<AOvrlPlayerCharacter>(GetOwningActor());
 
 #if WITH_EDITOR
 	const auto* World{ GetWorld() };
@@ -27,25 +27,25 @@ void UOBM_LinkedAnimInstance::NativeInitializeAnimation()
 
 		if (!Parent.IsValid())
 		{
-			Parent = GetMutableDefault<UOBM_PlayerAnimInstance>();
+			Parent = GetMutableDefault<UOvrlPlayerAnimInstance>();
 		}
 
 		if (!IsValid(Character))
 		{
-			Character = GetMutableDefault<AOBM_PlayerCharacter>();
+			Character = GetMutableDefault<AOvrlPlayerCharacter>();
 		}
 	}
 #endif
 }
 
-void UOBM_LinkedAnimInstance::NativeBeginPlay()
+void UOvrlLinkedAnimInstance::NativeBeginPlay()
 {
-	ensureAlwaysMsgf(Parent.IsValid(), TEXT("%s should only be used as a linked animation instance within the OBM_PlayerAnimInstance animation blueprint!"));
+	ensureAlwaysMsgf(Parent.IsValid(), TEXT("%s should only be used as a linked animation instance within the OvrlPlayerAnimInstance animation blueprint!"));
 
 	Super::NativeBeginPlay();
 }
 
-UOBM_PlayerAnimInstance* UOBM_LinkedAnimInstance::GetParent() const
+UOvrlPlayerAnimInstance* UOvrlLinkedAnimInstance::GetParent() const
 {
 	return Parent.Get();
 }

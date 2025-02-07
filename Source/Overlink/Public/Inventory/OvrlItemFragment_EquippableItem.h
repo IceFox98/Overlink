@@ -3,20 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Inventory/OBM_ItemDefinition.h"
-#include "OBM_ItemFragment_EquippableItem.generated.h"
+#include "Inventory/OvrlItemDefinition.h"
+#include "OvrlItemFragment_EquippableItem.generated.h"
 
-class UOBM_EquipmentDefinition;
+class UOvrlEquipmentDefinition;
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API UOBM_ItemFragment_EquippableItem : public UOBM_ItemFragment
+class OVERLINK_API UOvrlItemFragment_EquippableItem : public UOvrlItemFragment
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<UOBM_EquipmentDefinition> EquipmentDefinition;
+		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinition;
 };

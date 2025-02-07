@@ -1,35 +1,35 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Pawn/OBM_PawnBase.h"
-#include "AbilitySystem/OBM_AbilitySet.h"
-#include "AbilitySystem/Attributes/OBM_HealthSet.h"
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
-#include "Player/Components/OBM_HealthComponent.h"
+#include "Pawn/OvrlPawnBase.h"
+#include "AbilitySystem/OvrlAbilitySet.h"
+#include "AbilitySystem/Attributes/OvrlHealthSet.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "Player/Components/OvrlHealthComponent.h"
 
 #include "UObject/UObjectBaseUtility.h"
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
 // Sets default values
-AOBM_PawnBase::AOBM_PawnBase()
+AOvrlPawnBase::AOvrlPawnBase()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	HealthComponent = CreateDefaultSubobject<UOBM_HealthComponent>(TEXT("HealthComponent"));
-	AbilitySystemComponent = CreateDefaultSubobject<UOBM_AbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	HealthComponent = CreateDefaultSubobject<UOvrlHealthComponent>(TEXT("HealthComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<UOvrlAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
 
 // Called when the game starts or when spawned
-void AOBM_PawnBase::BeginPlay()
+void AOvrlPawnBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	HealthComponent->InitializeWithASC(AbilitySystemComponent);
-	HealthComponent->OnOutOfHealth.AddDynamic(this, &AOBM_PawnBase::HandleDeath);
+	HealthComponent->OnOutOfHealth.AddDynamic(this, &AOvrlPawnBase::HandleDeath);
 
-	for (const UOBM_AbilitySet* AbilitySet : AbilitySets)
+	for (const UOvrlAbilitySet* AbilitySet : AbilitySets)
 	{
 		if (AbilitySet)
 		{
@@ -39,20 +39,20 @@ void AOBM_PawnBase::BeginPlay()
 }
 
 // Called every frame
-void AOBM_PawnBase::Tick(float DeltaTime)
+void AOvrlPawnBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-UAbilitySystemComponent* AOBM_PawnBase::GetAbilitySystemComponent() const
+UAbilitySystemComponent* AOvrlPawnBase::GetAbilitySystemComponent() const
 {
 	return Cast<UAbilitySystemComponent>(AbilitySystemComponent);
 }
 
-void AOBM_PawnBase::HandleDeath(AActor* InInstigator)
+void AOvrlPawnBase::HandleDeath(AActor* InInstigator)
 {
-	OBM_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
+	OVRL_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
 
 	Destroy();
 }

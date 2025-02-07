@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "OBM_Utils.generated.h"
+#include "OvrlUtils.generated.h"
 
 #define LOG_ENABLED 1
 
@@ -30,7 +30,7 @@
 #define JOYSTR_CUR_FUNCSIG (FString(__FUNCSIG__))
 
 #if LOG_ENABLED
-#define OBM_LOG_INTERNAL(LogCat, PrintScreen, Verbosity, Color, FormatString, ...) \
+#define OVRL_LOG_INTERNAL(LogCat, PrintScreen, Verbosity, Color, FormatString, ...) \
  \
 	UE_LOG(LogCat, Verbosity, TEXT("%s: %s"), *JOYSTR_CUR_FUNC_CLASS_LINE, *FString::Printf(TEXT(FormatString), ##__VA_ARGS__)); \
 	if(PrintScreen) \
@@ -38,26 +38,26 @@
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, Color, *(JOYSTR_CUR_FUNC_CLASS_LINE + ": " + FString::Printf(TEXT(FormatString), ##__VA_ARGS__)));\
 	    }
 #else
-#define OBM_LOG_INTERNAL(LogCat, PrintScreen, Verbosity, Color, FormatString, ...)
+#define OVRL_LOG_INTERNAL(LogCat, PrintScreen, Verbosity, Color, FormatString, ...)
 #endif
 
 // Fast logging
-#define OBM_LOG(FormatString, ...) OBM_LOG_INTERNAL(LogTemp, true, Warning, FColor::FromHex("00D4FFFF"), FormatString, ##__VA_ARGS__)
+#define OVRL_LOG(FormatString, ...) OVRL_LOG_INTERNAL(LogTemp, true, Warning, FColor::FromHex("00D4FFFF"), FormatString, ##__VA_ARGS__)
 
 // Error log
-#define OBM_LOG_ERR(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Error, FColor::Red, FormatString, ##__VA_ARGS__)
+#define OVRL_LOG_ERR(LogCat, PrintScreen, FormatString, ...) OVRL_LOG_INTERNAL(LogCat, PrintScreen, Error, FColor::Red, FormatString, ##__VA_ARGS__)
 
 // Info log
-#define OBM_LOG_INFO(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Display, FColor::FromHex("00D4FFFF"), FormatString, ##__VA_ARGS__)
+#define OVRL_LOG_INFO(LogCat, PrintScreen, FormatString, ...) OVRL_LOG_INTERNAL(LogCat, PrintScreen, Display, FColor::FromHex("00D4FFFF"), FormatString, ##__VA_ARGS__)
 
 // Warning log
-#define OBM_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OBM_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, ##__VA_ARGS__)
+#define OVRL_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OVRL_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, ##__VA_ARGS__)
 
 /**
  *
  */
 UCLASS()
-class OVERLINK_API UOBM_Utils : public UBlueprintFunctionLibrary
+class OVERLINK_API UOvrlUtils : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

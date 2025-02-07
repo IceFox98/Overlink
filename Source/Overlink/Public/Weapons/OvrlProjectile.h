@@ -4,21 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "OBM_Projectile.generated.h"
+#include "OvrlProjectile.generated.h"
 
 class USphereComponent;
 class UProjectileMovementComponent;
 class UGameplayEffect;
 
 UCLASS(config = Game)
-class AOBM_Projectile : public AActor
+class AOvrlProjectile : public AActor
 {
 	GENERATED_BODY()
 
 
 public:
 
-	AOBM_Projectile();
+	AOvrlProjectile();
 
 protected:
 	virtual void BeginPlay() override;

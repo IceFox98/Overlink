@@ -4,7 +4,7 @@
 
 #include "NativeGameplayTags.h"
 
-namespace OBM_AbilityTags
+namespace OvrlAbilityTags
 {
 	// Declare all of the custom native tags that Overlink will use
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ActivateFail_IsDead);
@@ -15,19 +15,19 @@ namespace OBM_AbilityTags
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ActivateFail_ActivationGroup);
 };
 
-namespace OBM_LocomotionModeTags
+namespace OvrlLocomotionModeTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Grounded);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InAir);
 };
 
-namespace OBM_GaitTags
+namespace OvrlGaitTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Walking);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Running);
 };
 
-namespace OBM_LocomotionActionTags
+namespace OvrlLocomotionActionTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Mantling);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Vaulting);
@@ -35,29 +35,34 @@ namespace OBM_LocomotionActionTags
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GettingUp);
 };
 
-namespace OBM_InputTags
+namespace OvrlViewModeTags
+{
+	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ADS);
+	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Relaxed);
+}
+
+namespace OvrlInputTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Move);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Look_Mouse);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Crouch);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Jump);
-	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(ADS);
 };
 
-namespace OBM_StanceTags
+namespace OvrlStanceTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Standing);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Crouching);
 };
 
-namespace OBM_OverlayModeTags
+namespace OvrlOverlayModeTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Default);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Pistol);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Rifle);
 };
 
-namespace OBM_WeaponTags
+namespace OvrlWeaponTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Fire);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Reload);
@@ -67,7 +72,7 @@ namespace OBM_WeaponTags
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(SpareAmmo);
 }
 
-namespace OBM_CheatTags
+namespace OvrlCheatTags
 {
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GodMode);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(UnlimitedHealth);

@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Enemies/OBM_Turret.h"
+#include "Enemies/OvrlTurret.h"
 
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
-AOBM_Turret::AOBM_Turret()
+AOvrlTurret::AOvrlTurret()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -50,13 +50,13 @@ AOBM_Turret::AOBM_Turret()
 	FireRate = 1.f / RPS;
 }
 
-void AOBM_Turret::BeginPlay()
+void AOvrlTurret::BeginPlay()
 {
 	Super::BeginPlay();
 
 }
 
-void AOBM_Turret::Tick(float DeltaTime)
+void AOvrlTurret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -89,14 +89,14 @@ void AOBM_Turret::Tick(float DeltaTime)
 	Laser->SetRelativeScale3D(LaserScale);
 }
 
-void AOBM_Turret::SetTarget(APawn* InTargetPawn)
+void AOvrlTurret::SetTarget(APawn* InTargetPawn)
 {
 	TargetPawn = InTargetPawn;
 
 	if (TargetPawn)
 	{
 		InterpSpeed = 10.f;
-		GetWorldTimerManager().SetTimer(TimerHandle_Fire, this, &AOBM_Turret::Fire, FireRate, true, FireInitialDelay);
+		GetWorldTimerManager().SetTimer(TimerHandle_Fire, this, &AOvrlTurret::Fire, FireRate, true, FireInitialDelay);
 	}
 	else
 	{
@@ -105,7 +105,7 @@ void AOBM_Turret::SetTarget(APawn* InTargetPawn)
 	}
 }
 
-void AOBM_Turret::Fire()
+void AOvrlTurret::Fire()
 {
 	if (TargetPawn->IsValidLowLevelFast())
 	{

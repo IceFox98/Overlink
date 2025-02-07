@@ -3,31 +3,31 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapons/OBM_GameplayAbility_HitScanWeaponFire.h"
+#include "Weapons/OvrlGameplayAbility_HitScanWeaponFire.h"
 
-#include "OBM_GameplayAbility_ProjectileWeaponFire.generated.h"
+#include "OvrlGameplayAbility_ProjectileWeaponFire.generated.h"
 
-class AOBM_Projectile;
+class AOvrlProjectile;
 
 /**
  *
  */
 UCLASS()
-class OVERLINK_API UOBM_GameplayAbility_ProjectileWeaponFire : public UOBM_GameplayAbility_HitScanWeaponFire
+class OVERLINK_API UOvrlGameplayAbility_ProjectileWeaponFire : public UOvrlGameplayAbility_HitScanWeaponFire
 {
 	GENERATED_BODY()
 
 public:
 
-	UOBM_GameplayAbility_ProjectileWeaponFire();
+	UOvrlGameplayAbility_ProjectileWeaponFire();
 
 protected:
 
-	UFUNCTION(BlueprintCallable, Category = "OBM|Projectile Weapon Fire")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl|Projectile Weapon Fire")
 		void FireProjectile(const FHitResult& HitResult);
 
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Projectile Weapon Fire")
-		TSubclassOf<AOBM_Projectile> ProjectileClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Projectile Weapon Fire")
+		TSubclassOf<AOvrlProjectile> ProjectileClass;
 };

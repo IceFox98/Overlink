@@ -4,21 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "AbilitySystem/OBM_AbilitySet.h"
-#include "OBM_EquipmentInstance.generated.h"
+#include "AbilitySystem/OvrlAbilitySet.h"
+#include "OvrlEquipmentInstance.generated.h"
 
-class UOBM_EquipmentDefinition;
-class UOBM_InventoryComponent;
-class UOBM_ItemInstance;
+class UOvrlEquipmentDefinition;
+class UOvrlInventoryComponent;
+class UOvrlItemInstance;
 
 UCLASS()
-class OVERLINK_API AOBM_EquipmentInstance : public AActor
+class OVERLINK_API AOvrlEquipmentInstance : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AOBM_EquipmentInstance();
+	AOvrlEquipmentInstance();
 
 protected:
 	// Called when the game starts or when spawned
@@ -39,31 +39,34 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Equipment Instance", meta = (DisplayName = "OnUnequipped"))
 		void K2_OnUnequipped();
 
-	FORCEINLINE UOBM_ItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+	FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 
 protected:
 
+	void ApplyOverlayAnimation();
+
+protected:
+
 	// The equipment class that got equipped
 	UPROPERTY(BlueprintReadOnly, Category = "Equipment Instance")
-		TSubclassOf<UOBM_EquipmentDefinition> EquipmentDefinition;
+		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinitionClass;
 
 	UPROPERTY()
-		UOBM_ItemInstance* AssociatedItem;
+		TObjectPtr<UOvrlItemInstance> AssociatedItem;
 
 private:
 
-	friend class UOBM_InventoryComponent;
+	friend class UOvrlInventoryComponent;
 
 	// List of granted handles
-	FOBM_AbilitySet_GrantedHandles GrantedHandles;
+	FOvrlAbilitySet_GrantedHandles GrantedHandles;
 
 	bool bIsEquipped = false;
 
 	UPROPERTY()
 		TObjectPtr<USceneComponent> TargetToFollow;
-
 
 	FVector RelativeLocation;
 };

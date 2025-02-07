@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
 
-void UOBM_AbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
+void UOvrlAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	if (InputTag.IsValid())
 	{
@@ -17,7 +17,7 @@ void UOBM_AbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 	}
 }
 
-void UOBM_AbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
+void UOvrlAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
 	if (InputTag.IsValid())
 	{

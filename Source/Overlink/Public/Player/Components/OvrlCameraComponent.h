@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
-#include "OBM_CameraComponent.generated.h"
+#include "OvrlCameraComponent.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API UOBM_CameraComponent : public UCameraComponent
+class OVERLINK_API UOvrlCameraComponent : public UCameraComponent
 {
 	GENERATED_BODY()
 
@@ -32,7 +32,7 @@ private:
 protected:
 
 	// Alters the speed that a crouch offset is blended in or out
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "OBM|Camera")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ovrl|Camera")
 		float CrouchOffsetBlendMultiplier = 5.0f;
 
 private:

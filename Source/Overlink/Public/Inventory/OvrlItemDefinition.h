@@ -5,35 +5,35 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 
-#include "OBM_ItemDefinition.generated.h"
+#include "OvrlItemDefinition.generated.h"
 
-class UOBM_ItemInstance;
+class UOvrlItemInstance;
 
 // Represents a fragment of an item definition
 UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
-class OVERLINK_API UOBM_ItemFragment : public UObject
+class OVERLINK_API UOvrlItemFragment : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	virtual void OnInstanceCreated(UOBM_ItemInstance* Instance) const {}
+	virtual void OnInstanceCreated(UOvrlItemInstance* Instance) const {}
 };
 
 /**
  * 
  */
 UCLASS(Blueprintable, Abstract, EditInlineNew)
-class OVERLINK_API UOBM_ItemDefinition : public UObject
+class OVERLINK_API UOvrlItemDefinition : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	UOBM_ItemDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UOvrlItemDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 public:
 
 	// Search for the passed class through all the Fragments of this item
-	const UOBM_ItemFragment* FindFragmentByClass(TSubclassOf<UOBM_ItemFragment> FragmentClass) const;
+	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
 public:
 
@@ -42,5 +42,5 @@ public:
 		FText DisplayName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Display, Instanced)
-		TArray<TObjectPtr<UOBM_ItemFragment>> Fragments;
+		TArray<TObjectPtr<UOvrlItemFragment>> Fragments;
 };

@@ -4,17 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "OBM_GameplayAbility.generated.h"
+#include "OvrlGameplayAbility.generated.h"
 
-class UOBM_AbilityCost;
+class UOvrlAbilityCost;
 
 /**
- * EOBM_AbilityActivationPolicy
+ * EOvrlAbilityActivationPolicy
  *
  *	Defines how an ability is meant to activate.
  */
 UENUM(BlueprintType)
-enum class EOBM_AbilityActivationPolicy : uint8
+enum class EOvrlAbilityActivationPolicy : uint8
 {
 	// Try to activate the ability when the input is triggered.
 	OnInputTriggered,
@@ -27,13 +27,13 @@ enum class EOBM_AbilityActivationPolicy : uint8
 };
 
 UCLASS()
-class OVERLINK_API UOBM_GameplayAbility : public UGameplayAbility
+class OVERLINK_API UOvrlGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 
 public:
 
-	UOBM_GameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
 
@@ -47,11 +47,11 @@ protected:
 protected:
 
 	// Defines how this ability is meant to activate.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Ability Activation")
-		EOBM_AbilityActivationPolicy ActivationPolicy;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Ability Activation")
+		EOvrlAbilityActivationPolicy ActivationPolicy;
 
 	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "OBM|Costs")
-		TArray<TObjectPtr<UOBM_AbilityCost>> AdditionalCosts;
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Ovrl|Costs")
+		TArray<TObjectPtr<UOvrlAbilityCost>> AdditionalCosts;
 	
 };

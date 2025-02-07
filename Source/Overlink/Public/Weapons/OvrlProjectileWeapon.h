@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapons/OBM_WeaponInstance.h"
-#include "OBM_ProjectileWeapon.generated.h"
+#include "Weapons/OvrlWeaponInstance.h"
+#include "OvrlProjectileWeapon.generated.h"
 
 class USphereComponent;
 
@@ -12,13 +12,13 @@ class USphereComponent;
  *
  */
 UCLASS()
-class OVERLINK_API AOBM_ProjectileWeapon : public AOBM_WeaponInstance
+class OVERLINK_API AOvrlProjectileWeapon : public AOvrlWeaponInstance
 {
 	GENERATED_BODY()
 
 public:
 
-	AOBM_ProjectileWeapon();
+	AOvrlProjectileWeapon();
 
 public:
 

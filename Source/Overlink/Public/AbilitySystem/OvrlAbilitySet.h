@@ -9,19 +9,19 @@
 #include "GameplayAbilitySpec.h"
 #include "GameplayEffectTypes.h"
 
-#include "OBM_AbilitySet.generated.h"
+#include "OvrlAbilitySet.generated.h"
 
-class UOBM_GameplayAbility;
-class UOBM_AbilitySystemComponent;
+class UOvrlGameplayAbility;
+class UOvrlAbilitySystemComponent;
 class UGameplayEffect;
 
 /**
- * FOBM_AbilitySet_GameplayAbility
+ * FOvrlAbilitySet_GameplayAbility
  *
  *	Data used by the ability set to grant gameplay abilities.
  */
 USTRUCT(BlueprintType)
-struct FOBM_AbilitySet_GameplayAbility
+struct FOvrlAbilitySet_GameplayAbility
 {
 	GENERATED_BODY()
 
@@ -29,24 +29,24 @@ public:
 
 	// Gameplay ability to grant.
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<UOBM_GameplayAbility> Ability = nullptr;
+		TSubclassOf<UOvrlGameplayAbility> Ability = nullptr;
 
 	// Level of ability to grant.
 	UPROPERTY(EditDefaultsOnly)
 		int32 AbilityLevel = 1;
 
 	// Tag used to process input for the ability.
-	UPROPERTY(EditDefaultsOnly, Meta = (Categories = "OBM"))
+	UPROPERTY(EditDefaultsOnly, Meta = (Categories = "Ovrl"))
 		FGameplayTag InputTag;
 };
 
 /**
- * FOBM_AbilitySet_GameplayEffect
+ * FOvrlAbilitySet_GameplayEffect
  *
  *	Data used by the ability set to grant gameplay effects.
  */
 USTRUCT(BlueprintType)
-struct FOBM_AbilitySet_GameplayEffect
+struct FOvrlAbilitySet_GameplayEffect
 {
 	GENERATED_BODY()
 
@@ -62,12 +62,12 @@ public:
 };
 
 /**
- * FOBM_AbilitySet_AttributeSet
+ * FOvrlAbilitySet_AttributeSet
  *
  *	Data used by the ability set to grant attribute sets.
  */
 USTRUCT(BlueprintType)
-struct FOBM_AbilitySet_AttributeSet
+struct FOvrlAbilitySet_AttributeSet
 {
 	GENERATED_BODY()
 
@@ -79,12 +79,12 @@ public:
 };
 
 /**
- * FOBM_AbilitySet_GrantedHandles
+ * FOvrlAbilitySet_GrantedHandles
  *
  *	Data used to store handles to what has been granted by the ability set.
  */
 USTRUCT(BlueprintType)
-struct FOBM_AbilitySet_GrantedHandles
+struct FOvrlAbilitySet_GrantedHandles
 {
 	GENERATED_BODY()
 
@@ -94,7 +94,7 @@ public:
 	void AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle);
 	void AddAttributeSet(UAttributeSet* Set);
 
-	void TakeFromAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC);
+	void TakeFromAbilitySystem(UOvrlAbilitySystemComponent* OvrlASC);
 
 protected:
 
@@ -112,34 +112,34 @@ protected:
 };
 
 /**
- * UOBM_AbilitySet
+ * UOvrlAbilitySet
  *
  *	Non-mutable data asset used to grant gameplay abilities and gameplay effects.
  */
 UCLASS(BlueprintType)
-class OVERLINK_API UOBM_AbilitySet : public UPrimaryDataAsset
+class OVERLINK_API UOvrlAbilitySet : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
 public:
 
-	UOBM_AbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UOvrlAbilitySet(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	// Grants the ability set to the specified ability system component.
 	// The returned handles can be used later to take away anything that was granted.
-	void GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, FOBM_AbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
+	void GiveToAbilitySystem(UOvrlAbilitySystemComponent* OvrlASC, FOvrlAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
 
 protected:
 
 	// Gameplay abilities to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta = (TitleProperty = Ability))
-		TArray<FOBM_AbilitySet_GameplayAbility> GrantedGameplayAbilities;
+		TArray<FOvrlAbilitySet_GameplayAbility> GrantedGameplayAbilities;
 
 	// Gameplay effects to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta = (TitleProperty = GameplayEffect))
-		TArray<FOBM_AbilitySet_GameplayEffect> GrantedGameplayEffects;
+		TArray<FOvrlAbilitySet_GameplayEffect> GrantedGameplayEffects;
 
 	// Attribute sets to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta = (TitleProperty = AttributeSet))
-		TArray<FOBM_AbilitySet_AttributeSet> GrantedAttributes;
+		TArray<FOvrlAbilitySet_AttributeSet> GrantedAttributes;
 };

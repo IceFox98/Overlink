@@ -4,17 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "OBM_GameplayTags.h"
+#include "OvrlGameplayTags.h"
+#include "GameplayEffectTypes.h"
 
-#include "OBM_PlayerAnimInstance.generated.h"
+#include "OvrlPlayerAnimInstance.generated.h"
 
-class AOBM_PlayerCharacter;
+class AOvrlPlayerCharacter;
 
 /**
  *
  */
 UCLASS()
-class OVERLINK_API UOBM_PlayerAnimInstance : public UAnimInstance
+class OVERLINK_API UOvrlPlayerAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 
@@ -30,23 +31,34 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		TObjectPtr<AOBM_PlayerCharacter> Character;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
+		TObjectPtr<AOvrlPlayerCharacter> Character;
 
-	//------ TAGS ------
+	// ------ STATES ------
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag LocomotionMode = OBM_LocomotionModeTags::Grounded;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
+		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag Stance = OBM_StanceTags::Standing;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
+		FGameplayTag Stance = OvrlStanceTags::Standing;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag Gait = OBM_GaitTags::Walking;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
+		FGameplayTag Gait = OvrlGaitTags::Walking;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag OverlayMode = OBM_OverlayModeTags::Default;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
+		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
 		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|GameplayTags", Transient)
+	//	bool bGameplayTagIsAiming;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|GameplayTags", Transient)
+	//	bool bGameplayTagIsFiring;
+
+	// Gameplay tags that can be mapped to blueprint variables. The variables will automatically update as the tags are added or removed.
+	// These should be used instead of manually querying for the gameplay tags.
+	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Player Anim Instance|GameplayTags")
+		FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
 };

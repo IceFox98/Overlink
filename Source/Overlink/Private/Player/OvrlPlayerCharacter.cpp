@@ -1,40 +1,40 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/OBM_PlayerCharacter.h"
+#include "Player/OvrlPlayerCharacter.h"
 
-#include "Player/Components/OBM_CameraComponent.h"
+#include "Player/Components/OvrlCameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Player/Components/OBM_HealthComponent.h"
-#include "Player/Components/OBM_InteractionComponent.h"
-#include "Player/Components/OBM_ParkourComponent.h"
-#include "Player/Input/OBM_InputComponent.h"
-#include "Player/Input/OBM_InputConfig.h"
-#include "Inventory/OBM_InventoryComponent.h"
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
-#include "AbilitySystem/Attributes/OBM_HealthSet.h"
-#include "Player/Components/OBM_CharacterMovementComponent.h"
+#include "Player/Components/OvrlHealthComponent.h"
+#include "Player/Components/OvrlInteractionComponent.h"
+#include "Player/Components/OvrlParkourComponent.h"
+#include "Player/Input/OvrlInputComponent.h"
+#include "Player/Input/OvrlInputConfig.h"
+#include "Inventory/OvrlInventoryComponent.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "AbilitySystem/Attributes/OvrlHealthSet.h"
+#include "Player/Components/OvrlCharacterMovementComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameplayEffectTypes.h"
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
-AOBM_PlayerCharacter::AOBM_PlayerCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOBM_CharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOvrlCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Create a follow camera
-	CameraComp = CreateDefaultSubobject<UOBM_CameraComponent>(TEXT("CameraComp"));
+	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(RootComponent);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 	CameraComp->SetupAttachment(GetMesh(), TEXT("head"));
 
-	InteractionComponent = CreateDefaultSubobject<UOBM_InteractionComponent>(TEXT("InteractionComponent"));
-	InventoryComponent = CreateDefaultSubobject<UOBM_InventoryComponent>(TEXT("InventoryComponent"));
-	ParkourComponent = CreateDefaultSubobject<UOBM_ParkourComponent>(TEXT("ParkourComponent"));
+	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
+	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
+	ParkourComponent = CreateDefaultSubobject<UOvrlParkourComponent>(TEXT("ParkourComponent"));
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
@@ -44,7 +44,7 @@ AOBM_PlayerCharacter::AOBM_PlayerCharacter(const FObjectInitializer& ObjectIniti
 	ThrowForce = 1200.f;
 }
 
-void AOBM_PlayerCharacter::BeginPlay()
+void AOvrlPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -60,23 +60,23 @@ void AOBM_PlayerCharacter::BeginPlay()
 	}
 }
 
-void AOBM_PlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	UOBM_InputComponent* OBM_IC = Cast<UOBM_InputComponent>(PlayerInputComponent);
+	UOvrlInputComponent* OvrlIC = Cast<UOvrlInputComponent>(PlayerInputComponent);
 
-	if (ensureMsgf(OBM_IC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UOBM_InputComponent or a subclass of it.")))
+	if (ensureMsgf(OvrlIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UOvrlInputComponent or a subclass of it.")))
 	{
 		// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 		// be triggered directly by these input actions Triggered events. 
 		TArray<uint32> BindHandles;
-		OBM_IC->BindAbilityActions(InputConfig, this, &ThisClass::OnAbilityInputPressed, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
+		OvrlIC->BindAbilityActions(InputConfig, this, &ThisClass::OnAbilityInputPressed, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
 
-		OBM_IC->BindNativeAction(InputConfig, OBM_InputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
-		OBM_IC->BindNativeAction(InputConfig, OBM_InputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
 	}
 }
 
-void AOBM_PlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
+void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
 {
 	if (AbilitySystemComponent)
 	{
@@ -84,7 +84,7 @@ void AOBM_PlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
 	}
 }
 
-void AOBM_PlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
+void AOvrlPlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 {
 	if (AbilitySystemComponent)
 	{
@@ -92,7 +92,7 @@ void AOBM_PlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 	}
 }
 
-void AOBM_PlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
+void AOvrlPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 {
 	const FVector2D Value = InputActionValue.Get<FVector2D>();
 
@@ -102,9 +102,9 @@ void AOBM_PlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 	{
 		if (true)
 		{
-			MovementRotation = UOBM_Utils::GetGravityRelativeRotation(Controller->GetControlRotation(), GetCharacterMovement()->GetGravityDirection());
+			MovementRotation = UOvrlUtils::GetGravityRelativeRotation(Controller->GetControlRotation(), GetCharacterMovement()->GetGravityDirection());
 			MovementRotation.Pitch = 0.f;
-			MovementRotation = UOBM_Utils::GetGravityWorldRotation(MovementRotation, GetCharacterMovement()->GetGravityDirection());
+			MovementRotation = UOvrlUtils::GetGravityWorldRotation(MovementRotation, GetCharacterMovement()->GetGravityDirection());
 		}
 
 		const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
@@ -115,11 +115,11 @@ void AOBM_PlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 	{
 		if (true)
 		{
-			MovementRotation = UOBM_Utils::GetGravityRelativeRotation(Controller->GetControlRotation(), GetCharacterMovement()->GetGravityDirection());
+			MovementRotation = UOvrlUtils::GetGravityRelativeRotation(Controller->GetControlRotation(), GetCharacterMovement()->GetGravityDirection());
 			MovementRotation.Roll = 0.f;
 			MovementRotation.Pitch = 0.f;
 
-			MovementRotation = UOBM_Utils::GetGravityWorldRotation(MovementRotation, GetCharacterMovement()->GetGravityDirection());
+			MovementRotation = UOvrlUtils::GetGravityWorldRotation(MovementRotation, GetCharacterMovement()->GetGravityDirection());
 		}
 
 		const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
@@ -127,7 +127,7 @@ void AOBM_PlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 	}
 }
 
-void AOBM_PlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionValue)
+void AOvrlPlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionValue)
 {
 	const FVector2D Value = InputActionValue.Get<FVector2D>();
 
@@ -142,21 +142,21 @@ void AOBM_PlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	}
 }
 
-void AOBM_PlayerCharacter::Crouch(bool bClientSimulation)
+void AOvrlPlayerCharacter::Crouch(bool bClientSimulation)
 {
 	Super::Crouch();
 
-	SetStance(OBM_StanceTags::Crouching);
+	SetStance(OvrlStanceTags::Crouching);
 }
 
-void AOBM_PlayerCharacter::UnCrouch(bool bClientSimulation)
+void AOvrlPlayerCharacter::UnCrouch(bool bClientSimulation)
 {
 	Super::UnCrouch();
 
-	SetStance(OBM_StanceTags::Standing);
+	SetStance(OvrlStanceTags::Standing);
 }
 
-void AOBM_PlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+void AOvrlPlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
 	// Use the character movement mode to set the locomotion mode to the right value. This allows you to have a
 	// custom set of movement modes but still use the functionality of the default character movement component.
@@ -165,11 +165,11 @@ void AOBM_PlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementM
 	{
 	case MOVE_Walking:
 	case MOVE_NavWalking:
-		SetLocomotionMode(OBM_LocomotionModeTags::Grounded);
+		SetLocomotionMode(OvrlLocomotionModeTags::Grounded);
 		break;
 
 	case MOVE_Falling:
-		SetLocomotionMode(OBM_LocomotionModeTags::InAir);
+		SetLocomotionMode(OvrlLocomotionModeTags::InAir);
 		break;
 
 	default:
@@ -180,7 +180,7 @@ void AOBM_PlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementM
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 }
 
-void AOBM_PlayerCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
+void AOvrlPlayerCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
 {
 	if (LocomotionMode == NewLocomotionMode)
 		return;
@@ -188,7 +188,7 @@ void AOBM_PlayerCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMo
 	LocomotionMode = NewLocomotionMode;
 }
 
-void AOBM_PlayerCharacter::SetStance(const FGameplayTag& NewStance)
+void AOvrlPlayerCharacter::SetStance(const FGameplayTag& NewStance)
 {
 	if (Stance == NewStance)
 		return;
@@ -196,7 +196,7 @@ void AOBM_PlayerCharacter::SetStance(const FGameplayTag& NewStance)
 	Stance = NewStance;
 }
 
-void AOBM_PlayerCharacter::SetGait(const FGameplayTag& NewGait)
+void AOvrlPlayerCharacter::SetGait(const FGameplayTag& NewGait)
 {
 	if (Gait == NewGait)
 		return;
@@ -204,7 +204,7 @@ void AOBM_PlayerCharacter::SetGait(const FGameplayTag& NewGait)
 	Gait = NewGait;
 }
 
-void AOBM_PlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
+void AOvrlPlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
 {
 	if (OverlayMode == NewOverlayMode)
 		return;
@@ -212,7 +212,7 @@ void AOBM_PlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
 	OverlayMode = NewOverlayMode;
 }
 
-void AOBM_PlayerCharacter::Interact()
+void AOvrlPlayerCharacter::Interact()
 {
 	//if (InteractionComponent)
 	//{
@@ -226,7 +226,7 @@ void AOBM_PlayerCharacter::Interact()
 	//}
 }
 
-void AOBM_PlayerCharacter::ThrowEquippedObject()
+void AOvrlPlayerCharacter::ThrowEquippedObject()
 {
 	//if (InventoryComponent && ItemHoldingPoint)
 	//{

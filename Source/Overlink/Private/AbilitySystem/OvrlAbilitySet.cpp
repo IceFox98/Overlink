@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/OBM_AbilitySet.h"
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
-#include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
+#include "AbilitySystem/OvrlAbilitySet.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
 
-void FOBM_AbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
+void FOvrlAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
 {
 	if (Handle.IsValid())
 	{
@@ -13,7 +13,7 @@ void FOBM_AbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbility
 	}
 }
 
-void FOBM_AbilitySet_GrantedHandles::AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle)
+void FOvrlAbilitySet_GrantedHandles::AddGameplayEffectHandle(const FActiveGameplayEffectHandle& Handle)
 {
 	if (Handle.IsValid())
 	{
@@ -21,20 +21,20 @@ void FOBM_AbilitySet_GrantedHandles::AddGameplayEffectHandle(const FActiveGamepl
 	}
 }
 
-void FOBM_AbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
+void FOvrlAbilitySet_GrantedHandles::AddAttributeSet(UAttributeSet* Set)
 {
 	GrantedAttributeSets.AddUnique(Set);
 }
 
-void FOBM_AbilitySet_GrantedHandles::TakeFromAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC)
+void FOvrlAbilitySet_GrantedHandles::TakeFromAbilitySystem(UOvrlAbilitySystemComponent* OvrlASC)
 {
-	check(OBM_ASC);
+	check(OvrlASC);
 
 	for (const FGameplayAbilitySpecHandle& Handle : AbilitySpecHandles)
 	{
 		if (Handle.IsValid())
 		{
-			OBM_ASC->ClearAbility(Handle);
+			OvrlASC->ClearAbility(Handle);
 		}
 	}
 
@@ -42,13 +42,13 @@ void FOBM_AbilitySet_GrantedHandles::TakeFromAbilitySystem(UOBM_AbilitySystemCom
 	{
 		if (Handle.IsValid())
 		{
-			OBM_ASC->RemoveActiveGameplayEffect(Handle);
+			OvrlASC->RemoveActiveGameplayEffect(Handle);
 		}
 	}
 
 	for (UAttributeSet* Set : GrantedAttributeSets)
 	{
-		OBM_ASC->GetSpawnedAttributes_Mutable().Remove(Set);
+		OvrlASC->GetSpawnedAttributes_Mutable().Remove(Set);
 	}
 
 	AbilitySpecHandles.Reset();
@@ -56,19 +56,19 @@ void FOBM_AbilitySet_GrantedHandles::TakeFromAbilitySystem(UOBM_AbilitySystemCom
 	GrantedAttributeSets.Reset();
 }
 
-UOBM_AbilitySet::UOBM_AbilitySet(const FObjectInitializer& ObjectInitializer)
+UOvrlAbilitySet::UOvrlAbilitySet(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
 }
 
-void UOBM_AbilitySet::GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, FOBM_AbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
+void UOvrlAbilitySet::GiveToAbilitySystem(UOvrlAbilitySystemComponent* OvrlASC, FOvrlAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
 {
-	check(OBM_ASC);
+	check(OvrlASC);
 
 	// Grant the gameplay abilities.
 	for (int32 AbilityIndex = 0; AbilityIndex < GrantedGameplayAbilities.Num(); ++AbilityIndex)
 	{
-		const FOBM_AbilitySet_GameplayAbility& AbilityToGrant = GrantedGameplayAbilities[AbilityIndex];
+		const FOvrlAbilitySet_GameplayAbility& AbilityToGrant = GrantedGameplayAbilities[AbilityIndex];
 
 		if (!IsValid(AbilityToGrant.Ability))
 		{
@@ -76,14 +76,14 @@ void UOBM_AbilitySet::GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, 
 			continue;
 		}
 
-		UOBM_GameplayAbility* OBM_Ability = AbilityToGrant.Ability->GetDefaultObject<UOBM_GameplayAbility>();
+		UOvrlGameplayAbility* OvrlAbility = AbilityToGrant.Ability->GetDefaultObject<UOvrlGameplayAbility>();
 
-		FGameplayAbilitySpec AbilitySpec(OBM_Ability, AbilityToGrant.AbilityLevel);
+		FGameplayAbilitySpec AbilitySpec(OvrlAbility, AbilityToGrant.AbilityLevel);
 		AbilitySpec.SourceObject = SourceObject;
 		AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
 
 		// Give the Ability to ASC and save the returned handleID
-		const FGameplayAbilitySpecHandle AbilitySpecHandle = OBM_ASC->GiveAbility(AbilitySpec);
+		const FGameplayAbilitySpecHandle AbilitySpecHandle = OvrlASC->GiveAbility(AbilitySpec);
 
 		if (OutGrantedHandles)
 		{
@@ -95,7 +95,7 @@ void UOBM_AbilitySet::GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, 
 	// Grant the gameplay effects.
 	for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
 	{
-		const FOBM_AbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
+		const FOvrlAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
 
 		if (!IsValid(EffectToGrant.GameplayEffect))
 		{
@@ -104,7 +104,7 @@ void UOBM_AbilitySet::GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, 
 		}
 
 		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-		const FActiveGameplayEffectHandle GameplayEffectHandle = OBM_ASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, OBM_ASC->MakeEffectContext());
+		const FActiveGameplayEffectHandle GameplayEffectHandle = OvrlASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, OvrlASC->MakeEffectContext());
 
 		if (OutGrantedHandles)
 		{
@@ -115,7 +115,7 @@ void UOBM_AbilitySet::GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, 
 	// Grant the attribute sets.
 	for (int32 SetIndex = 0; SetIndex < GrantedAttributes.Num(); ++SetIndex)
 	{
-		const FOBM_AbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
+		const FOvrlAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
 
 		if (!IsValid(SetToGrant.AttributeSet))
 		{
@@ -123,8 +123,8 @@ void UOBM_AbilitySet::GiveToAbilitySystem(UOBM_AbilitySystemComponent* OBM_ASC, 
 			continue;
 		}
 
-		UAttributeSet* NewSet = NewObject<UAttributeSet>(OBM_ASC->GetOwner(), SetToGrant.AttributeSet);
-		OBM_ASC->AddAttributeSetSubobject(NewSet);
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(OvrlASC->GetOwner(), SetToGrant.AttributeSet);
+		OvrlASC->AddAttributeSetSubobject(NewSet);
 
 		if (OutGrantedHandles)
 		{

@@ -1,13 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/Components/OBM_CameraComponent.h"
+#include "Player/Components/OvrlCameraComponent.h"
 
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-void UOBM_CameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
+void UOvrlCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
 	Super::GetCameraView(DeltaTime, DesiredView);
 
@@ -24,7 +24,7 @@ void UOBM_CameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& Desi
 	//DesiredView.Rotation = PivotRotation;
 }
 
-FVector UOBM_CameraComponent::GetPivotLocation() const
+FVector UOvrlCameraComponent::GetPivotLocation() const
 {
 	const AActor* TargetActor = GetOwner();
 	check(TargetActor);
@@ -59,7 +59,7 @@ FVector UOBM_CameraComponent::GetPivotLocation() const
 	return TargetActor->GetActorLocation();
 }
 
-FRotator UOBM_CameraComponent::GetPivotRotation() const
+FRotator UOvrlCameraComponent::GetPivotRotation() const
 {
 	const AActor* TargetActor = GetOwner();
 	check(TargetActor);
@@ -72,7 +72,7 @@ FRotator UOBM_CameraComponent::GetPivotRotation() const
 	return TargetActor->GetActorRotation();
 }
 
-void UOBM_CameraComponent::UpdateForOwner()
+void UOvrlCameraComponent::UpdateForOwner()
 {
 	if (const ACharacter* TargetCharacter = Cast<ACharacter>(GetOwner()))
 	{
@@ -96,14 +96,14 @@ void UOBM_CameraComponent::UpdateForOwner()
 	SetTargetCrouchOffset(FVector::ZeroVector);
 }
 
-void UOBM_CameraComponent::SetTargetCrouchOffset(FVector NewTargetOffset)
+void UOvrlCameraComponent::SetTargetCrouchOffset(FVector NewTargetOffset)
 {
 	CrouchOffsetBlendAlpha = 0.f;
 	InitialCrouchOffset = CurrentCrouchOffset;
 	TargetCrouchOffset = NewTargetOffset;
 }
 
-void UOBM_CameraComponent::UpdateCrouchOffset(float DeltaTime)
+void UOvrlCameraComponent::UpdateCrouchOffset(float DeltaTime)
 {
 	if (CrouchOffsetBlendAlpha < 1.0f)
 	{

@@ -1,27 +1,27 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
-#include "AbilitySystem/Abilities/OBM_AbilityCost.h"
+#include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "AbilitySystem/Abilities/OvrlAbilityCost.h"
 
 
-UOBM_GameplayAbility::UOBM_GameplayAbility(const FObjectInitializer& ObjectInitializer)
+UOvrlGameplayAbility::UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
-void UOBM_GameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+void UOvrlGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 
 	TryActivateAbilityOnSpawn(ActorInfo, Spec);
 }
 
-void UOBM_GameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const
+void UOvrlGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const
 {
-	if (ActorInfo && !Spec.IsActive() && (ActivationPolicy == EOBM_AbilityActivationPolicy::OnSpawn))
+	if (ActorInfo && !Spec.IsActive() && (ActivationPolicy == EOvrlAbilityActivationPolicy::OnSpawn))
 	{
 		UAbilitySystemComponent* ASC = ActorInfo->AbilitySystemComponent.Get();
 
@@ -29,7 +29,7 @@ void UOBM_GameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActor
 	}
 }
 
-bool UOBM_GameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
+bool UOvrlGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) || !ActorInfo)
 	{
@@ -37,7 +37,7 @@ bool UOBM_GameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, co
 	}
 
 	// Verify we can afford any additional costs
-	for (TObjectPtr<UOBM_AbilityCost> AdditionalCost : AdditionalCosts)
+	for (TObjectPtr<UOvrlAbilityCost> AdditionalCost : AdditionalCosts)
 	{
 		if (AdditionalCost != nullptr)
 		{
@@ -51,13 +51,13 @@ bool UOBM_GameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, co
 	return true;
 }
 
-void UOBM_GameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
+void UOvrlGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const
 {
 	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
 
 	check(ActorInfo);
 
-	for (TObjectPtr<UOBM_AbilityCost> AdditionalCost : AdditionalCosts)
+	for (TObjectPtr<UOvrlAbilityCost> AdditionalCost : AdditionalCosts)
 	{
 		AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
 	}

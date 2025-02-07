@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapons/OBM_WeaponInstance.h"
+#include "Weapons/OvrlWeaponInstance.h"
 
 #include "Components/SphereComponent.h"
 
-AOBM_WeaponInstance::AOBM_WeaponInstance()
+AOvrlWeaponInstance::AOvrlWeaponInstance()
 {
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
@@ -14,24 +14,24 @@ AOBM_WeaponInstance::AOBM_WeaponInstance()
 	PickupSphere->SetupAttachment(RootComponent);
 }
 
-void AOBM_WeaponInstance::BeginPlay()
+void AOvrlWeaponInstance::BeginPlay()
 {
 	Super::BeginPlay();
 
-	WeaponMesh->OnComponentHit.AddDynamic(this, &AOBM_WeaponInstance::OnWeaponHit);
+	WeaponMesh->OnComponentHit.AddDynamic(this, &AOvrlWeaponInstance::OnWeaponHit);
 }
 
-void AOBM_WeaponInstance::Fire(const FHitResult& HitData)
+void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
 {
 	K2_OnFire(HitData);
 }
 
-void AOBM_WeaponInstance::Reload()
+void AOvrlWeaponInstance::Reload()
 {
 	// No implementation
 }
 
-void AOBM_WeaponInstance::ToggleWeaponPhysics(bool bEnable)
+void AOvrlWeaponInstance::ToggleWeaponPhysics(bool bEnable)
 {
 	if (bEnable)
 	{
@@ -49,7 +49,7 @@ void AOBM_WeaponInstance::ToggleWeaponPhysics(bool bEnable)
 }
 
 // Move this to weapon-specific class?
-void AOBM_WeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	ToggleWeaponPhysics(false);
 

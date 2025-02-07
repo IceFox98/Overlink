@@ -1,18 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapons/OBM_GameplayAbility_HitScanWeaponFire.h"
-#include "Weapons/OBM_ProjectileWeapon.h"
+#include "Weapons/OvrlGameplayAbility_HitScanWeaponFire.h"
+#include "Weapons/OvrlProjectileWeapon.h"
 
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
-UOBM_GameplayAbility_HitScanWeaponFire::UOBM_GameplayAbility_HitScanWeaponFire()
+UOvrlGameplayAbility_HitScanWeaponFire::UOvrlGameplayAbility_HitScanWeaponFire()
 {
 	TraceMaxDistance = 650.f;
 }
 
-void UOBM_GameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -24,7 +24,7 @@ void UOBM_GameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	}
 }
 
-void UOBM_GameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
+void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 {
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetCurrentSourceObject(), 0);
 
@@ -32,7 +32,7 @@ void UOBM_GameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 
 	if (PC)
 	{
-		if (AOBM_WeaponInstance* WeaponInstance = Cast<AOBM_WeaponInstance>(GetCurrentSourceObject()))
+		if (AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(GetCurrentSourceObject()))
 		{
 			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
 			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * TraceMaxDistance;

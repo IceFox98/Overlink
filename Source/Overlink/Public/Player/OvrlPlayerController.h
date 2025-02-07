@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "OBM_PlayerController.generated.h"
+#include "OvrlPlayerController.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API AOBM_PlayerController : public APlayerController
+class OVERLINK_API AOvrlPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	

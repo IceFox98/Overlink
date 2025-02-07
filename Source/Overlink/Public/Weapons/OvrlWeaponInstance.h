@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Equipment/OBM_EquipmentInstance.h"
+#include "Equipment/OvrlEquipmentInstance.h"
 
-#include "OBM_WeaponInstance.generated.h"
+#include "OvrlWeaponInstance.generated.h"
 
 class USphereComponent;
 
@@ -13,13 +13,13 @@ class USphereComponent;
  * 
  */
 UCLASS()
-class OVERLINK_API AOBM_WeaponInstance : public AOBM_EquipmentInstance
+class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 {
 	GENERATED_BODY()
 
 public:
 
-	AOBM_WeaponInstance();
+	AOvrlWeaponInstance();
 	
 protected:
 

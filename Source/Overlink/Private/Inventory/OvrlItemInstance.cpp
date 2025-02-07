@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Inventory/OBM_ItemInstance.h"
-#include "Inventory/OBM_ItemDefinition.h"
+#include "Inventory/OvrlItemInstance.h"
+#include "Inventory/OvrlItemDefinition.h"
 
-void UOBM_ItemInstance::AddStack(FGameplayTag Tag, int32 StackCount)
+void UOvrlItemInstance::AddStack(FGameplayTag Tag, int32 StackCount)
 {
 	if (!Tag.IsValid())
 	{
@@ -30,7 +30,7 @@ void UOBM_ItemInstance::AddStack(FGameplayTag Tag, int32 StackCount)
 	}
 }
 
-void UOBM_ItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
+void UOvrlItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
 {
 	if (!Tag.IsValid())
 	{
@@ -62,7 +62,7 @@ void UOBM_ItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
 	}
 }
 
-int32 UOBM_ItemInstance::GetTagStackCount(FGameplayTag Tag) const
+int32 UOvrlItemInstance::GetTagStackCount(FGameplayTag Tag) const
 {
 	if (TagToCountMap.IsEmpty() || TagToCountMap.Num() <= 0)
 	{
@@ -72,16 +72,16 @@ int32 UOBM_ItemInstance::GetTagStackCount(FGameplayTag Tag) const
 	return TagToCountMap.FindRef(Tag);
 }
 
-void UOBM_ItemInstance::SetItemDef(TSubclassOf<UOBM_ItemDefinition> InDef)
+void UOvrlItemInstance::SetItemDef(TSubclassOf<UOvrlItemDefinition> InDef)
 {
 	ItemDef = InDef;
 }
 
-const UOBM_ItemFragment* UOBM_ItemInstance::FindFragmentByClass(TSubclassOf<UOBM_ItemFragment> FragmentClass) const
+const UOvrlItemFragment* UOvrlItemInstance::FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const
 {
 	if ((ItemDef != nullptr) && (FragmentClass != nullptr))
 	{
-		return GetDefault<UOBM_ItemDefinition>(ItemDef)->FindFragmentByClass(FragmentClass);
+		return GetDefault<UOvrlItemDefinition>(ItemDef)->FindFragmentByClass(FragmentClass);
 	}
 
 	return nullptr;

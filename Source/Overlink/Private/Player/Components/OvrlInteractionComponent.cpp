@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/Components/OBM_InteractionComponent.h"
-#include "Player/OBM_CharacterBase.h"
+#include "Player/Components/OvrlInteractionComponent.h"
+#include "Player/OvrlCharacterBase.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
-UOBM_InteractionComponent::UOBM_InteractionComponent()
+UOvrlInteractionComponent::UOvrlInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.TickInterval = 0.1f;
@@ -18,16 +18,16 @@ UOBM_InteractionComponent::UOBM_InteractionComponent()
 }
 
 // Called when the game starts
-void UOBM_InteractionComponent::BeginPlay()
+void UOvrlInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterRef = Cast<AOBM_CharacterBase>(GetOwner());
+	CharacterRef = Cast<AOvrlCharacterBase>(GetOwner());
 	LastActorHit = nullptr;
 }
 
 // Called every frame
-void UOBM_InteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UOvrlInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -56,7 +56,7 @@ void UOBM_InteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	//}
 }
 
-FInteractionData UOBM_InteractionComponent::FindInteractiveObject()
+FInteractionData UOvrlInteractionComponent::FindInteractiveObject()
 {
 	//// Get Player's camera Direction
 	//APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
@@ -85,7 +85,7 @@ FInteractionData UOBM_InteractionComponent::FindInteractiveObject()
 	return InteractionData;
 }
 
-void UOBM_InteractionComponent::ChangeRange(float NewRange)
+void UOvrlInteractionComponent::ChangeRange(float NewRange)
 {
 	Range = NewRange;
 }

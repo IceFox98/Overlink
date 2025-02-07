@@ -5,22 +5,22 @@
 #include "CoreMinimal.h"
 #include "GameplayAbilitySpec.h"
 #include "Abilities/GameplayAbility.h"
-#include "OBM_AbilityCost.generated.h"
+#include "OvrlAbilityCost.generated.h"
 
-class UOBM_GameplayAbility;
+class UOvrlGameplayAbility;
 
 /**
  * Base class for costs that a LyraGameplayAbility has (e.g., ammo or charges)
  */
 UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
-class OVERLINK_API UOBM_AbilityCost : public UObject
+class OVERLINK_API UOvrlAbilityCost : public UObject
 {
 
 	GENERATED_BODY()
 
 public:
 
-	UOBM_AbilityCost() {};
+	UOvrlAbilityCost() {};
 
 	/**
 	 * Checks if we can afford this cost.
@@ -32,7 +32,7 @@ public:
 	 *
 	 * @return true if we can pay for the ability, false otherwise.
 	 */
-	virtual bool CheckCost(const UOBM_GameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+	virtual bool CheckCost(const UOvrlGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 	{
 		return true;
 	}
@@ -44,7 +44,7 @@ public:
 	 * - Your implementation don't need to check ShouldOnlyApplyCostOnHit(), the caller does that for you.
 	 * - Ability and ActorInfo are guaranteed to be non-null on entry.
 	 */
-	virtual void ApplyCost(const UOBM_GameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+	virtual void ApplyCost(const UOvrlGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 	{
 	}
 };

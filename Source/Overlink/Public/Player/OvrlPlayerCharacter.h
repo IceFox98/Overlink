@@ -2,19 +2,19 @@
 
 #pragma once
 
-#include "OBM_CharacterBase.h"
+#include "OvrlCharacterBase.h"
 #include "AbilitySystemInterface.h"
-#include "OBM_GameplayTags.h"
+#include "OvrlGameplayTags.h"
 
-#include "OBM_PlayerCharacter.generated.h"
+#include "OvrlPlayerCharacter.generated.h"
 
-class UOBM_CameraComponent;
-class UOBM_CharacterMovementComponent;
-class UOBM_InteractionComponent;
+class UOvrlCameraComponent;
+class UOvrlCharacterMovementComponent;
+class UOvrlInteractionComponent;
 class USceneComponent;
-class UOBM_InventoryComponent;
-class UOBM_ParkourComponent;
-class UOBM_InputConfig;
+class UOvrlInventoryComponent;
+class UOvrlParkourComponent;
+class UOvrlInputConfig;
 class USpringArmComponent;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -23,14 +23,14 @@ struct FInputActionValue;
  *
  */
 UCLASS(Blueprintable)
-class OVERLINK_API AOBM_PlayerCharacter : public AOBM_CharacterBase
+class OVERLINK_API AOvrlPlayerCharacter : public AOvrlCharacterBase
 {
 	GENERATED_BODY()
 
 public:
 
 	// Sets default values for this character's properties
-	AOBM_PlayerCharacter(const FObjectInitializer& ObjectInitializer);
+	AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -58,15 +58,11 @@ public:
 	FORCEINLINE const FGameplayTag& GetStance() const { return Stance; }
 	FORCEINLINE const FGameplayTag& GetGait() const { return Gait; }
 	FORCEINLINE const FGameplayTag& GetOverlayMode() const { return OverlayMode; }
-	FORCEINLINE bool IsAiming() const { return bIsAiming; }
 
 	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
 	void SetStance(const FGameplayTag& NewStance);
 	void SetGait(const FGameplayTag& NewGait);
 	void SetOverlayMode(const FGameplayTag& NewOverlayMode);
-
-	UFUNCTION(BlueprintCallable, Category = "OBM|Player")
-		void SetIsAiming(bool bNewIsAiming) { bIsAiming = bNewIsAiming; };
 
 	// ------ INTERACTION ------
 
@@ -75,7 +71,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ThrowEquippedObject();
 
-	UOBM_ParkourComponent* GetParkourComponent() const { return ParkourComponent; }
+	UOvrlParkourComponent* GetParkourComponent() const { return ParkourComponent; }
 
 private:
 
@@ -89,48 +85,46 @@ protected:
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOBM_CameraComponent> CameraComp;
+		TObjectPtr<UOvrlCameraComponent> CameraComp;
 
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOBM_InteractionComponent> InteractionComponent;
+		TObjectPtr<UOvrlInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOBM_InventoryComponent> InventoryComponent;
+		TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOBM_ParkourComponent> ParkourComponent;
+		TObjectPtr<UOvrlParkourComponent> ParkourComponent;
 
 	// ------ LOCOMOTION ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag LocomotionMode = OBM_LocomotionModeTags::Grounded;
+		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Stance = OBM_StanceTags::Standing;
+		FGameplayTag Stance = OvrlStanceTags::Standing;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Gait = OBM_GaitTags::Walking;
+		FGameplayTag Gait = OvrlGaitTags::Walking;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag OverlayMode = OBM_OverlayModeTags::Default;
+		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		bool bIsAiming;
 public:
 
 	// ------ INPUT ------
 
 	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "OBM|Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl|Input")
 		TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Input")
-		TObjectPtr<UOBM_InputConfig> InputConfig;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Input")
+		TObjectPtr<UOvrlInputConfig> InputConfig;
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throwing")

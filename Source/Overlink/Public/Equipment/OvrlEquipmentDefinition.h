@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "OBM_EquipmentDefinition.generated.h"
+#include "OvrlEquipmentDefinition.generated.h"
 
-class AOBM_EquipmentInstance;
-class UOBM_AbilitySet;
+class AOvrlEquipmentInstance;
+class UOvrlAbilitySet;
+class UOvrlLinkedAnimInstance;
 
 /**
  *
  */
-UCLASS(Blueprintable, BlueprintType, Const, Abstract)
-class OVERLINK_API UOBM_EquipmentDefinition : public UObject
+UCLASS(Blueprintable, BlueprintType)
+class OVERLINK_API UOvrlEquipmentDefinition : public UObject
 {
 	GENERATED_BODY()
 
@@ -21,10 +22,13 @@ public:
 
 	/**The mesh to display for this items pickup*/
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TSubclassOf<AOBM_EquipmentInstance> InstanceType;
+		TSubclassOf<AOvrlEquipmentInstance> InstanceType;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TArray<TObjectPtr<UOBM_AbilitySet>> AbilitySetsToGrant;
+		TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrant;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
+		TSubclassOf<UOvrlLinkedAnimInstance> OverlayAnimInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 		FTransform RelativeTransform;

@@ -3,14 +3,14 @@
 #pragma once
 
 #include "GameplayTagContainer.h"
-#include "OBM_AbilityCost.h"
+#include "OvrlAbilityCost.h"
 
-#include "OBM_AbilityCost_ItemTagStack.generated.h"
+#include "OvrlAbilityCost_ItemTagStack.generated.h"
 
 struct FGameplayAbilityActivationInfo;
 struct FGameplayAbilitySpecHandle;
 
-class UOBM_GameplayAbility;
+class UOvrlGameplayAbility;
 struct FGameplayAbilityActorInfo;
 
 /**
@@ -18,17 +18,17 @@ struct FGameplayAbilityActorInfo;
  * on the associated item instance
  */
 UCLASS(meta = (DisplayName = "Item Tag Stack"))
-class OVERLINK_API UOBM_AbilityCost_ItemTagStack : public UOBM_AbilityCost
+class OVERLINK_API UOvrlAbilityCost_ItemTagStack : public UOvrlAbilityCost
 {
 	GENERATED_BODY()
 	
 public:
 
-	UOBM_AbilityCost_ItemTagStack();
+	UOvrlAbilityCost_ItemTagStack();
 
-	virtual bool CheckCost(const UOBM_GameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
+	virtual bool CheckCost(const UOvrlGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const override;
 
-	virtual void ApplyCost(const UOBM_GameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
+	virtual void ApplyCost(const UOvrlGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) override;
 
 protected:
 

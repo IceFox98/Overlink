@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
-#include "OBM_AbilitySystemComponent.generated.h"
+#include "OvrlAbilitySystemComponent.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API UOBM_AbilitySystemComponent : public UAbilitySystemComponent
+class OVERLINK_API UOvrlAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
 	

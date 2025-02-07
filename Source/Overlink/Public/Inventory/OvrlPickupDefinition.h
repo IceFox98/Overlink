@@ -4,33 +4,33 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "OBM_PickupDefinition.generated.h"
+#include "OvrlPickupDefinition.generated.h"
 
-class UOBM_ItemDefinition;
+class UOvrlItemDefinition;
 
 /**
  * 
  */
 UCLASS(Blueprintable, BlueprintType)
-class OVERLINK_API UOBM_PickupDefinition : public UDataAsset
+class OVERLINK_API UOvrlPickupDefinition : public UDataAsset
 {
 	GENERATED_BODY()
 	
 public:
 
 	//Defines the pickup's actors to spawn, abilities to grant, and tags to add
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "OBM|Pickup")
-		TSubclassOf<UOBM_ItemDefinition> ItemDefinition;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ovrl|Pickup")
+		TSubclassOf<UOvrlItemDefinition> ItemDefinition;
 
 	//Visual representation of the pickup
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Pickup|Mesh")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup|Mesh")
 		UStaticMesh* DisplayMesh;
 
 	//Sets the height of the display mesh above the Weapon spawner
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Pickup|Mesh")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup|Mesh")
 		FVector MeshScale = FVector(1.0f, 1.0f, 1.0f);
 
 	//Sound to play when picked up
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "OBM|Pickup")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup")
 		USoundBase* PickedUpSound;
 };

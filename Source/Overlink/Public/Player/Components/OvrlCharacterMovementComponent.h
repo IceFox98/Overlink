@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "OBM_CharacterMovementComponent.generated.h"
+#include "OvrlCharacterMovementComponent.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API UOBM_CharacterMovementComponent : public UCharacterMovementComponent
+class OVERLINK_API UOvrlCharacterMovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 	

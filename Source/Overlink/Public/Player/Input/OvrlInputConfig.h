@@ -5,7 +5,7 @@
 #include "Engine/DataAsset.h"
 #include "GameplayTagContainer.h"
 
-#include "OBM_InputConfig.generated.h"
+#include "OvrlInputConfig.generated.h"
 
 class UInputAction;
 
@@ -15,7 +15,7 @@ class UInputAction;
  *	Struct used to map a input action to a gameplay input tag.
  */
 USTRUCT(BlueprintType)
-struct FOBM_InputAction
+struct FOvrlInputAction
 {
 	GENERATED_BODY()
 
@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		TObjectPtr<const UInputAction> InputAction = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "OBM"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "Ovrl"))
 		FGameplayTag InputTag;
 };
 
@@ -32,25 +32,25 @@ public:
  *	Non-mutable data asset that contains input configuration properties.
  */
 UCLASS(BlueprintType, Const)
-class OVERLINK_API UOBM_InputConfig : public UDataAsset
+class OVERLINK_API UOvrlInputConfig : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
-	UOBM_InputConfig(const FObjectInitializer& ObjectInitializer);
+	UOvrlInputConfig(const FObjectInitializer& ObjectInitializer);
 
-	UFUNCTION(BlueprintCallable, Category = "OBM|Pawn")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl|Pawn")
 		const UInputAction* FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
 
-	UFUNCTION(BlueprintCallable, Category = "OBM|Pawn")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl|Pawn")
 		const UInputAction* FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
 
 public:
 	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and must be manually bound.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-		TArray<FOBM_InputAction> NativeInputActions;
+		TArray<FOvrlInputAction> NativeInputActions;
 
 	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and are automatically bound to abilities with matching input tags.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-		TArray<FOBM_InputAction> AbilityInputActions;
+		TArray<FOvrlInputAction> AbilityInputActions;
 };

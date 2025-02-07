@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "OBM_AttributeSet.generated.h"
+#include "OvrlAttributeSet.generated.h"
 
 /**
  * This macro defines a set of helper functions for accessing and initializing attributes.
@@ -24,7 +24,7 @@
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 UCLASS()
-class OVERLINK_API UOBM_AttributeSet : public UAttributeSet
+class OVERLINK_API UOvrlAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 	

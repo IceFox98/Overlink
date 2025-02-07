@@ -1,17 +1,17 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/Components/OBM_HealthComponent.h"
+#include "Player/Components/OvrlHealthComponent.h"
 
-#include "AbilitySystem/Attributes/OBM_HealthSet.h"
-#include "AbilitySystem/OBM_AbilitySystemComponent.h"
+#include "AbilitySystem/Attributes/OvrlHealthSet.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
 
-#include "OBM_Utils.h"
+#include "OvrlUtils.h"
 
 // Sets default values for this component's properties
-UOBM_HealthComponent::UOBM_HealthComponent()
+UOvrlHealthComponent::UOvrlHealthComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
@@ -29,37 +29,37 @@ static AActor* GetInstigatorFromAttrChangeData(const FOnAttributeChangeData& Cha
 	return nullptr;
 }
 
-void UOBM_HealthComponent::InitializeWithASC(UOBM_AbilitySystemComponent* ASC)
+void UOvrlHealthComponent::InitializeWithASC(UOvrlAbilitySystemComponent* ASC)
 {
 	AActor* Owner = GetOwner();
 	check(Owner);
 
 	if (AbilitySystemComponent)
 	{
-		OBM_LOG_ERR(LogTemp, true, "Health component for owner [%s] has already been initialized with an ability system.", *GetNameSafe(Owner));
+		OVRL_LOG_ERR(LogTemp, true, "Health component for owner [%s] has already been initialized with an ability system.", *GetNameSafe(Owner));
 		return;
 	}
 
 	AbilitySystemComponent = ASC;
 	if (!AbilitySystemComponent)
 	{
-		OBM_LOG_ERR(LogTemp, true, "Cannot initialize health component for owner [%s] with NULL ability system.", *GetNameSafe(Owner));
+		OVRL_LOG_ERR(LogTemp, true, "Cannot initialize health component for owner [%s] with NULL ability system.", *GetNameSafe(Owner));
 		return;
 	}
 
-	HealthSet = AbilitySystemComponent->AddSet<UOBM_HealthSet>();
+	HealthSet = AbilitySystemComponent->AddSet<UOvrlHealthSet>();
 	if (!HealthSet)
 	{
-		OBM_LOG_ERR(LogTemp, true, "Cannot initialize health component for owner [%s] with NULL health set on the ability system.", *GetNameSafe(Owner));
+		OVRL_LOG_ERR(LogTemp, true, "Cannot initialize health component for owner [%s] with NULL health set on the ability system.", *GetNameSafe(Owner));
 		return;
 	}
 
 	// Register ASC delegates
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UOBM_HealthSet::GetHealthAttribute()).AddUObject(this, &UOBM_HealthComponent::HandleHealthChanged);
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UOBM_HealthSet::GetMaxHealthAttribute()).AddUObject(this, &UOBM_HealthComponent::HandleMaxHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UOvrlHealthSet::GetHealthAttribute()).AddUObject(this, &UOvrlHealthComponent::HandleHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UOvrlHealthSet::GetMaxHealthAttribute()).AddUObject(this, &UOvrlHealthComponent::HandleMaxHealthChanged);
 }
 
-void UOBM_HealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Data)
+void UOvrlHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Data)
 {
 	OnHealthChanged.Broadcast(this, Data.OldValue, Data.NewValue);
 
@@ -69,7 +69,7 @@ void UOBM_HealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Dat
 	}
 }
 
-void UOBM_HealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& Data)
+void UOvrlHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& Data)
 {
 	OnMaxHealthChanged.Broadcast(this, Data.OldValue, Data.NewValue);
 }

@@ -1,53 +1,53 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Attributes/OBM_HealthSet.h"
+#include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Net/UnrealNetwork.h"
 
-void UOBM_HealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void UOvrlHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME_CONDITION_NOTIFY(UOBM_HealthSet, Health, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UOBM_HealthSet, MaxHealth, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UOvrlHealthSet, Health, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UOvrlHealthSet, MaxHealth, COND_None, REPNOTIFY_Always);
 }
 
-UOBM_HealthSet::UOBM_HealthSet()
+UOvrlHealthSet::UOvrlHealthSet()
 	: Health(100.0f)
 	, MaxHealth(100.0f)
 {
 }
 
-void UOBM_HealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
+void UOvrlHealthSet::OnRep_Health(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UOBM_HealthSet, Health, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UOvrlHealthSet, Health, OldValue);
 }
 
-void UOBM_HealthSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
+void UOvrlHealthSet::OnRep_MaxHealth(const FGameplayAttributeData& OldValue)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UOBM_HealthSet, MaxHealth, OldValue);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UOvrlHealthSet, MaxHealth, OldValue);
 }
 
-void UOBM_HealthSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
+void UOvrlHealthSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
 
 	ClampAttribute(Attribute, NewValue);
 }
 
-void UOBM_HealthSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+void UOvrlHealthSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
 	ClampAttribute(Attribute, NewValue);
 }
 
-void UOBM_HealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+void UOvrlHealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 }
 
-void UOBM_HealthSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+void UOvrlHealthSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
 {
 	if (Attribute == GetHealthAttribute())
 	{

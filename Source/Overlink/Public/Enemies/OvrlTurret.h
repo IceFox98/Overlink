@@ -3,19 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OBM_EnemyBase.h"
-#include "OBM_Turret.generated.h"
+#include "OvrlEnemyBase.h"
+#include "OvrlTurret.generated.h"
 
 class UCapsuleComponent;
 
 UCLASS()
-class OVERLINK_API AOBM_Turret : public AOBM_EnemyBase
+class OVERLINK_API AOvrlTurret : public AOvrlEnemyBase
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	AOBM_Turret();
+	AOvrlTurret();
 
 
 public:

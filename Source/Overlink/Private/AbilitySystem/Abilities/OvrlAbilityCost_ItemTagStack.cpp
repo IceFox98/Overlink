@@ -1,30 +1,30 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "AbilitySystem/Abilities/OBM_AbilityCost_ItemTagStack.h"
+#include "AbilitySystem/Abilities/OvrlAbilityCost_ItemTagStack.h"
 
-#include "AbilitySystem/Abilities/OBM_GameplayAbility.h"
+#include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
 #include "NativeGameplayTags.h"
-#include "Equipment/OBM_EquipmentInstance.h"
-#include "Inventory/OBM_ItemInstance.h"
+#include "Equipment/OvrlEquipmentInstance.h"
+#include "Inventory/OvrlItemInstance.h"
 
-#include UE_INLINE_GENERATED_CPP_BY_NAME(OBM_AbilityCost_ItemTagStack)
+#include UE_INLINE_GENERATED_CPP_BY_NAME(OvrlAbilityCost_ItemTagStack)
 
 UE_DEFINE_GAMEPLAY_TAG(TAG_ABILITY_FAIL_COST, "Ability.ActivateFail.Cost");
 
-UOBM_AbilityCost_ItemTagStack::UOBM_AbilityCost_ItemTagStack()
+UOvrlAbilityCost_ItemTagStack::UOvrlAbilityCost_ItemTagStack()
 {
 	Quantity = 1.f;
 	FailureTag = TAG_ABILITY_FAIL_COST;
 }
 
-bool UOBM_AbilityCost_ItemTagStack::CheckCost(const UOBM_GameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
+bool UOvrlAbilityCost_ItemTagStack::CheckCost(const UOvrlGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (FGameplayAbilitySpec* Spec = Ability->GetCurrentAbilitySpec())
 	{
-		if (AOBM_EquipmentInstance* EquipmentInstance = Cast<AOBM_EquipmentInstance>(Spec->SourceObject.Get()))
+		if (AOvrlEquipmentInstance* EquipmentInstance = Cast<AOvrlEquipmentInstance>(Spec->SourceObject.Get()))
 		{
-			if (UOBM_ItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
+			if (UOvrlItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
 			{
 				const bool bCanApplyCost = ItemInstance->GetTagStackCount(Tag) >= Quantity;
 
@@ -42,13 +42,13 @@ bool UOBM_AbilityCost_ItemTagStack::CheckCost(const UOBM_GameplayAbility* Abilit
 	return false;
 }
 
-void UOBM_AbilityCost_ItemTagStack::ApplyCost(const UOBM_GameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+void UOvrlAbilityCost_ItemTagStack::ApplyCost(const UOvrlGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
 	if (FGameplayAbilitySpec* Spec = Ability->GetCurrentAbilitySpec())
 	{
-		if (AOBM_EquipmentInstance* EquipmentInstance = Cast<AOBM_EquipmentInstance>(Spec->SourceObject.Get()))
+		if (AOvrlEquipmentInstance* EquipmentInstance = Cast<AOvrlEquipmentInstance>(Spec->SourceObject.Get()))
 		{
-			if (UOBM_ItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
+			if (UOvrlItemInstance* ItemInstance = EquipmentInstance->GetAssociatedItem())
 			{
 				ItemInstance->RemoveStack(Tag, Quantity);
 			}

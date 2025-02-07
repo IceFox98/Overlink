@@ -1,71 +1,77 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "OBM_GameplayTags.h"
+#include "OvrlGameplayTags.h"
 
-namespace OBM_AbilityTags
+namespace OvrlAbilityTags
 {
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_IsDead, "OBM.Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_Cooldown, "OBM.Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_Cost, "OBM.Ability.ActivateFail.Cost", "Ability failed to activate because it did not pass the cost checks.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_TagsBlocked, "OBM.Ability.ActivateFail.TagsBlocked", "Ability failed to activate because tags are blocking it.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_TagsMissing, "OBM.Ability.ActivateFail.TagsMissing", "Ability failed to activate because tags are missing.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_ActivationGroup, "OBM.Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_IsDead, "Ovrl.Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_Cooldown, "Ovrl.Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_Cost, "Ovrl.Ability.ActivateFail.Cost", "Ability failed to activate because it did not pass the cost checks.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_TagsBlocked, "Ovrl.Ability.ActivateFail.TagsBlocked", "Ability failed to activate because tags are blocking it.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_TagsMissing, "Ovrl.Ability.ActivateFail.TagsMissing", "Ability failed to activate because tags are missing.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_ActivationGroup, "Ovrl.Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
 }
 
-namespace OBM_LocomotionModeTags
+namespace OvrlLocomotionModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Grounded, "OBM.LocomotionMode.Grounded");
-	UE_DEFINE_GAMEPLAY_TAG(InAir, "OBM.LocomotionMode.InAir");
+	UE_DEFINE_GAMEPLAY_TAG(Grounded, "Ovrl.LocomotionMode.Grounded");
+	UE_DEFINE_GAMEPLAY_TAG(InAir, "Ovrl.LocomotionMode.InAir");
 }
 
-namespace OBM_GaitTags
+namespace OvrlGaitTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Walking, "OBM.Gait.Walking");
-	UE_DEFINE_GAMEPLAY_TAG(Running, "OBM.Gait.Running");
+	UE_DEFINE_GAMEPLAY_TAG(Walking, "Ovrl.Gait.Walking");
+	UE_DEFINE_GAMEPLAY_TAG(Running, "Ovrl.Gait.Running");
 }
 
-namespace OBM_LocomotionActionTags
+namespace OvrlLocomotionActionTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Mantling, "OBM.LocomotionAction.Mantling");
-	UE_DEFINE_GAMEPLAY_TAG(Vaulting, "OBM.LocomotionAction.Vaulting");
-	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, "OBM.LocomotionAction.Ragdolling");
-	UE_DEFINE_GAMEPLAY_TAG(GettingUp, "OBM.LocomotionAction.GettingUp");
+	UE_DEFINE_GAMEPLAY_TAG(Mantling, "Ovrl.LocomotionAction.Mantling");
+	UE_DEFINE_GAMEPLAY_TAG(Vaulting, "Ovrl.LocomotionAction.Vaulting");
+	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, "Ovrl.LocomotionAction.Ragdolling");
+	UE_DEFINE_GAMEPLAY_TAG(GettingUp, "Ovrl.LocomotionAction.GettingUp");
 }
 
-namespace OBM_InputTags
+namespace OvrlViewModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Move, "OBM.InputTag.Move");
-	UE_DEFINE_GAMEPLAY_TAG(Look_Mouse, "OBM.InputTag.LookMouse");
-	UE_DEFINE_GAMEPLAY_TAG(Crouch, "OBM.InputTag.Crouch");
-	UE_DEFINE_GAMEPLAY_TAG(Jump, "OBM.InputTag.Jump");
-	UE_DEFINE_GAMEPLAY_TAG(ADS, "OBM.InputTag.ADS");
+	UE_DEFINE_GAMEPLAY_TAG(ADS, "Ovrl.ViewMode.ADS");
+	UE_DEFINE_GAMEPLAY_TAG(Relaxed, "Ovrl.ViewMode.Relaxed");
 }
 
-namespace OBM_StanceTags
+namespace OvrlInputTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Standing, "OBM.Stance.Standing");
-	UE_DEFINE_GAMEPLAY_TAG(Crouching, "OBM.Stance.Crouching");
+	UE_DEFINE_GAMEPLAY_TAG(Move, "Ovrl.InputTag.Move");
+	UE_DEFINE_GAMEPLAY_TAG(Look_Mouse, "Ovrl.InputTag.LookMouse");
+	UE_DEFINE_GAMEPLAY_TAG(Crouch, "Ovrl.InputTag.Crouch");
+	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.InputTag.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(ADS, "Ovrl.InputTag.ADS");
 }
 
-namespace OBM_OverlayModeTags
+namespace OvrlStanceTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Default, "OBM.OverlayMode.Default");
-	UE_DEFINE_GAMEPLAY_TAG(Pistol, "OBM.OverlayMode.Pistol");
-	UE_DEFINE_GAMEPLAY_TAG(Rifle, "OBM.OverlayMode.Rifle");
+	UE_DEFINE_GAMEPLAY_TAG(Standing, "Ovrl.Stance.Standing");
+	UE_DEFINE_GAMEPLAY_TAG(Crouching, "Ovrl.Stance.Crouching");
 }
 
-namespace OBM_WeaponTags
+namespace OvrlOverlayModeTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Fire, "OBM.Weapon.Fire");
-	UE_DEFINE_GAMEPLAY_TAG(Reload, "OBM.Weapon.Reload");
-
-	UE_DEFINE_GAMEPLAY_TAG(MagazineAmmo, "OBM.Weapon.MagazineAmmo");
-	UE_DEFINE_GAMEPLAY_TAG(MagazineSize, "OBM.Weapon.MagazineSize");
-	UE_DEFINE_GAMEPLAY_TAG(SpareAmmo, "OBM.Weapon.SpareAmmo");
+	UE_DEFINE_GAMEPLAY_TAG(Default, "Ovrl.OverlayMode.Default");
+	UE_DEFINE_GAMEPLAY_TAG(Pistol, "Ovrl.OverlayMode.Pistol");
+	UE_DEFINE_GAMEPLAY_TAG(Rifle, "Ovrl.OverlayMode.Rifle");
 }
 
-namespace OBM_CheatTags
+namespace OvrlWeaponTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(GodMode, "OBM.Cheat.GodMode");
-	UE_DEFINE_GAMEPLAY_TAG(UnlimitedHealth, "OBM.Cheat.UnlimitedHealth");
+	UE_DEFINE_GAMEPLAY_TAG(Fire, "Ovrl.Weapon.Fire");
+	UE_DEFINE_GAMEPLAY_TAG(Reload, "Ovrl.Weapon.Reload");
+
+	UE_DEFINE_GAMEPLAY_TAG(MagazineAmmo, "Ovrl.Weapon.MagazineAmmo");
+	UE_DEFINE_GAMEPLAY_TAG(MagazineSize, "Ovrl.Weapon.MagazineSize");
+	UE_DEFINE_GAMEPLAY_TAG(SpareAmmo, "Ovrl.Weapon.SpareAmmo");
+}
+
+namespace OvrlCheatTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(GodMode, "Ovrl.Cheat.GodMode");
+	UE_DEFINE_GAMEPLAY_TAG(UnlimitedHealth, "Ovrl.Cheat.UnlimitedHealth");
 }

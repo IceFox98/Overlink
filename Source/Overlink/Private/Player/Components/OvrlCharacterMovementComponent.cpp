@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/Components/OBM_CharacterMovementComponent.h"
+#include "Player/Components/OvrlCharacterMovementComponent.h"
 
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 
-void UOBM_CharacterMovementComponent::Crouch(bool bClientSimulation)
+void UOvrlCharacterMovementComponent::Crouch(bool bClientSimulation)
 {
 	if (!HasValidData())
 	{
@@ -98,7 +98,7 @@ void UOBM_CharacterMovementComponent::Crouch(bool bClientSimulation)
 	}
 }
 
-void UOBM_CharacterMovementComponent::UnCrouch(bool bClientSimulation)
+void UOvrlCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 {
 	if (!HasValidData())
 	{

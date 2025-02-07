@@ -4,28 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "OBM_HealthComponent.generated.h"
+#include "OvrlHealthComponent.generated.h"
 
-class UOBM_HealthSet;
-class UOBM_AbilitySystemComponent;
+class UOvrlHealthSet;
+class UOvrlAbilitySystemComponent;
 struct FOnAttributeChangeData;
 
 // OnHealthChanged event
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangedSignature, UOBM_HealthComponent*, HealthComp, float, OldValue, float, NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangedSignature, UOvrlHealthComponent*, HealthComp, float, OldValue, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnOutOfHealthSignature, AActor*, Instigator);
 
 UCLASS(ClassGroup = (Custom))
-class OVERLINK_API UOBM_HealthComponent : public UActorComponent
+class OVERLINK_API UOvrlHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UOBM_HealthComponent();
+	UOvrlHealthComponent();
 
 public:
 
-	void InitializeWithASC(UOBM_AbilitySystemComponent* ASC);
+	void InitializeWithASC(UOvrlAbilitySystemComponent* ASC);
 
 protected:
 
@@ -47,11 +47,11 @@ public:
 
 	// Ability system used by this component.
 	UPROPERTY()
-		TObjectPtr<UOBM_AbilitySystemComponent> AbilitySystemComponent;
+		TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
 	// Health set used by this component.
 	UPROPERTY()
-		TObjectPtr<const UOBM_HealthSet> HealthSet;
+		TObjectPtr<const UOvrlHealthSet> HealthSet;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health Component")
 		bool bIsDead;

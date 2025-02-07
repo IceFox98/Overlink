@@ -3,17 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Inventory/OBM_ItemDefinition.h"
+#include "Inventory/OvrlItemDefinition.h"
 #include "GameplayTagContainer.h"
-#include "OBM_ItemFragment_SetStats.generated.h"
+#include "OvrlItemFragment_SetStats.generated.h"
 
-class UOBM_ItemInstance;
+class UOvrlItemInstance;
 
 /**
  * 
  */
 UCLASS()
-class OVERLINK_API UOBM_ItemFragment_SetStats : public UOBM_ItemFragment
+class OVERLINK_API UOvrlItemFragment_SetStats : public UOvrlItemFragment
 {
 	GENERATED_BODY()
 
@@ -22,7 +22,7 @@ protected:
 		TMap<FGameplayTag, int32> InitialItemStats;
 
 public:
-	virtual void OnInstanceCreated(UOBM_ItemInstance* Instance) const override;
+	virtual void OnInstanceCreated(UOvrlItemInstance* Instance) const override;
 
 	int32 GetItemStatByTag(FGameplayTag Tag) const;
 	
