@@ -83,6 +83,10 @@ protected:
 
 	// ------ COMPONENTS ------
 
+		/** FPS camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		TObjectPtr<USpringArmComponent> SpringArm;
+
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOvrlCameraComponent> CameraComp;

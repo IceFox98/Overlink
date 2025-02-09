@@ -14,6 +14,7 @@
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -26,11 +27,16 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->TargetArmLength = 0.f;
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->SetupAttachment(GetMesh(), TEXT("head"));
+
 	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
-	CameraComp->SetupAttachment(RootComponent);
+	//CameraComp->SetupAttachment(RootComponent);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
-	CameraComp->SetupAttachment(GetMesh(), TEXT("head"));
+	CameraComp->SetupAttachment(SpringArm);
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
