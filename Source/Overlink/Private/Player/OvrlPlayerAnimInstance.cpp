@@ -43,6 +43,11 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 
+	LocomotionAction = Character->GetLocomotionAction();
+	LocomotionMode = Character->GetLocomotionMode();
+	Stance = Character->GetStance();
+	Gait = Character->GetGait();
+	OverlayMode = Character->GetOverlayMode();
 }
 
 void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
@@ -51,8 +56,4 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 
 	const FBasedMovementInfo& BasedMovement = Character->GetBasedMovement();
 
-	LocomotionMode = Character->GetLocomotionMode();
-	Stance = Character->GetStance();
-	Gait = Character->GetGait();
-	OverlayMode = Character->GetOverlayMode();
 }

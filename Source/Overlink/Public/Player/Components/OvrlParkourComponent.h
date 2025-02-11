@@ -14,8 +14,8 @@ enum EParkourMovementType : uint8
 	Sliding
 };
 
-class ACharacter;
 class UCharacterMovementComponent;
+class AOvrlPlayerCharacter;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlParkourComponent : public UActorComponent
@@ -33,7 +33,7 @@ public:
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
-		void Initialize(ACharacter* InCharacter);
+		void Initialize(AOvrlPlayerCharacter* InCharacter);
 
 	UFUNCTION(BlueprintCallable, Category = "ParkourComponent")
 		void OnPlayerJumped();
@@ -114,7 +114,7 @@ private:
 	// ------ DEFAULT VALUES ------
 
 	UPROPERTY()
-		TObjectPtr<ACharacter> Character;
+		TObjectPtr<AOvrlPlayerCharacter> Character;
 
 	UPROPERTY()
 		TObjectPtr<UCharacterMovementComponent> CharacterMovement;

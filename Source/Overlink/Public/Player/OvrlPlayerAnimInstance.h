@@ -51,12 +51,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
 		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|GameplayTags", Transient)
-	//	bool bGameplayTagIsAiming;
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|GameplayTags", Transient)
-	//	bool bGameplayTagIsFiring;
-
 	// Gameplay tags that can be mapped to blueprint variables. The variables will automatically update as the tags are added or removed.
 	// These should be used instead of manually querying for the gameplay tags.
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Player Anim Instance|GameplayTags")

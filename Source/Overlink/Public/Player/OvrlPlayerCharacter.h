@@ -47,18 +47,20 @@ public:
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 
-	virtual void Crouch(bool bClientSimulation) override;
-	virtual void UnCrouch(bool bClientSimulation) override;
+	virtual void Crouch(bool bClientSimulation = false) override;
+	virtual void UnCrouch(bool bClientSimulation = false) override;
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
 
 	// ------ LOCOMOTION ------
 
+	FORCEINLINE const FGameplayTag& GetLocomotionAction() const { return LocomotionAction; }
 	FORCEINLINE const FGameplayTag& GetLocomotionMode() const { return LocomotionMode; }
 	FORCEINLINE const FGameplayTag& GetStance() const { return Stance; }
 	FORCEINLINE const FGameplayTag& GetGait() const { return Gait; }
 	FORCEINLINE const FGameplayTag& GetOverlayMode() const { return OverlayMode; }
 
+	void SetLocomotionAction(const FGameplayTag& NewLocomotionAction);
 	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
 	void SetStance(const FGameplayTag& NewStance);
 	void SetGait(const FGameplayTag& NewGait);

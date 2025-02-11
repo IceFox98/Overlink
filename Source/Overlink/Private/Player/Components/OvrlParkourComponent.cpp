@@ -4,9 +4,12 @@
 #include "Player/Components/OvrlParkourComponent.h"
 
 #include "GameFramework/Character.h"
+#include "Player/OvrlPlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+
+#include "OvrlGameplayTags.h"
 
 #include "OvrlUtils.h"
 
@@ -43,7 +46,7 @@ void UOvrlParkourComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	}
 }
 
-void UOvrlParkourComponent::Initialize(ACharacter* InCharacter)
+void UOvrlParkourComponent::Initialize(AOvrlPlayerCharacter* InCharacter)
 {
 	check(InCharacter);
 
@@ -166,6 +169,8 @@ bool UOvrlParkourComponent::HandleWallrunMovement(bool bIsLeftSide)
 		const FVector LaunchVelocity = WallForwardDirection * DefaultMaxWalkSpeed * -WallDirection;
 
 		Character->LaunchCharacter(LaunchVelocity, true, true);
+
+		Character->SetLocomotionAction(OvrlLocomotionActionTags::Wallrunning);
 		bHandled = true;
 	}
 
@@ -228,6 +233,7 @@ void UOvrlParkourComponent::EndWallrun()
 	if (IsWallrunning())
 	{
 		bCanCheckWallrun = false;
+		Character->SetLocomotionAction(FGameplayTag::EmptyTag);
 
 		MovementType = EParkourMovementType::None;
 		FTimerHandle TimerHandle;
@@ -265,6 +271,7 @@ void UOvrlParkourComponent::HandleSliding()
 			CharacterMovement->AddImpulse(FloorSlopeDirection * SlideForce, true);
 
 			MovementType = EParkourMovementType::Sliding;
+			Character->SetLocomotionAction(OvrlLocomotionActionTags::Sliding);
 		}
 	}
 }
@@ -286,4 +293,5 @@ void UOvrlParkourComponent::CancelSliding()
 	CharacterMovement->MaxWalkSpeedCrouched = DefaultMaxWalkSpeedCrouched;
 
 	MovementType = EParkourMovementType::None;
+	Character->SetLocomotionAction(FGameplayTag::EmptyTag);
 }

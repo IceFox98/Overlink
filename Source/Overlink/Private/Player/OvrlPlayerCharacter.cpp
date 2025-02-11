@@ -148,14 +148,14 @@ void AOvrlPlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	}
 }
 
-void AOvrlPlayerCharacter::Crouch(bool bClientSimulation)
+void AOvrlPlayerCharacter::Crouch(bool bClientSimulation/* = false*/)
 {
 	Super::Crouch();
 
 	SetStance(OvrlStanceTags::Crouching);
 }
 
-void AOvrlPlayerCharacter::UnCrouch(bool bClientSimulation)
+void AOvrlPlayerCharacter::UnCrouch(bool bClientSimulation/* = false*/)
 {
 	Super::UnCrouch();
 
@@ -184,6 +184,14 @@ void AOvrlPlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementM
 	}
 
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
+void AOvrlPlayerCharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
+{
+	if (LocomotionAction == NewLocomotionAction)
+		return;
+
+	LocomotionAction = NewLocomotionAction;
 }
 
 void AOvrlPlayerCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
