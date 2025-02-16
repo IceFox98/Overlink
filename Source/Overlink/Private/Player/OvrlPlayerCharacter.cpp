@@ -27,16 +27,18 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->TargetArmLength = 0.f;
-	SpringArm->bUsePawnControlRotation = true;
-	SpringArm->SetupAttachment(GetMesh(), TEXT("head"));
+	//SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	//SpringArm->TargetArmLength = 0.f;
+	//SpringArm->bUsePawnControlRotation = true;
+	//SpringArm->SetupAttachment(GetMesh(), TEXT("camera"));
 
 	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
-	//CameraComp->SetupAttachment(RootComponent);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
-	CameraComp->SetupAttachment(SpringArm);
+	CameraComp->SetupAttachment(RootComponent);
+
+	FPMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPMesh"));
+	FPMesh->SetupAttachment(CameraComp);
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));

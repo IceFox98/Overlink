@@ -42,6 +42,8 @@ public:
 
 public:
 
+	USkeletalMeshComponent* GetFPMesh() const { return FPMesh; };
+
 	// ------ MOVEMENT ------
 
 	void Input_Move(const FInputActionValue& InputActionValue);
@@ -85,9 +87,12 @@ protected:
 
 	// ------ COMPONENTS ------
 
-		/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USpringArmComponent> SpringArm;
+		TObjectPtr<USkeletalMeshComponent> FPMesh;
+
+	//	/** FPS camera */
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//	TObjectPtr<USpringArmComponent> SpringArm;
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

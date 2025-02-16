@@ -6,7 +6,7 @@
 #include "Animations/OvrlLinkedAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 
-#include "Player/OvrlCharacterBase.h"
+#include "Player/OvrlPlayerCharacter.h"
 
 // Sets default values
 AOvrlEquipmentInstance::AOvrlEquipmentInstance()
@@ -32,9 +32,9 @@ void AOvrlEquipmentInstance::Tick(float DeltaTime)
 
 void AOvrlEquipmentInstance::OnEquipped()
 {
-	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
+	if (AOvrlPlayerCharacter* OwningPawn = Cast<AOvrlPlayerCharacter>(GetOwner()))
 	{
-		AttachToComponent(OwningPawn->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
+		AttachToComponent(OwningPawn->GetFPMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
 		bIsEquipped = true;
 
 		ApplyOverlayAnimation();
@@ -54,12 +54,13 @@ void AOvrlEquipmentInstance::OnUnequipped()
 
 void AOvrlEquipmentInstance::ApplyOverlayAnimation()
 {
-	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
+	if (AOvrlPlayerCharacter* OwningPawn = Cast<AOvrlPlayerCharacter>(GetOwner()))
 	{
 		if (USkeletalMeshComponent* PawnMesh = OwningPawn->GetMesh())
 		{
 			const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 			PawnMesh->LinkAnimClassLayers(EquipmentDefinition->OverlayAnimInstance);
+			OwningPawn->GetFPMesh()->LinkAnimClassLayers(EquipmentDefinition->OverlayAnimInstance);
 		}
 	}
 }
