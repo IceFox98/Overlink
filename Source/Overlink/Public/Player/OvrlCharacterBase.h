@@ -10,6 +10,7 @@
 class UOvrlHealthComponent;
 class UOvrlAbilitySystemComponent;
 class UOvrlAbilitySet;
+class UOvrlLinkedAnimInstance;
 
 UCLASS()
 class OVERLINK_API AOvrlCharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -32,10 +33,12 @@ public:
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return (UAbilitySystemComponent*)AbilitySystemComponent; };
 
-	virtual USceneComponent* GetItemHoldingComponent() const { return Cast<USceneComponent>(GetMesh()); }
+	virtual USceneComponent* GetEquipAttachmentComponent() const { return Cast<USceneComponent>(GetMesh()); }
 
 	UFUNCTION()
 		virtual void HandleDeath(AActor* InInstigator);
+
+	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
 
 protected:
 

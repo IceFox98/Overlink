@@ -42,7 +42,9 @@ public:
 
 public:
 
-	USkeletalMeshComponent* GetFPMesh() const { return FPMesh; };
+	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(FPMesh); }
+
+	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
 
 	// ------ MOVEMENT ------
 
@@ -51,6 +53,10 @@ public:
 
 	virtual void Crouch(bool bClientSimulation = false) override;
 	virtual void UnCrouch(bool bClientSimulation = false) override;
+
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
 
@@ -90,9 +96,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<USkeletalMeshComponent> FPMesh;
 
-	//	/** FPS camera */
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//	TObjectPtr<USpringArmComponent> SpringArm;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		TObjectPtr<USkeletalMeshComponent> FullBodyMesh;
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")

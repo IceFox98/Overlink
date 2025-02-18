@@ -14,7 +14,7 @@
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
+#include "Animations/OvrlLinkedAnimInstance.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -27,22 +27,26 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	//SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	//SpringArm->TargetArmLength = 0.f;
-	//SpringArm->bUsePawnControlRotation = true;
-	//SpringArm->SetupAttachment(GetMesh(), TEXT("camera"));
-
 	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
-	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 	CameraComp->SetupAttachment(RootComponent);
+	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 
 	FPMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPMesh"));
 	FPMesh->SetupAttachment(CameraComp);
+	FPMesh->CastShadow = false;
+
+	FullBodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FullBodyMesh"));
+	FullBodyMesh->SetupAttachment(RootComponent);
+	FullBodyMesh->bOwnerNoSee = true;
+	FullBodyMesh->bCastHiddenShadow = true;
+	FullBodyMesh->SetDisablePostProcessBlueprint(true);
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
 	ParkourComponent = CreateDefaultSubobject<UOvrlParkourComponent>(TEXT("ParkourComponent"));
+
+	GetMesh()->CastShadow = false;
 
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
@@ -82,6 +86,12 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
 	}
+}
+
+void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
+{
+	FPMesh->LinkAnimClassLayers(LayerClass);
+	FullBodyMesh->LinkAnimClassLayers(LayerClass);
 }
 
 void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
@@ -154,12 +164,29 @@ void AOvrlPlayerCharacter::Crouch(bool bClientSimulation/* = false*/)
 {
 	Super::Crouch();
 
-	SetStance(OvrlStanceTags::Crouching);
 }
 
 void AOvrlPlayerCharacter::UnCrouch(bool bClientSimulation/* = false*/)
 {
 	Super::UnCrouch();
+}
+
+void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+
+	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
+	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
+
+	SetStance(OvrlStanceTags::Crouching);
+}
+
+void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+
+	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
+	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
 
 	SetStance(OvrlStanceTags::Standing);
 }
