@@ -44,14 +44,9 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
-	ParkourComponent = CreateDefaultSubobject<UOvrlParkourComponent>(TEXT("ParkourComponent"));
+	//ParkourComponent = CreateDefaultSubobject<UOvrlParkourComponent>(TEXT("ParkourComponent"));
 
 	GetMesh()->CastShadow = false;
-
-	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
-	GetMovementComponent()->GetNavAgentPropertiesRef().bCanJump = true;
-
-	GetCharacterMovement()->bCanWalkOffLedgesWhenCrouching = true;
 
 	ThrowForce = 1200.f;
 }
@@ -60,7 +55,7 @@ void AOvrlPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ParkourComponent->Initialize(this);
+	//ParkourComponent->Initialize(this);
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -177,8 +172,6 @@ void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHal
 
 	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
 	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
-
-	SetStance(OvrlStanceTags::Crouching);
 }
 
 void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -187,64 +180,6 @@ void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 
 	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
 	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
-
-	SetStance(OvrlStanceTags::Standing);
-}
-
-void AOvrlPlayerCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
-{
-	// Use the character movement mode to set the locomotion mode to the right value. This allows you to have a
-	// custom set of movement modes but still use the functionality of the default character movement component.
-
-	switch (GetCharacterMovement()->MovementMode)
-	{
-	case MOVE_Walking:
-	case MOVE_NavWalking:
-		SetLocomotionMode(OvrlLocomotionModeTags::Grounded);
-		break;
-
-	case MOVE_Falling:
-		SetLocomotionMode(OvrlLocomotionModeTags::InAir);
-		break;
-
-	default:
-		SetLocomotionMode(FGameplayTag::EmptyTag);
-		break;
-	}
-
-	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
-}
-
-void AOvrlPlayerCharacter::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
-{
-	if (LocomotionAction == NewLocomotionAction)
-		return;
-
-	LocomotionAction = NewLocomotionAction;
-}
-
-void AOvrlPlayerCharacter::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
-{
-	if (LocomotionMode == NewLocomotionMode)
-		return;
-
-	LocomotionMode = NewLocomotionMode;
-}
-
-void AOvrlPlayerCharacter::SetStance(const FGameplayTag& NewStance)
-{
-	if (Stance == NewStance)
-		return;
-
-	Stance = NewStance;
-}
-
-void AOvrlPlayerCharacter::SetGait(const FGameplayTag& NewGait)
-{
-	if (Gait == NewGait)
-		return;
-
-	Gait = NewGait;
 }
 
 void AOvrlPlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)

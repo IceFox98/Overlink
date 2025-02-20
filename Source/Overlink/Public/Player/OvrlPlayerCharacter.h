@@ -40,6 +40,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
+		UOvrlCharacterMovementComponent* GetCharacterMovement() const { return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent()); };
+
 public:
 
 	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(FPMesh); }
@@ -57,21 +60,10 @@ public:
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
-
-	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode = 0) override;
-
 	// ------ LOCOMOTION ------
 
-	FORCEINLINE const FGameplayTag& GetLocomotionAction() const { return LocomotionAction; }
-	FORCEINLINE const FGameplayTag& GetLocomotionMode() const { return LocomotionMode; }
-	FORCEINLINE const FGameplayTag& GetStance() const { return Stance; }
-	FORCEINLINE const FGameplayTag& GetGait() const { return Gait; }
 	FORCEINLINE const FGameplayTag& GetOverlayMode() const { return OverlayMode; }
 
-	void SetLocomotionAction(const FGameplayTag& NewLocomotionAction);
-	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
-	void SetStance(const FGameplayTag& NewStance);
-	void SetGait(const FGameplayTag& NewGait);
 	void SetOverlayMode(const FGameplayTag& NewOverlayMode);
 
 	// ------ INTERACTION ------
@@ -81,7 +73,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void ThrowEquippedObject();
 
-	UOvrlParkourComponent* GetParkourComponent() const { return ParkourComponent; }
+	//UOvrlParkourComponent* GetParkourComponent() const { return ParkourComponent; }
 
 private:
 
@@ -110,25 +102,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOvrlParkourComponent> ParkourComponent;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//	TObjectPtr<UOvrlParkourComponent> ParkourComponent;
 
 	// ------ LOCOMOTION ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Stance = OvrlStanceTags::Standing;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Gait = OvrlGaitTags::Walking;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
 		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
 public:
 

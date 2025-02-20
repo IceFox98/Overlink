@@ -30,7 +30,8 @@ namespace OvrlLocomotionActionTags
 	UE_DEFINE_GAMEPLAY_TAG(Vaulting, "Ovrl.LocomotionAction.Vaulting");
 	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, "Ovrl.LocomotionAction.Ragdolling");
 	UE_DEFINE_GAMEPLAY_TAG(Sliding, "Ovrl.LocomotionAction.Sliding");
-	UE_DEFINE_GAMEPLAY_TAG(Wallrunning, "Ovrl.LocomotionAction.Wallrunning");
+	UE_DEFINE_GAMEPLAY_TAG(WallrunningLeft, "Ovrl.LocomotionAction.WallrunningLeft");
+	UE_DEFINE_GAMEPLAY_TAG(WallrunningRight, "Ovrl.LocomotionAction.WallrunningRight");
 	UE_DEFINE_GAMEPLAY_TAG(GettingUp, "Ovrl.LocomotionAction.GettingUp");
 }
 

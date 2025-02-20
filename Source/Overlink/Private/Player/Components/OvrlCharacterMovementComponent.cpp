@@ -5,6 +5,89 @@
 
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "KismetTraceUtils.h"
+
+#include "Player/OvrlPlayerCharacter.h"
+
+#include "OvrlGameplayTags.h"
+
+UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
+{
+	GetNavAgentPropertiesRef().bCanCrouch = true;
+	GetNavAgentPropertiesRef().bCanJump = true;
+
+	bCanWalkOffLedgesWhenCrouching = true;
+
+	// Parkour variables
+	WallrunCheckDistance = 75.f;
+	WallrunCheckAngle = 35.f;
+	WallrunCameraTiltAngle = 15.f;
+	WallrunResetTime = .35f;
+	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
+
+	SlideDistanceCheck = 200.f;
+	SlideForce = 800.f;
+	SlideGroundFriction = 0.f;
+	SlideBraking = 1000.f;
+	SlideMaxWalkSpeedCrouched = 0.f;
+
+	TraversalCheckDistance = FVector2D(100.f, 200.f);
+	MaxVaultHeight = 120.f;
+}
+
+void UOvrlCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	// Use the character movement mode to set the locomotion mode to the right value. This allows you to have a
+	// custom set of movement modes but still use the functionality of the default character movement component.
+
+	switch (MovementMode)
+	{
+	case MOVE_Walking:
+	case MOVE_NavWalking:
+		SetLocomotionMode(OvrlLocomotionModeTags::Grounded);
+		break;
+
+	case MOVE_Falling:
+		SetLocomotionMode(OvrlLocomotionModeTags::InAir);
+		break;
+
+	default:
+		SetLocomotionMode(FGameplayTag::EmptyTag);
+		break;
+	}
+
+	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
+}
+
+void UOvrlCharacterMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	Character = Cast<AOvrlPlayerCharacter>(GetCharacterOwner());
+
+	// Save original character values due to reset them after applying parkour movement.
+	DefaultGravity = GravityScale;
+	DefaultMaxWalkSpeed = MaxWalkSpeed;
+	DefaultMaxWalkSpeedCrouched = MaxWalkSpeedCrouched;
+	DefaultGroundFriction = GroundFriction;
+	DefaultBrakingDecelerationWalking = BrakingDecelerationWalking;
+}
+
+void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	HandleWallrun(DeltaTime);
+
+	if (ShouldCancelSliding())
+	{
+		// TODO: Replace with Gameplay Ability
+		Character->UnCrouch();
+		CancelSliding();
+	}
+}
 
 void UOvrlCharacterMovementComponent::Crouch(bool bClientSimulation)
 {
@@ -25,7 +108,9 @@ void UOvrlCharacterMovementComponent::Crouch(bool bClientSimulation)
 		{
 			CharacterOwner->bIsCrouched = true;
 		}
+
 		CharacterOwner->OnStartCrouch(0.f, 0.f);
+		SetStance(OvrlStanceTags::Crouching);
 		return;
 	}
 
@@ -85,6 +170,7 @@ void UOvrlCharacterMovementComponent::Crouch(bool bClientSimulation)
 
 	AdjustProxyCapsuleSize();
 	CharacterOwner->OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	SetStance(OvrlStanceTags::Crouching);
 
 	// Don't smooth this change in mesh position
 	if ((bClientSimulation && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) || (IsNetMode(NM_ListenServer) && CharacterOwner->GetRemoteRole() == ROLE_AutonomousProxy))
@@ -114,7 +200,9 @@ void UOvrlCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 		{
 			CharacterOwner->bIsCrouched = false;
 		}
+
 		CharacterOwner->OnEndCrouch(0.f, 0.f);
+		SetStance(OvrlStanceTags::Standing);
 		return;
 	}
 
@@ -230,6 +318,7 @@ void UOvrlCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 	const float MeshAdjust = ScaledHalfHeightAdjust;
 	AdjustProxyCapsuleSize();
 	CharacterOwner->OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	SetStance(OvrlStanceTags::Standing);
 
 	// Don't smooth this change in mesh position
 	if ((bClientSimulation && CharacterOwner->GetLocalRole() == ROLE_SimulatedProxy) || (IsNetMode(NM_ListenServer) && CharacterOwner->GetRemoteRole() == ROLE_AutonomousProxy))
@@ -241,4 +330,276 @@ void UOvrlCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 			ClientData->OriginalMeshTranslationOffset = ClientData->MeshTranslationOffset;
 		}
 	}
+}
+
+bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
+{
+
+	return false;
+}
+
+void UOvrlCharacterMovementComponent::OnPlayerJumped()
+{
+	bShouldSlideOnLanded = false;
+
+	if (LocomotionAction == FGameplayTag::EmptyTag)
+	{
+		// The player will still be on the ground (not falling) when the Jump function is called
+		if (!IsFalling())
+		{
+			bCanCheckWallrun = true;
+		}
+	}
+	else
+	{
+		HandleWallrunJump();
+	}
+}
+
+void UOvrlCharacterMovementComponent::OnPlayerLanded()
+{
+	EndWallrun();
+
+	if (bShouldSlideOnLanded)
+	{
+		Character->Crouch();
+
+		// Is Player still moving?
+		if (GetLastUpdateVelocity().Length() > 0)
+		{
+			HandleSliding();
+		}
+
+		bShouldSlideOnLanded = false;
+	}
+}
+
+void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
+{
+	const bool bIsPlayerGrounded = !IsFalling();
+
+	if (bInWantsToCrouch)
+	{
+		if (bIsPlayerGrounded)
+		{
+			Character->Crouch();
+		}
+
+		HandleSliding();
+	}
+	else
+	{
+		Character->UnCrouch();
+
+		CancelSliding();
+	}
+}
+
+
+void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
+{
+	if (bCanCheckWallrun)
+	{
+		const FVector PlayerInputVector = GetLastInputVector();
+		const FVector PlayerForwardVector = Character->GetActorForwardVector();
+
+		const bool bIsPlayerNotGrounded = IsFalling();
+		//const bool bIsPlayerMoving = !PlayerInputVector.IsZero();
+		const bool bIsPlayerMovingForward = FVector::DotProduct(PlayerInputVector, PlayerForwardVector) > 0;
+
+		if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
+		{
+			if (HandleWallrunMovement(true))
+			{
+				//MovementType = EParkourMovementType::WallrunLeft;
+			}
+			else if (HandleWallrunMovement(false)) // Try the right side
+			{
+				//MovementType = EParkourMovementType::WallrunRight;
+			}
+		}
+	}
+
+	// The tilting is now managed in the PlayerController class
+	//HandleWallrunCameraTilt(DeltaTime);
+}
+
+bool UOvrlCharacterMovementComponent::HandleWallrunMovement(bool bIsLeftSide)
+{
+	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
+
+	const FVector BackwardVector = (Character->GetActorRightVector() * WallrunCheckDistance * WallDirection) + Character->GetActorForwardVector() * -WallrunCheckAngle;
+
+	const FVector StartTrace = Character->GetActorLocation();
+	const FVector EndTrace = Character->GetActorLocation() + BackwardVector;
+
+	FHitResult OutHit;
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, OutHit, true);
+
+	bool bHandled = false;
+
+	if (OutHit.bBlockingHit)
+	{
+		WallrunNormal = OutHit.Normal;
+
+		// Returns the direction of where the player should be launched. It follows the wall surface.
+		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection());
+		const FVector LaunchVelocity = WallForwardDirection * DefaultMaxWalkSpeed * -WallDirection;
+
+		Character->LaunchCharacter(LaunchVelocity, true, true);
+
+		const FGameplayTag TargetGameplayTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
+		SetLocomotionAction(TargetGameplayTag);
+		bHandled = true;
+	}
+
+	return bHandled;
+}
+
+void UOvrlCharacterMovementComponent::HandleWallrunCameraTilt(float DeltaTime)
+{
+	FRotator TargetRotation = Character->GetControlRotation();
+
+	if (IsWallrunning())
+	{
+		// Tilt camera depending on which wall the player is on.
+		TargetRotation.Roll = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? WallrunCameraTiltAngle : -WallrunCameraTiltAngle;
+	}
+	else
+	{
+		TargetRotation.Roll = 0.f;
+	}
+
+	// Lerp and apply rotation
+	const FRotator FinalRotation = UKismetMathLibrary::RInterpTo(Character->GetControlRotation(), TargetRotation, DeltaTime, 10.f);
+	Character->GetController()->SetControlRotation(FinalRotation);
+}
+
+void UOvrlCharacterMovementComponent::HandleWallrunJump()
+{
+	if (IsWallrunning())
+	{
+		const float WallDirection = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? -1.f : 1.f;
+
+		EndWallrun();
+
+		const float AwayVelocity = WallrunJumpVelocity.X;
+		const float ForwardVelocity = WallrunJumpVelocity.Y;
+		const float UpwardVelocity = WallrunJumpVelocity.Z;
+
+		// Get the wall forward vector as forward vector for the direction
+		const FVector ForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection()) * -WallDirection;
+
+		// Combine all directions together
+		const FVector LaunchVelocity = (WallrunNormal * AwayVelocity) + (ForwardDirection * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
+
+		//UKismetSystemLibrary::DrawDebugArrow(this, Character->GetActorLocation(), Character->GetActorLocation() + LaunchVelocity, 4.f, FLinearColor::Green, 10.f, 5.f);
+
+		Character->LaunchCharacter(LaunchVelocity, false, true);
+	}
+}
+
+void UOvrlCharacterMovementComponent::ResetWallrun()
+{
+	if (LocomotionAction == FGameplayTag::EmptyTag)
+	{
+		bCanCheckWallrun = true;
+	}
+}
+
+void UOvrlCharacterMovementComponent::EndWallrun()
+{
+	if (IsWallrunning())
+	{
+		bCanCheckWallrun = false;
+		SetLocomotionAction(FGameplayTag::EmptyTag);
+
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UOvrlCharacterMovementComponent::ResetWallrun, WallrunResetTime, false);
+	}
+}
+
+void UOvrlCharacterMovementComponent::HandleSliding()
+{
+	if (IsSliding())
+		return;
+
+	const bool bIsPlayerGrounded = !IsFalling();
+	const bool bIsPlayerMoving = GetLastUpdateVelocity().Length() > 0;
+
+	bShouldSlideOnLanded = !bIsPlayerGrounded;
+
+	if (bIsPlayerGrounded && bIsPlayerMoving)
+	{
+		// Trace a down vector to check if sliding is available.
+		const FVector StartTrace = Character->GetActorLocation();
+		const FVector EndTrace = StartTrace + GetGravityDirection() * SlideDistanceCheck;
+
+		FHitResult OutHit;
+		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForDuration, OutHit, true);
+
+		if (OutHit.bBlockingHit)
+		{
+			GroundFriction = SlideGroundFriction;
+			BrakingDecelerationWalking = SlideBraking;
+			MaxWalkSpeedCrouched = SlideMaxWalkSpeedCrouched;
+
+			// Cross with floor normal to get the direction of where to launche the character
+			const FVector FloorSlopeDirection = FVector::CrossProduct(Character->GetActorRightVector(), OutHit.Normal);
+			AddImpulse(FloorSlopeDirection * SlideForce, true);
+
+			SetLocomotionAction(OvrlLocomotionActionTags::Sliding);
+		}
+	}
+}
+
+bool UOvrlCharacterMovementComponent::ShouldCancelSliding()
+{
+	if (!IsSliding())
+		return false;
+
+	//OvrlLOG("%f", GetLastUpdateVelocity().Length());
+
+	return GetLastUpdateVelocity().Length() <= 575.f;
+}
+
+void UOvrlCharacterMovementComponent::CancelSliding()
+{
+	GroundFriction = DefaultGroundFriction;
+	BrakingDecelerationWalking = DefaultBrakingDecelerationWalking;
+	MaxWalkSpeedCrouched = DefaultMaxWalkSpeedCrouched;
+
+	SetLocomotionAction(FGameplayTag::EmptyTag);
+}
+
+void UOvrlCharacterMovementComponent::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
+{
+	if (LocomotionAction == NewLocomotionAction)
+		return;
+
+	LocomotionAction = NewLocomotionAction;
+}
+
+void UOvrlCharacterMovementComponent::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)
+{
+	if (LocomotionMode == NewLocomotionMode)
+		return;
+
+	LocomotionMode = NewLocomotionMode;
+}
+
+void UOvrlCharacterMovementComponent::SetStance(const FGameplayTag& NewStance)
+{
+	if (Stance == NewStance)
+		return;
+
+	Stance = NewStance;
+}
+
+void UOvrlCharacterMovementComponent::SetGait(const FGameplayTag& NewGait)
+{
+	if (Gait == NewGait)
+		return;
+
+	Gait = NewGait;
 }

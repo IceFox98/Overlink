@@ -2,29 +2,30 @@
 
 
 #include "Player/OvrlPlayerController.h"
-#include "Player/OvrlPlayerCharacter.h"
-#include "Player/Components/OvrlParkourComponent.h"
+#include "Player/Components/OvrlCharacterMovementComponent.h"
 
 #include "Kismet/KismetMathLibrary.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Character.h"
 
 #include "OvrlUtils.h"
+
+void AOvrlPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ACharacter* OwningCharacter = GetCharacter();
+	check(OwningCharacter);
+
+	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
+	check(CharacterMovementComponent);
+}
 
 void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 {
 	//Super::UpdateRotation(DeltaTime);
 	//return;
 
-	FVector GravityDirection = FVector::DownVector;
-	AOvrlPlayerCharacter* PlayerCharacter = Cast<AOvrlPlayerCharacter>(GetPawn());
-
-	if (PlayerCharacter)
-	{
-		if (UCharacterMovementComponent* MoveComp = PlayerCharacter->GetCharacterMovement())
-		{
-			GravityDirection = MoveComp->GetGravityDirection();
-		}
-	}
+	FVector GravityDirection = CharacterMovementComponent->GetGravityDirection();
 
 	// Get the current control rotation in world space
 	FRotator ViewRotation = GetControlRotation();
@@ -40,14 +41,11 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	{
 		double TargetRoll = 0;
 
-		if (const UOvrlParkourComponent* ParkourComponent = PlayerCharacter->GetParkourComponent())
+		if (CharacterMovementComponent->IsWallrunning())
 		{
-			if (ParkourComponent->IsWallrunning())
-			{
-				TargetRoll = ParkourComponent->GetMovementType() == EParkourMovementType::WallrunLeft ? ParkourComponent->WallrunCameraTiltAngle : -ParkourComponent->WallrunCameraTiltAngle;
-			}
+			TargetRoll = CharacterMovementComponent->LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? CharacterMovementComponent->WallrunCameraTiltAngle : -CharacterMovementComponent->WallrunCameraTiltAngle;
 		}
-		
+
 		// Add Delta Rotation
 		ViewRotation += DeltaRot;
 

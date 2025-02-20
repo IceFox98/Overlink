@@ -9,7 +9,8 @@
 
 #include "OvrlPlayerAnimInstance.generated.h"
 
-class AOvrlPlayerCharacter;
+class ACharacter;
+class UOvrlCharacterMovementComponent;
 
 /**
  *
@@ -32,7 +33,10 @@ public:
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
-		TObjectPtr<AOvrlPlayerCharacter> Character;
+		TObjectPtr<ACharacter> Character;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
+		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
 	// ------ STATES ------
 

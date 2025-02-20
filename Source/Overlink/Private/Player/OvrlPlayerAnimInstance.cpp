@@ -4,8 +4,8 @@
 #include "Player/OvrlPlayerAnimInstance.h"
 
 // Internal
-#include "Player/OvrlPlayerCharacter.h"	
-//#include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "GameFramework/Character.h"	
+#include "Player/Components/OvrlCharacterMovementComponent.h"
 
 // Engine
 #include "AbilitySystemGlobals.h"
@@ -14,17 +14,19 @@ void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Character = Cast<AOvrlPlayerCharacter>(GetOwningActor());
+	Character = Cast<ACharacter>(GetOwningActor());
 
 #if WITH_EDITOR
-	const auto* World{ GetWorld() };
+	const UWorld* World = GetWorld() ;
 
 	if (IsValid(World) && !World->IsGameWorld() && !IsValid(Character))
 	{
 		// Use default objects for editor preview.
-		Character = GetMutableDefault<AOvrlPlayerCharacter>();
+		Character = GetMutableDefault<ACharacter>();
 	}
 #endif
+
+	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(Character->GetCharacterMovement());
 
 	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Character))
 	{
@@ -36,24 +38,27 @@ void UOvrlPlayerAnimInstance::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 
-	ensure(IsValid(Character));
+	ensureAlways(IsValid(CharacterMovementComponent));
 }
 
 void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 
-	LocomotionAction = Character->GetLocomotionAction();
-	LocomotionMode = Character->GetLocomotionMode();
-	Stance = Character->GetStance();
-	Gait = Character->GetGait();
-	OverlayMode = Character->GetOverlayMode();
+	if (!IsValid(CharacterMovementComponent))
+		return;
+
+	LocomotionAction = CharacterMovementComponent->GetLocomotionAction();
+	LocomotionMode = CharacterMovementComponent->GetLocomotionMode();
+	Stance = CharacterMovementComponent->GetStance();
+	Gait = CharacterMovementComponent->GetGait();
+	//OverlayMode = CharacterMovementComponent->GetOverlayMode();
 }
 
 void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaTime);
 
-	const FBasedMovementInfo& BasedMovement = Character->GetBasedMovement();
+	//const FBasedMovementInfo& BasedMovement = Character->GetBasedMovement();
 
 }
