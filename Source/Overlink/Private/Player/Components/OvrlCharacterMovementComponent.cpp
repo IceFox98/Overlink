@@ -33,8 +33,9 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	SlideBraking = 1000.f;
 	SlideMaxWalkSpeedCrouched = 0.f;
 
-	TraversalCheckDistance = FVector2D(100.f, 200.f);
+	TraversalCheckDistance = FVector2D(100.f, 50.f);
 	MaxVaultHeight = 120.f;
+	MaxMantleHeight = 220.f;
 }
 
 void UOvrlCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -334,8 +335,29 @@ void UOvrlCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 
 bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
 {
+	const FTraversalResult TraversalResult = CheckForTraversal();
 
-	return false;
+	if (TraversalResult.bFound)
+	{
+		switch (TraversalResult.Type)
+		{
+		case ETraversalType::Vault:
+			HandleVault();
+			break;
+
+		case ETraversalType::Mantle:
+			HandleMantle();
+			break;
+
+		default:
+			break;
+		}
+
+		return false; // Avoid jumping
+	}
+
+	// Do the default jump
+	return Super::DoJump(bReplayingMoves, DeltaTime);
 }
 
 void UOvrlCharacterMovementComponent::OnPlayerJumped()
@@ -395,6 +417,77 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 	}
 }
 
+FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
+{
+	FTraversalResult TraversalResult;
+
+	FVector TraceStart = Character->GetActorLocation();
+	FVector TraceEnd = TraceStart + Character->GetActorForwardVector() * TraversalCheckDistance.X;
+
+	const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(Character);
+
+	// Make first sweep trace to find if there's any obstacle in front of us
+	FHitResult TraversalHit;
+	GetWorld()->SweepSingleByChannel(TraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
+
+	//DrawDebugCapsuleTraceSingle(World, Start, End, Radius, HalfHeight, DrawDebugType, bHit, OutHit, TraceColor, TraceHitColor, DrawTime);
+
+	if (!TraversalHit.bBlockingHit) // No traversals found
+		return TraversalResult;
+
+	//DrawDebugDirectionalArrow(GetWorld(), )
+
+	// This position will always be the bottom of the player capsule
+	const FVector MeshLocation = Character->GetMesh()->GetComponentLocation();
+
+	// If we found a traversal, we make a downward capsule sweep to find the height of the traversal.
+	const float InwardOffset = 20.f;
+
+	// Calculate a vector with opposite direction of the hit normal
+	const FVector InwardPosition = TraversalHit.ImpactPoint - TraversalHit.ImpactNormal * InwardOffset;
+
+	TraceStart = FVector(InwardPosition.X, InwardPosition.Y, MeshLocation.Z + (CapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
+	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, MeshLocation.Z); // @TODO: Forse è meglio che il trace finisca a 10/15cm più sopra della mesh location
+
+	// Make first sweep trace to find if there's any obstacle in front of us
+	GetWorld()->SweepSingleByChannel(TraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
+
+	//DrawDebugCapsuleTraceSingle(World, Start, End, Radius, HalfHeight, DrawDebugType, bHit, OutHit, TraceColor, TraceHitColor, DrawTime);
+
+	//// Will always hit?
+	//if (!TraversalHit.bBlockingHit) // No traversals found
+	//	return TraversalResult;
+
+	const float TraversalHeight = FMath::Abs(TraversalHit.ImpactPoint.Z - MeshLocation.Z);
+
+	if (TraversalHeight <= MaxVaultHeight)
+	{
+		TraversalResult.bFound = true;
+		TraversalResult.Type = ETraversalType::Vault;
+	}
+	else if (TraversalHeight <= MaxMantleHeight)
+	{
+		TraversalResult.bFound = true;
+		TraversalResult.Type = ETraversalType::Mantle;
+	}
+
+	return TraversalResult;
+}
+
+void UOvrlCharacterMovementComponent::HandleVault()
+{
+	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
+}
+
+void UOvrlCharacterMovementComponent::HandleMantle()
+{
+	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
+
+}
 
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 {

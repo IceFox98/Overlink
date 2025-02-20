@@ -10,6 +10,21 @@
 
 class AOvrlPlayerCharacter;
 
+enum class ETraversalType : uint8
+{
+	None,
+	Vault,
+	Mantle
+};
+
+struct FTraversalResult
+{
+	// Set to true if any traversal has detected.
+	bool bFound = false;
+
+	ETraversalType Type = ETraversalType::None;
+};
+
 /**
  *
  */
@@ -67,11 +82,17 @@ protected:
 
 private:
 
-	// ------ VAULT ------
+	// -----------------------------
+	// ------ TRAVERSALS ------
+	// -----------------------------
 
+	FTraversalResult CheckForTraversal();
+
+	// ------ VAULT ------
+	void HandleVault();
 
 	// ------ MANTLE ------
-
+	void HandleMantle();
 
 	// ------ WALLRUN ------
 
@@ -111,6 +132,24 @@ public:
 	// ------ PARKOUR SECTION ------
 	// -----------------------------
 
+	// ------ TRAVERSAL VARS ------
+
+	// The distance (forward and upward) to check if there are any traversals in front of us.
+	// The forward check starts from the center of the player, whereas the upward check starts from the top of the player capsule
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+		FVector2D TraversalCheckDistance;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+		float MaxVaultHeight;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+		TObjectPtr<UAnimMontage> VaultMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
+		float MaxMantleHeight;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
+		TObjectPtr<UAnimMontage> MantleMontage;
 
 	// ------ WALLRUN VARS ------
 
