@@ -8,6 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "KismetTraceUtils.h"
+#include "MotionWarpingComponent.h"
 
 #include "Player/OvrlPlayerCharacter.h"
 
@@ -337,15 +338,25 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 {
 	const FTraversalResult TraversalResult = CheckForTraversal();
 
-	if (TraversalResult.bFound)
+	if (TraversalResult.bFound) // Let's overcome the traversal
 	{
+
+		// Allow the animation's root motion to ignore the gravity.
+		SetMovementMode(EMovementMode::MOVE_Flying);
+
+		// @TODO: Valutare se è meglio lasciare questo oppure no, o farlo in base all'animazione.
+		// Perchè per un ostacolo corto, rende la scavalcata più smooth, ma per uno più lungo sembra che faccia uno "scattino" in su quando finisce l'animazione.
+		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 		switch (TraversalResult.Type)
 		{
 		case ETraversalType::Vault:
+			SetVaultWarpingData(TraversalResult);
 			HandleVault();
 			break;
 
 		case ETraversalType::Mantle:
+			SetMantleWarpingData(TraversalResult);
 			HandleMantle();
 			break;
 
@@ -356,8 +367,16 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 		return false; // Avoid jumping
 	}
 
+	OnPlayerJumped();
+
 	// Do the default jump
 	return Super::DoJump(bReplayingMoves, DeltaTime);
+}
+
+void UOvrlCharacterMovementComponent::ResetTraversal()
+{
+	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SetMovementMode(EMovementMode::MOVE_Falling);
 }
 
 void UOvrlCharacterMovementComponent::OnPlayerJumped()
@@ -431,62 +450,121 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	QueryParams.AddIgnoredActor(Character);
 
 	// Make first sweep trace to find if there's any obstacle in front of us
-	FHitResult TraversalHit;
-	GetWorld()->SweepSingleByChannel(TraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
+	FHitResult ForwardTraversalHit;
+	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
 
 	//DrawDebugCapsuleTraceSingle(World, Start, End, Radius, HalfHeight, DrawDebugType, bHit, OutHit, TraceColor, TraceHitColor, DrawTime);
 
-	if (!TraversalHit.bBlockingHit) // No traversals found
+	if (!ForwardTraversalHit.bBlockingHit) // No traversals found
 		return TraversalResult;
 
 	//DrawDebugDirectionalArrow(GetWorld(), )
 
+	const FVector ForwardImpactPoint = ForwardTraversalHit.ImpactPoint;
+
 	// This position will always be the bottom of the player capsule
-	const FVector MeshLocation = Character->GetMesh()->GetComponentLocation();
+	const FVector FeetLocation = GetActorFeetLocation();
 
 	// If we found a traversal, we make a downward capsule sweep to find the height of the traversal.
 	const float InwardOffset = 20.f;
 
 	// Calculate a vector with opposite direction of the hit normal
-	const FVector InwardPosition = TraversalHit.ImpactPoint - TraversalHit.ImpactNormal * InwardOffset;
+	const FVector InwardPosition = ForwardImpactPoint - ForwardTraversalHit.ImpactNormal * InwardOffset;
 
-	TraceStart = FVector(InwardPosition.X, InwardPosition.Y, MeshLocation.Z + (CapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
-	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, MeshLocation.Z); // @TODO: Forse è meglio che il trace finisca a 10/15cm più sopra della mesh location
+	TraceStart = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z + (CapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
+	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z); // @TODO: Forse è meglio che il trace finisca a 10/15cm più sopra della mesh location
 
-	// Make first sweep trace to find if there's any obstacle in front of us
-	GetWorld()->SweepSingleByChannel(TraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
+	const float DownwardCapsuleRadius = 10.f;
+	const float DownwardCapsuleHalfHeight = 20.f;
 
-	//DrawDebugCapsuleTraceSingle(World, Start, End, Radius, HalfHeight, DrawDebugType, bHit, OutHit, TraceColor, TraceHitColor, DrawTime);
+	// Perform downward trace
+	FHitResult DownwardTraversalHit;
+	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(DownwardCapsuleRadius, DownwardCapsuleHalfHeight), QueryParams);
+
+	DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, DownwardCapsuleRadius, DownwardCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 5.f);
 
 	//// Will always hit?
 	//if (!TraversalHit.bBlockingHit) // No traversals found
 	//	return TraversalResult;
 
-	const float TraversalHeight = FMath::Abs(TraversalHit.ImpactPoint.Z - MeshLocation.Z);
+	const FVector DownwardImpactPoint = DownwardTraversalHit.ImpactPoint;
 
-	if (TraversalHeight <= MaxVaultHeight)
+	const float TraversalHeight = FMath::Abs(DownwardImpactPoint.Z - FeetLocation.Z);
+
+	const FVector FrontEdgeLocation = FVector(ForwardImpactPoint.X, ForwardImpactPoint.Y, DownwardImpactPoint.Z);
+
+	if (TraversalHeight <= MaxVaultHeight) // Vault
 	{
 		TraversalResult.bFound = true;
+		TraversalResult.UpperImpactPoint = DownwardImpactPoint;
+		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
 		TraversalResult.Type = ETraversalType::Vault;
 	}
-	else if (TraversalHeight <= MaxMantleHeight)
+	else if (TraversalHeight <= MaxMantleHeight) // Mantle
 	{
 		TraversalResult.bFound = true;
+		TraversalResult.UpperImpactPoint = DownwardImpactPoint;
+		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
 		TraversalResult.Type = ETraversalType::Mantle;
+	}
+
+	if (TraversalResult.bFound)
+	{
+		// Calculate Landing Point
+		// @TODO: Cambiare logica di calcolo del LandinPoint, così è molto brutale
+		TraversalResult.LandingPoint = FeetLocation + Character->GetActorForwardVector() * 100.f;
 	}
 
 	return TraversalResult;
 }
 
+void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult& TraversalResult)
+{
+	if (UMotionWarpingComponent* MotionWarping = Character->GetMotionWarpingComponent())
+	{
+		const FRotator WarpRotation = Character->GetActorRotation();
+
+		FMotionWarpingTarget StartWarpTarget;
+		StartWarpTarget.Name = StartTraversalWarpTargetName;
+		StartWarpTarget.Location = TraversalResult.UpperImpactPoint;
+		StartWarpTarget.Rotation = WarpRotation;
+		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
+
+		FMotionWarpingTarget EndWarpTarget;
+		EndWarpTarget.Name = EndTraversalWarpTargetName;
+		EndWarpTarget.Location = TraversalResult.LandingPoint;
+		EndWarpTarget.Rotation = WarpRotation;
+		MotionWarping->AddOrUpdateWarpTarget(EndWarpTarget);
+	}
+}
+
+void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResult& TraversalResult)
+{
+	if (UMotionWarpingComponent* MotionWarping = Character->GetMotionWarpingComponent())
+	{
+		const FRotator WarpRotation = Character->GetActorRotation();
+
+		FMotionWarpingTarget StartWarpTarget;
+		StartWarpTarget.Name = StartTraversalWarpTargetName;
+		StartWarpTarget.Rotation = WarpRotation;
+
+		const FVector WarpTargetLocation = FVector(GetActorFeetLocation().X, GetActorFeetLocation().Y, TraversalResult.UpperImpactPoint.Z);
+		StartWarpTarget.Location = WarpTargetLocation;
+		
+		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
+	}
+}
+
 void UOvrlCharacterMovementComponent::HandleVault()
 {
 	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
+	Character->PlayAnimMontage(VaultMontage);
 }
 
 void UOvrlCharacterMovementComponent::HandleMantle()
 {
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
-
+	Character->PlayAnimMontage(MantleMontage);
 }
 
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)

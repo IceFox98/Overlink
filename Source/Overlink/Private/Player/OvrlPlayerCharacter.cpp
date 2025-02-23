@@ -15,6 +15,7 @@
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Animations/OvrlLinkedAnimInstance.h"
+#include "MotionWarpingComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -44,7 +45,7 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
-	//ParkourComponent = CreateDefaultSubobject<UOvrlParkourComponent>(TEXT("ParkourComponent"));
+	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 
 	GetMesh()->CastShadow = false;
 
@@ -87,6 +88,13 @@ void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnim
 {
 	FPMesh->LinkAnimClassLayers(LayerClass);
 	FullBodyMesh->LinkAnimClassLayers(LayerClass);
+}
+
+void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay)
+{
+	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay);
+	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay);
+	FPMesh->GetAnimInstance()->Montage_Play(MontageToPlay);
 }
 
 void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)

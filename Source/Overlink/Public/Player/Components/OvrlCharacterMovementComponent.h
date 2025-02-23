@@ -22,6 +22,16 @@ struct FTraversalResult
 	// Set to true if any traversal has detected.
 	bool bFound = false;
 
+	// The impact point found during the downward trace.
+	// It's the highest point of the traversal
+	FVector UpperImpactPoint;
+
+	// The location of the nearest edge in front of us
+	FVector FrontEdgeLocation;
+
+	// Where the player should land and end its animation
+	FVector LandingPoint;
+
 	ETraversalType Type = ETraversalType::None;
 };
 
@@ -47,15 +57,18 @@ public:
 
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
 
-	// ------ PARKOUR ------
+	// ------ TRAVERSALS ------
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
+		void ResetTraversal();
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 		void OnPlayerJumped();
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 		void OnPlayerLanded();
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 		void HandleCrouching(bool bInWantsToCrouch);
 
 	FORCEINLINE bool IsWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
@@ -82,11 +95,13 @@ protected:
 
 private:
 
-	// -----------------------------
+	// ------------------------
 	// ------ TRAVERSALS ------
-	// -----------------------------
+	// ------------------------
 
 	FTraversalResult CheckForTraversal();
+	void SetVaultWarpingData(const FTraversalResult& TraversalResult);
+	void SetMantleWarpingData(const FTraversalResult& TraversalResult);
 
 	// ------ VAULT ------
 	void HandleVault();
@@ -104,7 +119,6 @@ private:
 
 	void ResetWallrun();
 	void EndWallrun();
-
 
 	// ------ SLIDE ------
 
@@ -138,6 +152,12 @@ public:
 	// The forward check starts from the center of the player, whereas the upward check starts from the top of the player capsule
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
 		FVector2D TraversalCheckDistance;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+		FName StartTraversalWarpTargetName;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+		FName EndTraversalWarpTargetName;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
 		float MaxVaultHeight;

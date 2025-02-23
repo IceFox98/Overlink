@@ -13,7 +13,7 @@ class UOvrlCharacterMovementComponent;
 class UOvrlInteractionComponent;
 class USceneComponent;
 class UOvrlInventoryComponent;
-class UOvrlParkourComponent;
+class UMotionWarpingComponent;
 class UOvrlInputConfig;
 class USpringArmComponent;
 class UInputMappingContext;
@@ -43,11 +43,15 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
 		UOvrlCharacterMovementComponent* GetCharacterMovement() const { return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent()); };
 
+	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
+
 public:
 
 	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(FPMesh); }
 
 	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
+
+	void PlayAnimMontage(UAnimMontage* MontageToPlay);
 
 	// ------ MOVEMENT ------
 
@@ -72,8 +76,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void ThrowEquippedObject();
-
-	//UOvrlParkourComponent* GetParkourComponent() const { return ParkourComponent; }
 
 private:
 
@@ -102,8 +104,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//	TObjectPtr<UOvrlParkourComponent> ParkourComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		TObjectPtr<UMotionWarpingComponent> MotionWarping;
 
 	// ------ LOCOMOTION ------
 
@@ -121,7 +123,6 @@ public:
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Input")
 		TObjectPtr<UOvrlInputConfig> InputConfig;
-public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throwing")
 		float ThrowForce;
