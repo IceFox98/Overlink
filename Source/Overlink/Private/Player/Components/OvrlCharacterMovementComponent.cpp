@@ -11,6 +11,7 @@
 #include "MotionWarpingComponent.h"
 
 #include "Player/OvrlPlayerCharacter.h"
+#include "OvrlUtils.h"
 
 #include "OvrlGameplayTags.h"
 
@@ -351,13 +352,11 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 		switch (TraversalResult.Type)
 		{
 		case ETraversalType::Vault:
-			SetVaultWarpingData(TraversalResult);
-			HandleVault();
+			HandleVault(TraversalResult);
 			break;
 
 		case ETraversalType::Mantle:
-			SetMantleWarpingData(TraversalResult);
-			HandleMantle();
+			HandleMantle(TraversalResult);
 			break;
 
 		default:
@@ -448,6 +447,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Character);
+	QueryParams.bFindInitialOverlaps = false;
 
 	// Make first sweep trace to find if there's any obstacle in front of us
 	FHitResult ForwardTraversalHit;
@@ -475,7 +475,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z); // @TODO: Forse è meglio che il trace finisca a 10/15cm più sopra della mesh location
 
 	const float DownwardCapsuleRadius = 10.f;
-	const float DownwardCapsuleHalfHeight = 20.f;
+	const float DownwardCapsuleHalfHeight = 10.f;
 
 	// Perform downward trace
 	FHitResult DownwardTraversalHit;
@@ -497,6 +497,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	{
 		TraversalResult.bFound = true;
 		TraversalResult.UpperImpactPoint = DownwardImpactPoint;
+		TraversalResult.FrontEdgeNormal = ForwardTraversalHit.ImpactNormal;
 		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
 		TraversalResult.Type = ETraversalType::Vault;
 	}
@@ -504,6 +505,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	{
 		TraversalResult.bFound = true;
 		TraversalResult.UpperImpactPoint = DownwardImpactPoint;
+		TraversalResult.FrontEdgeNormal = ForwardTraversalHit.ImpactNormal;
 		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
 		TraversalResult.Type = ETraversalType::Mantle;
 	}
@@ -548,23 +550,67 @@ void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResul
 		StartWarpTarget.Name = StartTraversalWarpTargetName;
 		StartWarpTarget.Rotation = WarpRotation;
 
-		const FVector WarpTargetLocation = FVector(GetActorFeetLocation().X, GetActorFeetLocation().Y, TraversalResult.UpperImpactPoint.Z);
+		const float OffsetAmount = Character->GetCapsuleComponent()->GetScaledCapsuleRadius() - 20.f;
+		const FVector OutwardOffset = TraversalResult.FrontEdgeLocation; // +TraversalResult.FrontEdgeNormal * OffsetAmount;
+
+		DrawDebugPoint(GetWorld(), OutwardOffset, 5.f, FColor::Green, true);
+
+		const FVector WarpTargetLocation = FVector(OutwardOffset.X, OutwardOffset.Y, TraversalResult.UpperImpactPoint.Z);
 		StartWarpTarget.Location = WarpTargetLocation;
 		
 		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
 	}
 }
 
-void UOvrlCharacterMovementComponent::HandleVault()
+float UOvrlCharacterMovementComponent::FindMontageStartForDeltaZ(UAnimMontage* Montage, double DeltaZ)
 {
-	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
-	Character->PlayAnimMontage(VaultMontage);
+	// https://landelare.github.io/2022/05/15/climbing-with-root-motion.html
+
+	float Start = 0;
+	float End = Montage->GetPlayLength();
+
+	FTransform EndTransform = UOvrlUtils::ExtractRootTransformFromMontage(Montage, End);
+	double TargetZ = EndTransform.GetTranslation().Z - DeltaZ;
+
+	// Do a binary search - halve the search interval until we get close enough. 
+	while (true)
+	{
+		float T = (Start + End) * .5f;
+		FTransform Transform = UOvrlUtils::ExtractRootTransformFromMontage(Montage, T);
+		double ZAtT = Transform.GetTranslation().Z;
+
+		if (T == 0.f)
+			return T;
+
+		if (FMath::IsNearlyEqual(ZAtT, TargetZ, 0.5))
+			return T;
+
+		if (ZAtT < TargetZ)
+			Start = T;
+		else
+			End = T;
+	}
 }
 
-void UOvrlCharacterMovementComponent::HandleMantle()
+void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& TraversalResult)
 {
+	SetVaultWarpingData(TraversalResult);
+	Character->PlayAnimMontage(VaultMontage);
+
+	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
+}
+
+void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& TraversalResult)
+{
+	SetMantleWarpingData(TraversalResult);
+
+	const double CharacterZ = GetActorFeetLocation().Z;
+	const double DeltaZ = TraversalResult.FrontEdgeLocation.Z - CharacterZ;
+
+	const float StartTime = FindMontageStartForDeltaZ(MantleMontage, DeltaZ);
+
+	Character->PlayAnimMontage(MantleMontage, StartTime);
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
-	Character->PlayAnimMontage(MantleMontage);
 }
 
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)

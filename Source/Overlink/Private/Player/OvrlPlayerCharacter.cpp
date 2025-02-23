@@ -90,11 +90,11 @@ void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnim
 	FullBodyMesh->LinkAnimClassLayers(LayerClass);
 }
 
-void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay)
+void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
 {
-	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay);
-	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay);
-	FPMesh->GetAnimInstance()->Montage_Play(MontageToPlay);
+	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+	FPMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
 }
 
 void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)

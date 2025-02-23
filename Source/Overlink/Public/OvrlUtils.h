@@ -80,4 +80,6 @@ public:
 	UFUNCTION(BlueprintPure)
 		static FRotator GetGravityWorldRotation(FRotator Rotation, FVector GravityDirection);
 
+	static FTransform ExtractRootTransformFromMontage(const UAnimMontage* Montage, float Time);
+
 };

@@ -27,3 +27,27 @@ FRotator UOvrlUtils::GetGravityWorldRotation(FRotator Rotation, FVector GravityD
 
 	return Rotation;
 }
+
+FTransform UOvrlUtils::ExtractRootTransformFromMontage(const UAnimMontage* Montage, float Time)
+{
+	// Based on UMotionWarpingUtilities::ExtractRootTransformFromAnimation().
+
+	if (!IsValid(Montage) || Montage->SlotAnimTracks.Num() <= 0)
+	{
+		return FTransform::Identity;
+	}
+
+	const auto* Segment = Montage->SlotAnimTracks[0].AnimTrack.GetSegmentAtTime(Time);
+	if (!Segment)
+	{
+		return FTransform::Identity;
+	}
+
+	const auto* Sequence = Cast<UAnimSequence>(Segment->GetAnimReference());
+	if (!Sequence)
+	{
+		return FTransform::Identity;
+	}
+
+	return Sequence->ExtractRootTrackTransform(Segment->ConvertTrackPosToAnimPos(Time), nullptr);
+}

@@ -29,6 +29,9 @@ struct FTraversalResult
 	// The location of the nearest edge in front of us
 	FVector FrontEdgeLocation;
 
+	// The normal of the front "wall" we have in front of us.
+	FVector FrontEdgeNormal;
+
 	// Where the player should land and end its animation
 	FVector LandingPoint;
 
@@ -102,12 +105,13 @@ private:
 	FTraversalResult CheckForTraversal();
 	void SetVaultWarpingData(const FTraversalResult& TraversalResult);
 	void SetMantleWarpingData(const FTraversalResult& TraversalResult);
+	float FindMontageStartForDeltaZ(UAnimMontage* Montage, double DeltaZ);
 
 	// ------ VAULT ------
-	void HandleVault();
+	void HandleVault(const FTraversalResult& TraversalResult);
 
 	// ------ MANTLE ------
-	void HandleMantle();
+	void HandleMantle(const FTraversalResult& TraversalResult);
 
 	// ------ WALLRUN ------
 

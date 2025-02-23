@@ -51,7 +51,7 @@ public:
 
 	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
 
-	void PlayAnimMontage(UAnimMontage* MontageToPlay);
+	void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
 
 	// ------ MOVEMENT ------
 
