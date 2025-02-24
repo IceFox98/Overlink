@@ -173,6 +173,9 @@ public:
 		float MaxMantleHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
+		float MaxMantleDistance;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
 		TObjectPtr<UAnimMontage> MantleMontage;
 
 	// ------ WALLRUN VARS ------

@@ -38,6 +38,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	TraversalCheckDistance = FVector2D(100.f, 50.f);
 	MaxVaultHeight = 120.f;
 	MaxMantleHeight = 220.f;
+	MaxMantleDistance = 90.f;
 }
 
 void UOvrlCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -341,7 +342,6 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 
 	if (TraversalResult.bFound) // Let's overcome the traversal
 	{
-
 		// Allow the animation's root motion to ignore the gravity.
 		SetMovementMode(EMovementMode::MOVE_Flying);
 
@@ -445,6 +445,9 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
+	const float TraceCapsuleRadius = 10.f;
+	const float TraceCapsuleHalfHeight = 10.f;
+
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Character);
 	QueryParams.bFindInitialOverlaps = false;
@@ -453,16 +456,12 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	FHitResult ForwardTraversalHit;
 	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
 
-	//DrawDebugCapsuleTraceSingle(World, Start, End, Radius, HalfHeight, DrawDebugType, bHit, OutHit, TraceColor, TraceHitColor, DrawTime);
+	DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 5.f);
 
 	if (!ForwardTraversalHit.bBlockingHit) // No traversals found
 		return TraversalResult;
 
-	//DrawDebugDirectionalArrow(GetWorld(), )
-
 	const FVector ForwardImpactPoint = ForwardTraversalHit.ImpactPoint;
-
-	// This position will always be the bottom of the player capsule
 	const FVector FeetLocation = GetActorFeetLocation();
 
 	// If we found a traversal, we make a downward capsule sweep to find the height of the traversal.
@@ -474,14 +473,11 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	TraceStart = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z + (CapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
 	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z); // @TODO: Forse è meglio che il trace finisca a 10/15cm più sopra della mesh location
 
-	const float DownwardCapsuleRadius = 10.f;
-	const float DownwardCapsuleHalfHeight = 10.f;
-
 	// Perform downward trace
 	FHitResult DownwardTraversalHit;
-	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(DownwardCapsuleRadius, DownwardCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, TraceCapsuleHalfHeight), QueryParams);
 
-	DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, DownwardCapsuleRadius, DownwardCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+	DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 5.f);
 
 	//// Will always hit?
 	//if (!TraversalHit.bBlockingHit) // No traversals found
@@ -490,6 +486,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const FVector DownwardImpactPoint = DownwardTraversalHit.ImpactPoint;
 
 	const float TraversalHeight = FMath::Abs(DownwardImpactPoint.Z - FeetLocation.Z);
+	const float TraversalDistance = FVector2D::Distance(FVector2D(ForwardTraversalHit.TraceStart), FVector2D(ForwardImpactPoint));
 
 	const FVector FrontEdgeLocation = FVector(ForwardImpactPoint.X, ForwardImpactPoint.Y, DownwardImpactPoint.Z);
 
@@ -501,7 +498,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
 		TraversalResult.Type = ETraversalType::Vault;
 	}
-	else if (TraversalHeight <= MaxMantleHeight) // Mantle
+	else if (TraversalHeight <= MaxMantleHeight && TraversalDistance <= MaxMantleDistance) // Mantle
 	{
 		TraversalResult.bFound = true;
 		TraversalResult.UpperImpactPoint = DownwardImpactPoint;
