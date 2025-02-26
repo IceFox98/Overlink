@@ -456,7 +456,12 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	FHitResult ForwardTraversalHit;
 	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
 
-	DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 5.f);
+#if ENABLE_DRAW_DEBUG
+	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
+
+	if (bDebugEnabled)
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 5.f);
+#endif
 
 	if (!ForwardTraversalHit.bBlockingHit) // No traversals found
 		return TraversalResult;
@@ -477,7 +482,10 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	FHitResult DownwardTraversalHit;
 	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, TraceCapsuleHalfHeight), QueryParams);
 
-	DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+#if ENABLE_DRAW_DEBUG
+	if (bDebugEnabled)
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+#endif
 
 	//// Will always hit?
 	//if (!TraversalHit.bBlockingHit) // No traversals found
@@ -486,6 +494,8 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const FVector DownwardImpactPoint = DownwardTraversalHit.ImpactPoint;
 
 	const float TraversalHeight = FMath::Abs(DownwardImpactPoint.Z - FeetLocation.Z);
+	
+	// Get distance from start trace point to impact point, ignoring Z axix
 	const float TraversalDistance = FVector2D::Distance(FVector2D(ForwardTraversalHit.TraceStart), FVector2D(ForwardImpactPoint));
 
 	const FVector FrontEdgeLocation = FVector(ForwardImpactPoint.X, ForwardImpactPoint.Y, DownwardImpactPoint.Z);
@@ -550,11 +560,9 @@ void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResul
 		const float OffsetAmount = Character->GetCapsuleComponent()->GetScaledCapsuleRadius() - 20.f;
 		const FVector OutwardOffset = TraversalResult.FrontEdgeLocation; // +TraversalResult.FrontEdgeNormal * OffsetAmount;
 
-		DrawDebugPoint(GetWorld(), OutwardOffset, 5.f, FColor::Green, true);
-
 		const FVector WarpTargetLocation = FVector(OutwardOffset.X, OutwardOffset.Y, TraversalResult.UpperImpactPoint.Z);
 		StartWarpTarget.Location = WarpTargetLocation;
-		
+
 		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
 	}
 }
@@ -646,9 +654,15 @@ bool UOvrlCharacterMovementComponent::HandleWallrunMovement(bool bIsLeftSide)
 
 	const FVector StartTrace = Character->GetActorLocation();
 	const FVector EndTrace = Character->GetActorLocation() + BackwardVector;
+	EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
+
+#if ENABLE_DRAW_DEBUG
+	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
+		DebugType = EDrawDebugTrace::ForDuration;
+#endif
 
 	FHitResult OutHit;
-	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::None, OutHit, true);
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
 
 	bool bHandled = false;
 
@@ -745,12 +759,18 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 
 	if (bIsPlayerGrounded && bIsPlayerMoving)
 	{
-		// Trace a down vector to check if sliding is available.
+		// Trace a down vector to check if sliding is possible
 		const FVector StartTrace = Character->GetActorLocation();
 		const FVector EndTrace = StartTrace + GetGravityDirection() * SlideDistanceCheck;
+		EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
+#if ENABLE_DRAW_DEBUG
+		if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
+			DebugType = EDrawDebugTrace::ForDuration;
+#endif
+		
 		FHitResult OutHit;
-		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, EDrawDebugTrace::ForDuration, OutHit, true);
+		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
 
 		if (OutHit.bBlockingHit)
 		{

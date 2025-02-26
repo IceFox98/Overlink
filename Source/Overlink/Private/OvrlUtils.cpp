@@ -2,6 +2,7 @@
 
 
 #include "OvrlUtils.h"
+#include "GameFramework/HUD.h"
 
 FRotator UOvrlUtils::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
 {
@@ -50,4 +51,13 @@ FTransform UOvrlUtils::ExtractRootTransformFromMontage(const UAnimMontage* Monta
 	}
 
 	return Sequence->ExtractRootTrackTransform(Segment->ConvertTrackPosToAnimPos(Time), nullptr);
+}
+
+bool UOvrlUtils::ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName)
+{
+	const UWorld* World = IsValid(Actor) ? Actor->GetWorld() : nullptr;
+	const APlayerController* PC = IsValid(World) ? World->GetFirstPlayerController() : nullptr;
+	AHUD* Hud = IsValid(PC) ? PC->GetHUD() : nullptr;
+
+	return IsValid(Hud) && Hud->ShouldDisplayDebug(DisplayName) && Hud->GetCurrentDebugTargetActor() == Actor;
 }

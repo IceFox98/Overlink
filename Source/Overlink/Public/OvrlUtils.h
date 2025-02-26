@@ -82,4 +82,5 @@ public:
 
 	static FTransform ExtractRootTransformFromMontage(const UAnimMontage* Montage, float Time);
 
+	static bool ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName);
 };

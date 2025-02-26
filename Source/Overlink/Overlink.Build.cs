@@ -17,7 +17,8 @@ public class Overlink : ModuleRules
             "GameplayTags",
             "GameplayTasks",
             "GameplayAbilities",
-            "MotionWarping"
+            "MotionWarping",
+            "EngineSettings"
         });
     }
 }
