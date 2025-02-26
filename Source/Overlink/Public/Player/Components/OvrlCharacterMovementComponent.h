@@ -19,15 +19,24 @@ enum class ETraversalType : uint8
 
 struct FTraversalResult
 {
-	// Set to true if any traversal has detected.
+	// Set to true if any traversal has been detected.
 	bool bFound = false;
+
+	// If true, there is a valid landing point beyond the traversal.
+	// The validation of the landing point is determined by MinLandingPointHeight and MaxLandingPointHeight: if the landing point stands between 
+	// this range, then it's valid, otherwise the character should either mantle or vault and fall.
+	bool bHasLandingPoint = false;
 
 	// The impact point found during the downward trace.
 	// It's the highest point of the traversal
+	// TODO: Useless? Use FrontEdgeLocation instead
 	FVector UpperImpactPoint;
 
 	// The location of the nearest edge in front of us
 	FVector FrontEdgeLocation;
+
+	// The location of the nearest edge in front of us
+	FVector BackEdgeLocation;
 
 	// The normal of the front "wall" we have in front of us.
 	FVector FrontEdgeNormal;
@@ -107,6 +116,8 @@ private:
 	void SetMantleWarpingData(const FTraversalResult& TraversalResult);
 	float FindMontageStartForDeltaZ(UAnimMontage* Montage, double DeltaZ);
 
+	void FindLandingPoint(FTraversalResult& OutTraversalResult);
+
 	// ------ VAULT ------
 	void HandleVault(const FTraversalResult& TraversalResult);
 
@@ -157,17 +168,31 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
 		FVector2D TraversalCheckDistance;
 
+	// The distance between the back edge traversal and where the player should land
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-		FName StartTraversalWarpTargetName;
+		float TraversalLandingPointDistance;
+
+	// The minimum distance the landing point should have, from back edge to floor level
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+		float MinLandingPointHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+		float MaxLandingPointHeight;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
+		FName StartTraversalWarpTargetName;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
 		FName EndTraversalWarpTargetName;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
 		float MaxVaultHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
-		TObjectPtr<UAnimMontage> VaultMontage;
+		TObjectPtr<UAnimMontage> VaultOverMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+		TObjectPtr<UAnimMontage> VaultClimbUpMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
 		float MaxMantleHeight;

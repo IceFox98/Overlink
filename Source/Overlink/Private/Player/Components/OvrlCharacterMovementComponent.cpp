@@ -36,7 +36,11 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	SlideMaxWalkSpeedCrouched = 0.f;
 
 	TraversalCheckDistance = FVector2D(100.f, 50.f);
+	TraversalLandingPointDistance = 100.f;
 	MaxVaultHeight = 120.f;
+	MaxLandingPointHeight = MaxVaultHeight + 30.f;
+	MinLandingPointHeight = MaxVaultHeight * .5f;
+
 	MaxMantleHeight = 220.f;
 	MaxMantleDistance = 90.f;
 }
@@ -494,7 +498,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const FVector DownwardImpactPoint = DownwardTraversalHit.ImpactPoint;
 
 	const float TraversalHeight = FMath::Abs(DownwardImpactPoint.Z - FeetLocation.Z);
-	
+
 	// Get distance from start trace point to impact point, ignoring Z axix
 	const float TraversalDistance = FVector2D::Distance(FVector2D(ForwardTraversalHit.TraceStart), FVector2D(ForwardImpactPoint));
 
@@ -507,6 +511,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 		TraversalResult.FrontEdgeNormal = ForwardTraversalHit.ImpactNormal;
 		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
 		TraversalResult.Type = ETraversalType::Vault;
+		FindLandingPoint(TraversalResult);
 	}
 	else if (TraversalHeight <= MaxMantleHeight && TraversalDistance <= MaxMantleDistance) // Mantle
 	{
@@ -517,14 +522,66 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 		TraversalResult.Type = ETraversalType::Mantle;
 	}
 
-	if (TraversalResult.bFound)
-	{
-		// Calculate Landing Point
-		// @TODO: Cambiare logica di calcolo del LandinPoint, così è molto brutale
-		TraversalResult.LandingPoint = FeetLocation + Character->GetActorForwardVector() * 100.f;
-	}
-
 	return TraversalResult;
+}
+
+void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTraversalResult)
+{
+	const FVector DownwardOffset = GetGravityDirection() * 10.f; // Used to don't trace along the upper side of the traversal
+	const float MaxTraversalLength = 250.f; // Basically, the max "vault over" distance
+
+	// Perform backward trace to find the back edge of the traversal
+	FVector TraceStart = OutTraversalResult.FrontEdgeLocation + DownwardOffset - OutTraversalResult.FrontEdgeNormal * MaxTraversalLength;
+	FVector TraceEnd = OutTraversalResult.FrontEdgeLocation + DownwardOffset;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(Character);
+	QueryParams.bFindInitialOverlaps = false;
+
+	FHitResult LandingPointHit;
+	GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+
+#if ENABLE_DRAW_DEBUG
+	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
+
+	if (bDebugEnabled)
+		DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, LandingPointHit.bBlockingHit, LandingPointHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+#endif
+
+	if (LandingPointHit.bBlockingHit && !LandingPointHit.bStartPenetrating)
+	{
+		OutTraversalResult.BackEdgeLocation = FVector(LandingPointHit.ImpactPoint.X, LandingPointHit.ImpactPoint.Y, OutTraversalResult.UpperImpactPoint.Z);
+
+		// Perform downward trace to find the exact landing point
+		TraceStart = OutTraversalResult.BackEdgeLocation - OutTraversalResult.FrontEdgeNormal * TraversalLandingPointDistance;
+		TraceEnd = TraceStart + GetGravityDirection() * MaxLandingPointHeight;
+
+		GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+
+#if ENABLE_DRAW_DEBUG
+		const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
+
+		if (bDebugEnabled)
+			DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, LandingPointHit.bBlockingHit, LandingPointHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+#endif
+
+		if (LandingPointHit.bBlockingHit && LandingPointHit.Distance >= MinLandingPointHeight && LandingPointHit.Distance <= MaxLandingPointHeight)
+		{
+			// Valid landing point found!
+			OutTraversalResult.bHasLandingPoint = true;
+			OutTraversalResult.LandingPoint = LandingPointHit.ImpactPoint;
+
+#if ENABLE_DRAW_DEBUG
+			if (bDebugEnabled)
+				DrawDebugPoint(GetWorld(), OutTraversalResult.LandingPoint, 10.f, FColor::Green, false, 5.f);
+#endif
+		}
+	}
+	else // No valid landing point found, maybe the traversal is too long.
+	{
+		// Set a default back edge location, just to find the mid point for warp data
+		OutTraversalResult.BackEdgeLocation = OutTraversalResult.FrontEdgeLocation - OutTraversalResult.FrontEdgeNormal * TraversalLandingPointDistance;
+	}
 }
 
 void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult& TraversalResult)
@@ -533,9 +590,11 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 	{
 		const FRotator WarpRotation = Character->GetActorRotation();
 
+		const FVector TraversalMidPoint = (TraversalResult.FrontEdgeLocation + TraversalResult.BackEdgeLocation) * .5f;
+
 		FMotionWarpingTarget StartWarpTarget;
 		StartWarpTarget.Name = StartTraversalWarpTargetName;
-		StartWarpTarget.Location = TraversalResult.UpperImpactPoint;
+		StartWarpTarget.Location = TraversalMidPoint;
 		StartWarpTarget.Rotation = WarpRotation;
 		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
 
@@ -600,7 +659,15 @@ float UOvrlCharacterMovementComponent::FindMontageStartForDeltaZ(UAnimMontage* M
 void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& TraversalResult)
 {
 	SetVaultWarpingData(TraversalResult);
-	Character->PlayAnimMontage(VaultMontage);
+
+	if (TraversalResult.bHasLandingPoint)
+	{
+		Character->PlayAnimMontage(VaultOverMontage);
+	}
+	else
+	{
+		Character->PlayAnimMontage(VaultClimbUpMontage);
+	}
 
 	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
 }
@@ -768,7 +835,7 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 		if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
 			DebugType = EDrawDebugTrace::ForDuration;
 #endif
-		
+
 		FHitResult OutHit;
 		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
 
