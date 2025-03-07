@@ -48,6 +48,22 @@ void AOvrlWeaponInstance::ToggleWeaponPhysics(bool bEnable)
 	}
 }
 
+FTransform AOvrlWeaponInstance::GetRightHandIKTransform() const
+{
+	if (!WeaponMesh || RightHandIKSocketName.IsNone())
+		return FTransform();
+
+	return WeaponMesh->GetSocketTransform(RightHandIKSocketName);
+}
+
+FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
+{
+	if (!WeaponMesh || LeftHandIKSocketName.IsNone())
+		return FTransform();
+
+	return WeaponMesh->GetSocketTransform(LeftHandIKSocketName);
+}
+
 // Move this to weapon-specific class?
 void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {

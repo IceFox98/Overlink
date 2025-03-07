@@ -35,6 +35,8 @@ void AOvrlEquipmentInstance::OnEquipped()
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		AttachToComponent(OwningPawn->GetEquipAttachmentComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
+		// TODO: Spanw and attach skeletal mesh to FullBody mesh
+
 		bIsEquipped = true;
 
 		ApplyOverlayAnimation();

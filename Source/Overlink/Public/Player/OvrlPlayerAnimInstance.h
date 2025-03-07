@@ -38,6 +38,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
 		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
+	// ------ IK ------
+
+	// The location of where the right should be placed (World space)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|IK", Transient)
+		FVector RightHandIKLocation;
+
+	// The location of where the left should be placed (World space)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|IK", Transient)
+		FVector LeftHandIKLocation;
+
 	// ------ STATES ------
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ovrl Player Anim Instance|States")

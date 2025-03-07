@@ -10,7 +10,7 @@
 class USphereComponent;
 
 /**
- * 
+ *
  */
 UCLASS()
 class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
@@ -20,7 +20,7 @@ class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 public:
 
 	AOvrlWeaponInstance();
-	
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -38,6 +38,12 @@ public:
 
 	void ToggleWeaponPhysics(bool bEnable);
 
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+		virtual FTransform GetRightHandIKTransform() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Weapon")
+		virtual FTransform GetLeftHandIKTransform() const override;
+
 	UFUNCTION()
 		void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -52,6 +58,13 @@ public:
 		TObjectPtr<USphereComponent> PickupSphere;
 
 public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+		FName RightHandIKSocketName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+		FName LeftHandIKSocketName;
+
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	//	UAnimMontage* WeaponEquipMontage;
 

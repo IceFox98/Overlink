@@ -37,6 +37,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 
 	TraversalCheckDistance = FVector2D(100.f, 50.f);
 	TraversalLandingPointDistance = 100.f;
+	TraversalHandOffset = { 17.f, 5.f };
 	MaxVaultHeight = 120.f;
 	MaxLandingPointHeight = MaxVaultHeight + 30.f;
 	MinLandingPointHeight = MaxVaultHeight * .5f;
@@ -353,6 +354,8 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 		// Perchè per un ostacolo corto, rende la scavalcata più smooth, ma per uno più lungo sembra che faccia uno "scattino" in su quando finisce l'animazione.
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+		UpdateHandsIKTransform(TraversalResult);
+
 		switch (TraversalResult.Type)
 		{
 		case ETraversalType::Vault:
@@ -380,6 +383,7 @@ void UOvrlCharacterMovementComponent::ResetTraversal()
 {
 	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	SetMovementMode(EMovementMode::MOVE_Falling);
+	SetLocomotionAction(FGameplayTag::EmptyTag);
 }
 
 void UOvrlCharacterMovementComponent::OnPlayerJumped()
@@ -559,8 +563,6 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 		GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 
 #if ENABLE_DRAW_DEBUG
-		const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
-
 		if (bDebugEnabled)
 			DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, LandingPointHit.bBlockingHit, LandingPointHit, FLinearColor::Red, FLinearColor::Green, 5.f);
 #endif
@@ -654,6 +656,17 @@ float UOvrlCharacterMovementComponent::FindMontageStartForDeltaZ(UAnimMontage* M
 		else
 			End = T;
 	}
+}
+
+void UOvrlCharacterMovementComponent::UpdateHandsIKTransform(const FTraversalResult& TraversalResult)
+{
+	const FVector FrontEdgeDirection = FVector::CrossProduct(-GetGravityDirection(), TraversalResult.FrontEdgeNormal);
+
+	const FVector HorizontalOffset = FrontEdgeDirection * TraversalHandOffset.X;
+	const FVector VerticalOffset = -GetGravityDirection() * TraversalHandOffset.Y;
+
+	RightHandIKLocation = TraversalResult.FrontEdgeLocation - HorizontalOffset + VerticalOffset;
+	LeftHandIKLocation = TraversalResult.FrontEdgeLocation + HorizontalOffset + VerticalOffset;
 }
 
 void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& TraversalResult)

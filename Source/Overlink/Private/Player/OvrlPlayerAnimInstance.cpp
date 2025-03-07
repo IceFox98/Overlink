@@ -53,6 +53,8 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	Stance = CharacterMovementComponent->GetStance();
 	Gait = CharacterMovementComponent->GetGait();
 	//OverlayMode = CharacterMovementComponent->GetOverlayMode();
+	RightHandIKLocation = CharacterMovementComponent->GetRightHandIKLocation();
+	LeftHandIKLocation = CharacterMovementComponent->GetLeftHandIKLocation();
 }
 
 void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)

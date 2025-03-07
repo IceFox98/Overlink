@@ -87,6 +87,9 @@ public:
 
 	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
 
+	FORCEINLINE FVector GetRightHandIKLocation() const { return RightHandIKLocation; };
+	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
+
 	// ------ LOCOMOTION ------
 
 	FORCEINLINE const FGameplayTag& GetLocomotionAction() const { return LocomotionAction; }
@@ -115,6 +118,7 @@ private:
 	void SetVaultWarpingData(const FTraversalResult& TraversalResult);
 	void SetMantleWarpingData(const FTraversalResult& TraversalResult);
 	float FindMontageStartForDeltaZ(UAnimMontage* Montage, double DeltaZ);
+	void UpdateHandsIKTransform(const FTraversalResult& TraversalResult);
 
 	void FindLandingPoint(FTraversalResult& OutTraversalResult);
 
@@ -179,6 +183,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
 		float MaxLandingPointHeight;
 
+	// The offset between the front edge and the player right hand.
+	// The value will be mirrored for the left hand.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+		FVector2D TraversalHandOffset;
+
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
 		FName StartTraversalWarpTargetName;
 
@@ -220,7 +229,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 		FVector WallrunJumpVelocity;
 
-
 	// ------ SLIDING VARS ------
 
 	// Vector that will be added to the player position, used to get the slope of the floor.
@@ -251,6 +259,10 @@ private:
 	float DefaultMaxWalkSpeedCrouched;
 	float DefaultGroundFriction;
 	float DefaultBrakingDecelerationWalking;
+
+	// ------ HAND IK ------
+	FVector RightHandIKLocation;
+	FVector LeftHandIKLocation;
 
 	// ------ WALLRUN VARS ------
 
