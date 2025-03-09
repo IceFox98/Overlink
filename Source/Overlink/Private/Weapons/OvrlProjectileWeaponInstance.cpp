@@ -1,14 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Weapons/OvrlProjectileWeapon.h"
+#include "Weapons/OvrlProjectileWeaponInstance.h"
+#include "Weapons/OvrlProjectile.h"
 
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "OvrlUtils.h"
 
-AOvrlProjectileWeapon::AOvrlProjectileWeapon()
+AOvrlProjectileWeaponInstance::AOvrlProjectileWeaponInstance()
 {
 	//PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
 	//PickupSphere->SetupAttachment(RootComponent);
@@ -19,15 +21,44 @@ AOvrlProjectileWeapon::AOvrlProjectileWeapon()
 	MuzzleSocketName = "Muzzle";
 }
 
-void AOvrlProjectileWeapon::Fire(const FHitResult& HitData)
+void AOvrlProjectileWeaponInstance::Fire(const FHitResult& HitData)
 {
 	if (bIsReloading)
 		return;
 
+	FireProjectile(HitData);
+
 	Super::Fire(HitData);
 }
 
-void AOvrlProjectileWeapon::Reload()
+void AOvrlProjectileWeaponInstance::FireProjectile(const FHitResult& HitResult)
+{
+	if (const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+	{
+		const FVector MuzzleLocation = GetMuzzleTransform().GetLocation();
+
+		FRotator SpawnRotation = PC->PlayerCameraManager->GetCameraRotation();
+
+		if (HitResult.bBlockingHit)
+		{
+			// Get rotation of the vector that start from Muzzle Location to Impact Point
+			SpawnRotation = (HitResult.ImpactPoint - MuzzleLocation).Rotation();
+		}
+
+		const FTransform SpawnTransform(SpawnRotation, MuzzleLocation);
+
+		AOvrlProjectile* Projectile = GetWorld()->SpawnActorDeferred<AOvrlProjectile>(ProjectileClass, SpawnTransform, GetOwner(), GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+
+		if (Projectile)
+		{
+			Projectile->SetDamage(GE_Damage);
+		}
+
+		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
+	}
+}
+
+void AOvrlProjectileWeaponInstance::Reload()
 {
 	Super::Reload();
 
@@ -103,10 +134,4 @@ void AOvrlProjectileWeapon::Reload()
 
 		bIsReloading = false;
 	}
-}
-
-FTransform AOvrlProjectileWeapon::GetMuzzleTransform() const
-{
-	check(WeaponMesh);
-	return WeaponMesh->GetSocketTransform(MuzzleSocketName);
 }

@@ -38,12 +38,7 @@ public:
 
 	void ToggleWeaponPhysics(bool bEnable);
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-		virtual FTransform GetRightHandIKTransform() const override;
-
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-		virtual FTransform GetLeftHandIKTransform() const override;
-
+	// @TODO: Should not be used here anymore
 	UFUNCTION()
 		void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -59,17 +54,6 @@ public:
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-		FName RightHandIKSocketName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-		FName LeftHandIKSocketName;
-
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
-	//	UAnimMontage* WeaponEquipMontage;
-
-private:
-
-	double TimeLastFired = 0.0;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Hit-Scan Weapon Fire")
+		TSubclassOf<UGameplayEffect> GE_Damage;
 };

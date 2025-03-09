@@ -17,17 +17,7 @@ class OVERLINK_API UOvrlGameplayAbility_ProjectileWeaponFire : public UOvrlGamep
 {
 	GENERATED_BODY()
 
-public:
-
-	UOvrlGameplayAbility_ProjectileWeaponFire();
-
 protected:
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl|Projectile Weapon Fire")
-		void FireProjectile(const FHitResult& HitResult);
 
-public:
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Projectile Weapon Fire")
-		TSubclassOf<AOvrlProjectile> ProjectileClass;
 };

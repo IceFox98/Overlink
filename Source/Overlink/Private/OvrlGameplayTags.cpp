@@ -67,6 +67,7 @@ namespace OvrlOverlayModeTags
 namespace OvrlWeaponTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(Fire, "Ovrl.Weapon.Fire");
+	UE_DEFINE_GAMEPLAY_TAG(FireAuto, "Ovrl.Weapon.FireAuto");
 	UE_DEFINE_GAMEPLAY_TAG(Reload, "Ovrl.Weapon.Reload");
 
 	UE_DEFINE_GAMEPLAY_TAG(MagazineAmmo, "Ovrl.Weapon.MagazineAmmo");

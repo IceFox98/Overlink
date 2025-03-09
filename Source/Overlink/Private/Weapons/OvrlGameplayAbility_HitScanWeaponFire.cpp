@@ -2,15 +2,11 @@
 
 
 #include "Weapons/OvrlGameplayAbility_HitScanWeaponFire.h"
-#include "Weapons/OvrlProjectileWeapon.h"
+#include "Weapons/OvrlRangedWeaponInstance.h"
 
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
-
-UOvrlGameplayAbility_HitScanWeaponFire::UOvrlGameplayAbility_HitScanWeaponFire()
-{
-	TraceMaxDistance = 650.f;
-}
+#include "TimerManager.h"
 
 void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -19,8 +15,16 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	const bool bCanActivateAbility = CommitAbility(Handle, ActorInfo, ActivationInfo);
 
 	//if (bCanActivateAbility)
+	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject()))
 	{
 		StartRangedWeaponTargeting();
+		
+		// Adding recoil and spread
+		WeaponInstance->AddSpread();
+
+		// The fire rate is managed by GAS: if the ability is still active (weapon firing), it can't be acivate again until you call EndAbility
+		const float TimeBetweenShots = WeaponInstance->GetTimeBetweenShots();
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_FireCooldown, this, &UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown, TimeBetweenShots, false);
 	}
 }
 
@@ -32,10 +36,11 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 
 	if (PC)
 	{
-		if (AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(GetCurrentSourceObject()))
+		if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject()))
 		{
+			// Trace from center of the camera to the weapon max range
 			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
-			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * TraceMaxDistance;
+			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * WeaponInstance->MaxDamageRange;
 
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(WeaponInstance);
@@ -45,5 +50,10 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 		}
 	}
 
-	OnRangedWeaponTargetDataReady(HitResult);
+	K2_OnRangedWeaponTargetDataReady(HitResult);
+}
+
+void UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown()
+{
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

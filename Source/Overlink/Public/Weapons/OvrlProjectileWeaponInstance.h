@@ -3,22 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Weapons/OvrlWeaponInstance.h"
-#include "OvrlProjectileWeapon.generated.h"
+#include "Weapons/OvrlRangedWeaponInstance.h"
 
-class USphereComponent;
+#include "OvrlProjectileWeaponInstance.generated.h"
+
+class AOvrlProjectile;
 
 /**
  *
  */
 UCLASS()
-class OVERLINK_API AOvrlProjectileWeapon : public AOvrlWeaponInstance
+class OVERLINK_API AOvrlProjectileWeaponInstance : public AOvrlRangedWeaponInstance
 {
 	GENERATED_BODY()
 
 public:
 
-	AOvrlProjectileWeapon();
+	AOvrlProjectileWeaponInstance();
 
 public:
 
@@ -26,8 +27,8 @@ public:
 
 	virtual void Reload() override;
 
-	UFUNCTION(BlueprintCallable, Category = "Projectile Weapon")
-		FTransform GetMuzzleTransform() const;
+	UFUNCTION(BlueprintCallable, Category = "Ovrl|Projectile Weapon Fire")
+		void FireProjectile(const FHitResult& HitResult);
 
 public:
 
@@ -38,14 +39,14 @@ public:
 
 public:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Projectile Weapon Fire")
+		TSubclassOf<AOvrlProjectile> ProjectileClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
 		TSubclassOf<UGameplayEffect> GE_ReloadDamage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
 		float ThrowForce;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
-		FName MuzzleSocketName;
 
 protected:
 

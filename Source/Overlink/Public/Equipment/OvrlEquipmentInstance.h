@@ -43,9 +43,6 @@ public:
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 
-	virtual FTransform GetRightHandIKTransform() const { return FTransform(); };
-	virtual FTransform GetLeftHandIKTransform() const { return FTransform(); };
-
 protected:
 
 	void ApplyOverlayAnimation();
