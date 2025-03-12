@@ -4,8 +4,10 @@
 #include "Player/OvrlPlayerAnimInstance.h"
 
 // Internal
-#include "GameFramework/Character.h"	
+#include "Player/OvrlPlayerCharacter.h"	
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "Inventory/OvrlInventoryComponent.h"
+#include "Weapons/OvrlRangedWeaponInstance.h"
 
 // Engine
 #include "AbilitySystemGlobals.h"
@@ -14,21 +16,21 @@ void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	Character = Cast<ACharacter>(GetOwningActor());
+	PlayerCharacter = Cast<AOvrlPlayerCharacter>(GetOwningActor());
 
 #if WITH_EDITOR
 	const UWorld* World = GetWorld() ;
 
-	if (IsValid(World) && !World->IsGameWorld() && !IsValid(Character))
+	if (IsValid(World) && !World->IsGameWorld() && !IsValid(PlayerCharacter))
 	{
 		// Use default objects for editor preview.
-		Character = GetMutableDefault<ACharacter>();
+		PlayerCharacter = GetMutableDefault<AOvrlPlayerCharacter>();
 	}
 #endif
 
-	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(Character->GetCharacterMovement());
+	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());
 
-	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Character))
+	if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(PlayerCharacter))
 	{
 		GameplayTagPropertyMap.Initialize(this, ASC);
 	}
@@ -55,6 +57,12 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	//OverlayMode = CharacterMovementComponent->GetOverlayMode();
 	RightHandIKLocation = CharacterMovementComponent->GetRightHandIKLocation();
 	LeftHandIKLocation = CharacterMovementComponent->GetLeftHandIKLocation();
+
+	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(PlayerCharacter->GetInventoryComponent()->GetSelectedItem()))
+	{
+		WeaponRecoil = WeaponInstance->GetWeaponKickbackRecoil();
+		WeaponCameraRecoil = WeaponInstance->GetWeaponCameraRecoil();
+	}
 }
 
 void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)

@@ -40,7 +40,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 		{
 			// Trace from center of the camera to the weapon max range
 			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
-			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * WeaponInstance->MaxDamageRange;
+			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * WeaponInstance->GetMaxDamageRange();
 
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(WeaponInstance);

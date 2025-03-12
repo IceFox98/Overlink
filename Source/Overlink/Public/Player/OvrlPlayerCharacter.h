@@ -44,6 +44,7 @@ public:
 		UOvrlCharacterMovementComponent* GetCharacterMovement() const { return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent()); };
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
+	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
 
 public:
 

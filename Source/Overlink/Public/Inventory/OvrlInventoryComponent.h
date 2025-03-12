@@ -39,11 +39,11 @@ public:
 		//UFUNCTION(BlueprintCallable)
 		//	void PrevItem();
 
-		//UFUNCTION(BlueprintCallable, BlueprintPure)
-		//	FORCEINLINE APuzzleGuyEquipmentInstance* GetSelectedItem() const { return SelectedItem; }
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+		FORCEINLINE AOvrlEquipmentInstance* GetSelectedItem() const { return SelectedItem; }
 
-		//UFUNCTION(BlueprintCallable)
-		//	AActor* DropSelectedItem();
+	//UFUNCTION(BlueprintCallable)
+	//	AActor* DropSelectedItem();
 
 	UFUNCTION(BlueprintCallable)
 		UOvrlItemInstance* AddItemDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount);
