@@ -74,8 +74,14 @@ protected:
 
 	// ------ WEAPON ------
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FTransform WeaponRecoil;	
+		FTransform WeaponRecoil;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
 		float WeaponCameraRecoil;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
+		FRotator WeaponSwayRotation;
+
+private:
+	FRotator WeaponSwayRotationPrev;
 };

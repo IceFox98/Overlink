@@ -62,6 +62,7 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	{
 		WeaponRecoil = WeaponInstance->GetWeaponKickbackRecoil();
 		WeaponCameraRecoil = WeaponInstance->GetWeaponCameraRecoil();
+
 	}
 }
 
