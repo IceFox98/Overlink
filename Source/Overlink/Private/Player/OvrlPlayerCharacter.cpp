@@ -16,6 +16,7 @@
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Animations/OvrlLinkedAnimInstance.h"
 #include "MotionWarpingComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -28,20 +29,20 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(GetMesh(), TEXT("head"));
+
 	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
-	CameraComp->SetupAttachment(RootComponent);
+	CameraComp->SetupAttachment(SpringArm);
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
 
-	FPMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPMesh"));
-	FPMesh->SetupAttachment(CameraComp);
-	FPMesh->CastShadow = false;
 
-	FullBodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FullBodyMesh"));
-	FullBodyMesh->SetupAttachment(RootComponent);
-	FullBodyMesh->bOwnerNoSee = true;
-	FullBodyMesh->bCastHiddenShadow = true;
-	FullBodyMesh->SetDisablePostProcessBlueprint(true);
+	//FullBodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FullBodyMesh"));
+	//FullBodyMesh->SetupAttachment(RootComponent);
+	//FullBodyMesh->bOwnerNoSee = true;
+	//FullBodyMesh->bCastHiddenShadow = true;
+	//FullBodyMesh->SetDisablePostProcessBlueprint(true);
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
@@ -86,15 +87,12 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
 {
-	FPMesh->LinkAnimClassLayers(LayerClass);
-	FullBodyMesh->LinkAnimClassLayers(LayerClass);
+	GetMesh()->LinkAnimClassLayers(LayerClass);
 }
 
 void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
 {
 	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
-	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
-	FPMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
 }
 
 void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
@@ -178,7 +176,7 @@ void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHal
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
-	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
+	FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
 	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
 }
 
@@ -186,7 +184,7 @@ void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
-	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
+	FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
 	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
 }
 

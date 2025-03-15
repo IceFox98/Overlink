@@ -48,7 +48,7 @@ public:
 
 public:
 
-	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(FPMesh); }
+	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
 
 	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
 
@@ -89,10 +89,7 @@ protected:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USkeletalMeshComponent> FPMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USkeletalMeshComponent> FullBodyMesh;
+		TObjectPtr<USpringArmComponent> SpringArm;
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
