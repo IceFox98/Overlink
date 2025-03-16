@@ -11,6 +11,8 @@ class UOvrlItemDefinition;
 class UOvrlItemInstance;
 class AOvrlEquipmentInstance;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
 {
@@ -40,7 +42,7 @@ public:
 		//	void PrevItem();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-		FORCEINLINE AOvrlEquipmentInstance* GetSelectedItem() const { return SelectedItem; }
+		FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
 
 	//UFUNCTION(BlueprintCallable)
 	//	AActor* DropSelectedItem();
@@ -66,6 +68,11 @@ private:
 	void EquipItemInSlot();
 	void UnequipItemInSlot();
 
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
+		FOnItemEquipped OnItemEquipped;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -75,7 +82,7 @@ protected:
 		TArray<AOvrlEquipmentInstance*> EquippedItems;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		AOvrlEquipmentInstance* SelectedItem;
+		AOvrlEquipmentInstance* EquippedItem;
 
 	int32 SelectedIndex;
 

@@ -40,13 +40,13 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemDefinition(TSubclassOf<UOvrlI
 		{
 			const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipDefClass);
 
-			AOvrlEquipmentInstance* EquippedItem = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->InstanceType);
-			EquippedItem->EquipmentDefinitionClass = EquipDefClass;
-			EquippedItem->AssociatedItem = ItemInstance;
-			EquippedItem->SetOwner(GetOwner());
-			EquippedItem->SetInstigator(Cast<APawn>(GetOwner()));
+			AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->InstanceType);
+			EquipmentInstance->EquipmentDefinitionClass = EquipDefClass;
+			EquipmentInstance->AssociatedItem = ItemInstance;
+			EquipmentInstance->SetOwner(GetOwner());
+			EquipmentInstance->SetInstigator(Cast<APawn>(GetOwner()));
 
-			EquippedItems.Emplace(EquippedItem);
+			EquippedItems.Emplace(EquipmentInstance);
 		}
 	}
 
@@ -73,7 +73,7 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 {
 	// You can equip a new Item only if there's no current equipped item.
 	// Be sure to call UnequipCurrentItem first
-	if (!SelectedItem && EquippedItems.IsValidIndex(SelectedIndex))
+	if (!EquippedItem && EquippedItems.IsValidIndex(SelectedIndex))
 	{
 		AOvrlEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
 		EquipInstance->OnEquipped();
@@ -89,22 +89,23 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 			}
 		}
 
-		SelectedItem = EquipInstance;
+		EquippedItem = EquipInstance;
+		OnItemEquipped.Broadcast(EquippedItem);
 	}
 }
 
 void UOvrlInventoryComponent::UnequipItemInSlot()
 {
-	if (SelectedItem)
+	if (EquippedItem)
 	{
-		SelectedItem->OnUnequipped();
+		EquippedItem->OnUnequipped();
 
 		if (UOvrlAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 		{
 			// When unequip the item, remove all given abilities/effects/attributes from player's ASC
-			SelectedItem->GrantedHandles.TakeFromAbilitySystem(ASC);
+			EquippedItem->GrantedHandles.TakeFromAbilitySystem(ASC);
 		}
 
-		SelectedItem = nullptr;
+		EquippedItem = nullptr;
 	}
 }

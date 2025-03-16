@@ -56,7 +56,7 @@ public:
 
 	int32 GetTagStackCount(FGameplayTag Tag) const;
 
-	void SetItemDef(TSubclassOf<UOvrlItemDefinition> InDef);
+	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDef);
 
 	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDef() const { return ItemDef; }
 

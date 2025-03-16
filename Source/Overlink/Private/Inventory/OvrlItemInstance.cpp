@@ -72,9 +72,9 @@ int32 UOvrlItemInstance::GetTagStackCount(FGameplayTag Tag) const
 	return TagToCountMap.FindRef(Tag);
 }
 
-void UOvrlItemInstance::SetItemDef(TSubclassOf<UOvrlItemDefinition> InDef)
+void UOvrlItemInstance::SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDef)
 {
-	ItemDef = InDef;
+	ItemDef = InItemDef;
 }
 
 const UOvrlItemFragment* UOvrlItemInstance::FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const

@@ -18,7 +18,11 @@ public class Overlink : ModuleRules
             "GameplayTasks",
             "GameplayAbilities",
             "MotionWarping",
-            "EngineSettings"
+            "EngineSettings",
+            "UMG",
+            "Slate",
+            "SlateCore",
+            "CommonUI",
         });
     }
 }

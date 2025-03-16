@@ -80,3 +80,9 @@ namespace OvrlCheatTags
 	UE_DEFINE_GAMEPLAY_TAG(GodMode, "Ovrl.Cheat.GodMode");
 	UE_DEFINE_GAMEPLAY_TAG(UnlimitedHealth, "Ovrl.Cheat.UnlimitedHealth");
 }
+
+namespace OvrlUILayerTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(LayerGame, "Ovrl.UI.Layer.Game");
+	UE_DEFINE_GAMEPLAY_TAG(LayerMenu, "Ovrl.UI.Layer.Menu");
+};

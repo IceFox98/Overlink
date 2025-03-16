@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "Inventory/OvrlItemDefinition.h"
-#include "OvrlItemFragment_EquippableItem.generated.h"
-
-class UOvrlEquipmentDefinition;
+#include "OvrlItemFragment_ReticleConfig.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
-class OVERLINK_API UOvrlItemFragment_EquippableItem : public UOvrlItemFragment
+class OVERLINK_API UOvrlItemFragment_ReticleConfig : public UOvrlItemFragment
 {
 	GENERATED_BODY()
 
 public:
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Fragment")
-		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinition;
+		TSubclassOf<class UOvrlReticleWidgetBase> ReticleWidgetClass;
 };

@@ -8,6 +8,8 @@
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FOverlinkModule, Overlink, "Overlink");
 
+DEFINE_LOG_CATEGORY(LogOverlink);
+
 void FOverlinkModule::StartupModule()
 {
 	FDefaultGameModuleImpl::StartupModule();

@@ -33,13 +33,14 @@ public:
 	virtual void OnEquipped();
 	virtual void OnUnequipped();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Equipment Instance", meta = (DisplayName = "OnEquipped"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Equipment Instance", meta = (DisplayName = "On Equipped"))
 		void K2_OnEquipped();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Equipment Instance", meta = (DisplayName = "OnUnequipped"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Equipment Instance", meta = (DisplayName = "On Unequipped"))
 		void K2_OnUnequipped();
 
-	FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Instance")
+		FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 
@@ -50,7 +51,7 @@ protected:
 protected:
 
 	// The equipment class that got equipped
-	UPROPERTY(BlueprintReadOnly, Category = "Equipment Instance")
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Instance")
 		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinitionClass;
 
 	UPROPERTY()

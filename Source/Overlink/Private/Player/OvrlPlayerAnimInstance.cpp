@@ -58,7 +58,7 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	RightHandIKLocation = CharacterMovementComponent->GetRightHandIKLocation();
 	LeftHandIKLocation = CharacterMovementComponent->GetLeftHandIKLocation();
 
-	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(PlayerCharacter->GetInventoryComponent()->GetSelectedItem()))
+	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(PlayerCharacter->GetInventoryComponent()->GetEquippedItem()))
 	{
 		WeaponRecoil = WeaponInstance->GetWeaponKickbackRecoil();
 		WeaponCameraRecoil = WeaponInstance->GetWeaponCameraRecoil();
