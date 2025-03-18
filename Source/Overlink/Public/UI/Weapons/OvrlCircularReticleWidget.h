@@ -22,12 +22,14 @@ public:
 
 public:
 	virtual void SynchronizeProperties() override;
+	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+
+public:
+
+	void SetRadius(float NewRadius);
 
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
-
-public:
-	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 
 public:
 

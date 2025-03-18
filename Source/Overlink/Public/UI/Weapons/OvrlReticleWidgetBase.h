@@ -26,4 +26,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Reticle Widget Base", meta = (AllowPrivateAccess = true))
 		TObjectPtr<AOvrlRangedWeaponInstance> WeaponInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Reticle Widget Baset", meta = (BindWidget))
+		TObjectPtr<UImage> HitMarkerImage;
 };

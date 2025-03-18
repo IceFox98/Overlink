@@ -9,3 +9,4 @@ void UOvrlReticleWidgetBase::InitializeFromWeapon(AOvrlRangedWeaponInstance* Wea
 	check(Weapon);
 	WeaponInstance = Weapon;
 }
+

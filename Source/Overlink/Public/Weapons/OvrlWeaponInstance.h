@@ -27,13 +27,13 @@ protected:
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 		virtual void Fire(const FHitResult& HitData);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Weapon", meta = (DisplayName = "On Fire"))
+	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Weapon Instance", meta = (DisplayName = "On Fire"))
 		void K2_OnFire(const FHitResult& HitData);
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 		virtual void Reload();
 
 	void ToggleWeaponPhysics(bool bEnable);
@@ -46,14 +46,14 @@ public:
 
 	// ----- COMPONENTS -----
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
 		TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
 		TObjectPtr<USphereComponent> PickupSphere;
 
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Hit-Scan Weapon Fire")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 		TSubclassOf<UGameplayEffect> GE_Damage;
 };

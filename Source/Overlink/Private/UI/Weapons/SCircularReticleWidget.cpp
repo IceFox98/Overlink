@@ -68,7 +68,7 @@ void SCircularReticleWidget::SetRadius(float NewRadius)
 	if (Radius.IsBound() || (Radius.Get() != NewRadius))
 	{
 		Radius = NewRadius;
-		Invalidate(EInvalidateWidgetReason::Layout);
+		Invalidate(EInvalidateWidgetReason::Layout); // Force redraw
 	}
 }
 

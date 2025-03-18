@@ -19,8 +19,8 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	{
 		StartRangedWeaponTargeting();
 		
-		// Adding recoil and spread
-		WeaponInstance->AddSpread();
+		//// Adding recoil and spread
+		//WeaponInstance->AddSpread();
 
 		// The fire rate is managed by GAS: if the ability is still active (weapon firing), it can't be acivate again until you call EndAbility
 		const float TimeBetweenShots = WeaponInstance->GetTimeBetweenShots();

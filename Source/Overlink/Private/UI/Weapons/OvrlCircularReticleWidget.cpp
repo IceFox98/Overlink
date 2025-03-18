@@ -34,3 +34,8 @@ TSharedRef<SWidget> UOvrlCircularReticleWidget::RebuildWidget()
 
 	return SlateReticleWidget.ToSharedRef();
 }
+
+void UOvrlCircularReticleWidget::SetRadius(float NewRadius)
+{
+	SlateReticleWidget->SetRadius(NewRadius);
+}
