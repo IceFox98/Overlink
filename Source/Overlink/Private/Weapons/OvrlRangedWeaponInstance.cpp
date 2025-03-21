@@ -6,6 +6,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Curves/CurveFloat.h"
 
+#include "OvrlUtils.h"
+
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
 	BulletsPerCartridge = 1;
@@ -20,6 +22,7 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	MaxSpreadAngle = 50.f;
 	SpreadPerShot = 1.f;
 	SpreadRecoverySpeed = 1.f;
+	SpreadRecoveryCooldownDelay = .2f;
 }
 
 void AOvrlRangedWeaponInstance::Tick(float DeltaTime)
@@ -34,7 +37,7 @@ void AOvrlRangedWeaponInstance::OnEquipped()
 {
 	Super::OnEquipped();
 
-	SpreadHeat = MinSpreadAngle;
+	CurrentSpread = MinSpreadAngle;
 }
 
 void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
@@ -50,8 +53,11 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 
 void AOvrlRangedWeaponInstance::AddSpread()
 {
-	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(SpreadHeat, MinSpreadAngle, MaxSpreadAngle);
-	SpreadHeat += SpreadPerShot * HeatToHeatMultiplier.GetRichCurve()->Eval(NormalizedHeat);
+	// Normalize current heat to a 0-1 range
+	CurrentHeat += HeatToHeatPerShot.GetRichCurve()->Eval(CurrentHeat);
+	
+	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(CurrentHeat, 0.f, 100.f);
+	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat);
 }
 
 void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
@@ -69,12 +75,16 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 
 void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
 {
-	const double TargetSpread = FMath::Min(MinSpreadAngle + SpreadHeat, MaxSpreadAngle);
-	CurrentSpread = FMath::FInterpTo(CurrentSpread, TargetSpread, DeltaTime, 40.f);
+	// Fastly smooth the spread, so the weapon reticle spokes don't snap to the spread angle
+	//const double TargetSpread = FMath::Min(MinSpreadAngle + SpreadHeat, MaxSpreadAngle);
+	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(CurrentHeat, 0.f, 100.f);
+	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat);
 
-	if (GetWorld()->TimeSince(LastFireTime) > .05)
+	//if (GetWorld()->TimeSince(LastFireTime) > SpreadRecoveryCooldownDelay)
 	{
-		SpreadHeat = FMath::FInterpTo(SpreadHeat, 0.f, DeltaTime, SpreadRecoverySpeed);
+		CurrentHeat = FMath::Clamp(CurrentHeat - SpreadRecoverySpeed * DeltaTime, 0.f, 100.f);
+		//CurrentSpread = FMath::Clamp(CurrentSpread - SpreadRecoverySpeed * DeltaTime, HeatToSpread.GetRichCurve()->Eval(0.f), HeatToSpread.GetRichCurve()->Eval(1.f));
+		//OVRL_LOG("%f", CurrentHeat);
 	}
 }
 

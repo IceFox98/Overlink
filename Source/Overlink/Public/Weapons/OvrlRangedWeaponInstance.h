@@ -99,7 +99,13 @@ protected:
 		float SpreadRecoverySpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
-		FRuntimeFloatCurve HeatToHeatMultiplier;
+		float SpreadRecoveryCooldownDelay;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
+		FRuntimeFloatCurve HeatToSpread;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
+		FRuntimeFloatCurve HeatToHeatPerShot;
 
 private:
 
@@ -107,7 +113,7 @@ private:
 
 	FTransform CurrentKickbackRecoil;
 
-	float SpreadHeat;
+	float CurrentHeat;
 	float CurrentSpread;
 
 	float CurrentCameraRecoil;
