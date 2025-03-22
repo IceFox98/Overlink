@@ -56,4 +56,25 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 		TSubclassOf<UGameplayEffect> GE_Damage;
+
+	// The maximum sway rotation limit the weapon can reach on both axis X and Y
+	// X -> Yaw Sway
+	// Y -> Pitch Sway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Instance|Sway")
+		FVector2D WeaponSwayRotationLimit;
+
+	// The speed of the sway rotation interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Instance|Sway")
+		float WeaponSwayRotationSpeed;
+
+	// The maximum sway movement limit the weapon can reach on all axis
+	// X -> Forward/Backward Sway
+	// Y -> Right/Left Sway
+	// Z -> Up/Down Sway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Instance|Sway")
+		FVector WeaponSwayMovementLimit;
+
+	// The speed of the sway movement interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Instance|Sway")
+		float WeaponSwayMovementSpeed;
 };

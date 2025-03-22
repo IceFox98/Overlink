@@ -45,6 +45,7 @@ public:
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
+	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
 
 public:
 

@@ -6,11 +6,14 @@
 #include "Animation/AnimInstance.h"
 #include "OvrlGameplayTags.h"
 #include "GameplayEffectTypes.h"
+#include "Kismet/KismetMathLibrary.h"
 
 #include "OvrlPlayerAnimInstance.generated.h"
 
 class AOvrlPlayerCharacter;
 class UOvrlCharacterMovementComponent;
+class AOvrlEquipmentInstance;
+class AOvrlRangedWeaponInstance;
 
 /**
  *
@@ -29,6 +32,13 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
+
+private:
+
+	void UpdateWeaponSway(float DeltaTime);
+
+	UFUNCTION()
+	void OnNewItemEquipped(AOvrlEquipmentInstance* EquippedItem);
 
 protected:
 
@@ -82,6 +92,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
 		FRotator WeaponSwayRotation;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
+		FVector WeaponSwayMovement;
+
 private:
 	FRotator WeaponSwayRotationPrev;
+	FVector WeaponSwayMovementPrev;
+	FVectorSpringState SpringState;
+
+	UPROPERTY()
+		AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
 };
