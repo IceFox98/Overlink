@@ -11,7 +11,14 @@ void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, flo
 
 	check(WeaponInstance);
 
-	const float WeaponSpreadAngle = WeaponInstance->GetSpreadAngle();
+	const float WeaponSpreadAngleRad = FMath::DegreesToRadians(WeaponInstance->GetSpreadAngle());
+	const float FixedWeaponDistance = 1000.f;
 
-	CrosshairReticle->SetRadius(WeaponSpreadAngle);
+	// We consider a right triangle created by tracing an imaginary line that goes from the center of the player camera
+	// and ends after "FixedWeaponDistance" units, this will be the side adjacent to the 90° angle.
+	// We have to calculate the shortest side of the triangle, that will represent the radius of the crosshair.
+	// We can find it using the Tan function on the spread angle
+	const float SpreadRadius = FixedWeaponDistance * FMath::Tan(WeaponSpreadAngleRad);
+
+	CrosshairReticle->SetRadius(SpreadRadius);
 }

@@ -7,6 +7,8 @@
 
 #include "OvrlRangedWeaponInstance.generated.h"
 
+class UOvrlCharacterMovementComponent;
+
 /**
  *
  */
@@ -23,9 +25,13 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void OnEquipped() override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 public:
+
+	virtual void OnEquipped() override;
 
 	virtual void Fire(const FHitResult& HitData) override;
 
@@ -44,6 +50,7 @@ protected:
 
 	void UpdateRecoil(float DeltaTime);
 	void UpdateSpread(float DeltaTime);
+	void UpdateSpreadMultiplier(float DeltaTime);
 
 protected:
 
@@ -85,21 +92,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
 		float CameraRecoilRecoverySpeed;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
+	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
 		float MinSpreadAngle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
+	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
 		float MaxSpreadAngle;
-
-	// How much spread should be added for each shot (angle in degrees, radial)
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
-		float SpreadPerShot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
 		float SpreadRecoverySpeed;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
-		float SpreadRecoveryCooldownDelay;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
 		FRuntimeFloatCurve HeatToSpread;
@@ -107,12 +107,29 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
 		FRuntimeFloatCurve HeatToHeatPerShot;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
+		float SpreadMultiplierWalking;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
+		float SpreadMultiplierRunning;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
+		float SpreadMultiplierCrouchStanding;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
+		float SpreadMultiplierCrouchWalking;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
+		float SpreadMultiplierFalling;
+
 private:
 
-	double LastFireTime;
+	UPROPERTY()
+		UOvrlCharacterMovementComponent* OwnerMovementComp;
 
 	FTransform CurrentKickbackRecoil;
 
+	float SpreadMultiplier;
 	float CurrentHeat;
 	float CurrentSpread;
 

@@ -3,6 +3,8 @@
 
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
+#include "Player/Components/OvrlCharacterMovementComponent.h"
+
 #include "Kismet/KismetMathLibrary.h"
 #include "Curves/CurveFloat.h"
 
@@ -18,26 +20,43 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	CameraRecoilRecoverySpeed = 10.f;
 	CameraMaxRecoil = 20.f;
 
-	MinSpreadAngle = 24.f;
-	MaxSpreadAngle = 50.f;
-	SpreadPerShot = 1.f;
 	SpreadRecoverySpeed = 1.f;
-	SpreadRecoveryCooldownDelay = .2f;
+
+	// Multipliers
+	SpreadMultiplier = 1.f;
+	SpreadMultiplierWalking = 1.2f;
+	SpreadMultiplierRunning = 1.4f;
+	SpreadMultiplierCrouchStanding = .5f;
+	SpreadMultiplierCrouchWalking = .75f;
+	SpreadMultiplierFalling = 2.f;
 }
 
 void AOvrlRangedWeaponInstance::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateSpreadMultiplier(DeltaTime);
 	UpdateRecoil(DeltaTime);
 	UpdateSpread(DeltaTime);
 }
+
+#if WITH_EDITOR
+void AOvrlRangedWeaponInstance::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	MinSpreadAngle = HeatToSpread.GetRichCurve()->Eval(0.f);
+	MaxSpreadAngle = HeatToSpread.GetRichCurve()->Eval(1.f);
+}
+#endif
 
 void AOvrlRangedWeaponInstance::OnEquipped()
 {
 	Super::OnEquipped();
 
-	CurrentSpread = MinSpreadAngle;
+	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(0.f);
+
+	OwnerMovementComp = GetOwner()->GetComponentByClass<UOvrlCharacterMovementComponent>();
 }
 
 void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
@@ -46,16 +65,14 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 
 	CurrentKickbackRecoil = KickbackRecoil;
 	CurrentCameraRecoil = FMath::Clamp(CurrentCameraRecoil + CameraRecoil, 0.f, CameraMaxRecoil);
-	LastFireTime = GetWorld()->GetTimeSeconds();
 
 	AddSpread();
 }
 
 void AOvrlRangedWeaponInstance::AddSpread()
 {
-	// Normalize current heat to a 0-1 range
-	CurrentHeat += HeatToHeatPerShot.GetRichCurve()->Eval(CurrentHeat);
-	
+	CurrentHeat += HeatToHeatPerShot.GetRichCurve()->Eval(CurrentHeat) ;
+
 	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(CurrentHeat, 0.f, 100.f);
 	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat);
 }
@@ -76,16 +93,43 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
 {
 	// Fastly smooth the spread, so the weapon reticle spokes don't snap to the spread angle
-	//const double TargetSpread = FMath::Min(MinSpreadAngle + SpreadHeat, MaxSpreadAngle);
 	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(CurrentHeat, 0.f, 100.f);
-	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat);
+	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat) * SpreadMultiplier;
 
-	//if (GetWorld()->TimeSince(LastFireTime) > SpreadRecoveryCooldownDelay)
+	CurrentHeat = FMath::Clamp(CurrentHeat - SpreadRecoverySpeed * DeltaTime, 0.f, 100.f);
+	//OVRL_LOG("%f", CurrentHeat);
+}
+
+void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
+{
+	float TargetMultiplier = 1.f;
+
+	if (OwnerMovementComp)
 	{
-		CurrentHeat = FMath::Clamp(CurrentHeat - SpreadRecoverySpeed * DeltaTime, 0.f, 100.f);
-		//CurrentSpread = FMath::Clamp(CurrentSpread - SpreadRecoverySpeed * DeltaTime, HeatToSpread.GetRichCurve()->Eval(0.f), HeatToSpread.GetRichCurve()->Eval(1.f));
-		//OVRL_LOG("%f", CurrentHeat);
+		const float Velocity = OwnerMovementComp->GetLastUpdateVelocity().Length();
+		const bool bIsWalking = Velocity > 0.f && Velocity < 200.f;
+		const bool bIsRunning = Velocity > 200.f;
+
+		const bool bIsMoving = bIsWalking || bIsRunning;
+
+		if (OwnerMovementComp->IsFalling())
+		{
+			TargetMultiplier = SpreadMultiplierFalling;
+		}
+		else if (OwnerMovementComp->IsCrouching())
+		{
+			TargetMultiplier = bIsMoving ? SpreadMultiplierCrouchWalking : SpreadMultiplierCrouchStanding;
+		}
+		else // Standing
+		{
+			if (bIsMoving)
+			{
+				TargetMultiplier = bIsWalking ? SpreadMultiplierWalking : SpreadMultiplierRunning;
+			}
+		}
 	}
+
+	SpreadMultiplier = FMath::FInterpTo(SpreadMultiplier, TargetMultiplier, DeltaTime, 10.f);
 }
 
 FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const

@@ -6,6 +6,7 @@
 
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
 
 void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -38,9 +39,11 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 	{
 		if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject()))
 		{
+			const FVector BulletDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(PC->PlayerCameraManager->GetActorForwardVector(), WeaponInstance->GetSpreadAngle());
+
 			// Trace from center of the camera to the weapon max range
 			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
-			const FVector HitTraceEnd = HitTraceStart + PC->PlayerCameraManager->GetActorForwardVector() * WeaponInstance->GetMaxDamageRange();
+			const FVector HitTraceEnd = HitTraceStart + BulletDirection * WeaponInstance->GetMaxDamageRange();
 
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(WeaponInstance);
