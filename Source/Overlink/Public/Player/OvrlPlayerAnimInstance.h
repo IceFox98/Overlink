@@ -98,7 +98,9 @@ protected:
 private:
 	FRotator WeaponSwayRotationPrev;
 	FVector WeaponSwayMovementPrev;
-	FVectorSpringState SpringState;
+
+	FVectorSpringState SpringStateMovement;
+	FQuaternionSpringState SpringStateRotation;
 
 	UPROPERTY()
 		AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
