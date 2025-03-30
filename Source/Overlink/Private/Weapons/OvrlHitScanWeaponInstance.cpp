@@ -5,6 +5,7 @@
 
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AOvrlHitScanWeaponInstance::AOvrlHitScanWeaponInstance()
 {
@@ -14,8 +15,6 @@ AOvrlHitScanWeaponInstance::AOvrlHitScanWeaponInstance()
 void AOvrlHitScanWeaponInstance::Fire(const FHitResult& HitData)
 {
 	Super::Fire(HitData);
-
-	DrawDebugSphere(GetWorld(), HitData.ImpactPoint, 5.f, 5, FColor::Green, false, 2.f);
 
 	// Apply damage to hit pawn
 	if (APawn* HitPawn = Cast<APawn>(HitData.GetActor()))
@@ -28,5 +27,20 @@ void AOvrlHitScanWeaponInstance::Fire(const FHitResult& HitData)
 			UGameplayEffect* GameplayEffect = GE_Damage->GetDefaultObject<UGameplayEffect>();
 			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, InstigatorASC->MakeEffectContext());
 		}
+	}
+}
+
+void AOvrlHitScanWeaponInstance::SpawnFireVFX(const FHitResult& HitData)
+{
+	Super::SpawnFireVFX(HitData);
+
+	if (BulletTrailVFX)
+	{
+		const FTransform MuzzleTransform = GetMuzzleTransform();
+		const FRotator FXRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleTransform.GetLocation(), HitData.ImpactPoint);
+		UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, BulletTrailVFX, MuzzleTransform.GetLocation(), FXRotation, FVector::OneVector);
+
+		check(NiagaraComp);
+		NiagaraComp->SetNiagaraVariablePosition("EndLocation", HitData.ImpactPoint);
 	}
 }

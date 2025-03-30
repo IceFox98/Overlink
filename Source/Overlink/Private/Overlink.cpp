@@ -33,10 +33,16 @@ void FOverlinkModule::OnRegisterConsoleAutoCompleteEntries(TArray<FAutoCompleteC
 {
 	const auto CommandColor{ GetDefault<UConsoleSettings>()->AutoCompleteCommandColor };
 
-	FAutoCompleteCommand* Command = &AutoCompleteCommands.AddDefaulted_GetRef();
-	Command = &AutoCompleteCommands.AddDefaulted_GetRef();
-	Command->Command = FString{ TEXTVIEW("ShowDebug Ovrl.Traversals") };
-	Command->Desc = FString{ TEXTVIEW("Displays traversals traces.") };
-	Command->Color = CommandColor;
+	FAutoCompleteCommand* CommandTraversal = &AutoCompleteCommands.AddDefaulted_GetRef();
+	CommandTraversal = &AutoCompleteCommands.AddDefaulted_GetRef();
+	CommandTraversal->Command = FString{ TEXTVIEW("ShowDebug Ovrl.Traversals") };
+	CommandTraversal->Desc = FString{ TEXTVIEW("Displays traversals traces.") };
+	CommandTraversal->Color = CommandColor;
+
+	FAutoCompleteCommand* CommandWeapon = &AutoCompleteCommands.AddDefaulted_GetRef();
+	CommandWeapon = &AutoCompleteCommands.AddDefaulted_GetRef();
+	CommandWeapon->Command = FString{ TEXTVIEW("ShowDebug Ovrl.Weapons") };
+	CommandWeapon->Desc = FString{ TEXTVIEW("Displays weapon traces.") };
+	CommandWeapon->Color = CommandColor;
 }
 #endif

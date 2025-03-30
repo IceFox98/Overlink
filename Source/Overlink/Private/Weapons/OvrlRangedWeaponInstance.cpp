@@ -67,6 +67,9 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 	CurrentCameraRecoil = FMath::Clamp(CurrentCameraRecoil + CameraRecoil, 0.f, CameraMaxRecoil);
 
 	AddSpread();
+
+	SpawnFireVFX(HitData);
+	SpawnImpactVFX(HitData);
 }
 
 void AOvrlRangedWeaponInstance::AddSpread()
@@ -132,8 +135,15 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 	SpreadMultiplier = FMath::FInterpTo(SpreadMultiplier, TargetMultiplier, DeltaTime, 10.f);
 }
 
+void AOvrlRangedWeaponInstance::SpawnFireVFX(const FHitResult& HitData)
+{
+	ensureMsgf(MuzzleFlashVFX, TEXT("A ranged weapon should have a MuzzleFlashVFX set!"));
+	const FTransform MuzzleTransform = GetMuzzleTransform();
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, MuzzleFlashVFX, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator(), FVector::OneVector);
+}
+
 FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
 {
 	check(WeaponMesh);
-	return WeaponMesh->GetSocketTransform(MuzzleSocketName);
+	return WeaponMesh->GetSocketTransform(MuzzleSocketName); // World Space
 }

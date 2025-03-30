@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Equipment/OvrlEquipmentInstance.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 
 #include "OvrlWeaponInstance.generated.h"
 
@@ -42,6 +44,8 @@ public:
 	UFUNCTION()
 		void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	virtual void SpawnImpactVFX(const FHitResult& HitData);
+
 public:
 
 	// ----- COMPONENTS -----
@@ -77,4 +81,9 @@ public:
 	// The speed of the sway movement interpolation
 	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Instance|Sway")
 		float WeaponSwayMovementSpeed;
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
+		UNiagaraSystem* BulletImpactVFX;
 };

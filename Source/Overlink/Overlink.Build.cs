@@ -23,6 +23,7 @@ public class Overlink : ModuleRules
             "Slate",
             "SlateCore",
             "CommonUI",
+            "Niagara",
         });
     }
 }

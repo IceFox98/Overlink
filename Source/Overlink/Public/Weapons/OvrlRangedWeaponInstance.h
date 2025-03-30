@@ -52,6 +52,8 @@ protected:
 	void UpdateSpread(float DeltaTime);
 	void UpdateSpreadMultiplier(float DeltaTime);
 
+	virtual void SpawnFireVFX(const FHitResult& HitData);
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
@@ -121,6 +123,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
 		float SpreadMultiplierFalling;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
+		UNiagaraSystem* MuzzleFlashVFX;
 
 private:
 

@@ -21,7 +21,7 @@ public:
 		void StartRangedWeaponTargeting();
 
 	// Called when target data is ready
-	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl|Hit-Scan Weapon Fire")
+	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl|Hit-Scan Weapon Fire", meta = (DisplayName = "On Ranged Weapon Target Data Ready"))
 		void K2_OnRangedWeaponTargetDataReady(const FHitResult & TargetData);
 
 protected:

@@ -4,6 +4,7 @@
 #include "Weapons/OvrlWeaponInstance.h"
 
 #include "Components/SphereComponent.h"
+#include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 
 AOvrlWeaponInstance::AOvrlWeaponInstance()
 {
@@ -81,4 +82,30 @@ void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 	);
 
 	SetActorRotation(FQuat(RotationMatrix));
+}
+
+void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
+{
+	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, BulletImpactVFX, HitData.ImpactPoint, FRotator::ZeroRotator, FVector::OneVector);
+
+	TArray<FVector> HitPositions;
+	HitPositions.Add(HitData.ImpactPoint);
+
+	TArray<FVector> HitNormals;
+	HitNormals.Add(HitData.ImpactNormal);
+
+	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType_Default;
+
+	if (HitData.PhysMaterial.IsValid())
+	{
+		SurfaceType = HitData.PhysMaterial->SurfaceType;
+	}
+
+	TArray<int32> SurfaceTypes;
+	SurfaceTypes.Add(2);
+
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(NiagaraComp, "User.ImpactPositions", HitPositions);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(NiagaraComp, "User.ImpactNormals", HitNormals);
+	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayInt32(NiagaraComp, "User.ImpactSurfaces", SurfaceTypes);
+	NiagaraComp->SetNiagaraVariableInt("User.NumberOfHits", 1);
 }

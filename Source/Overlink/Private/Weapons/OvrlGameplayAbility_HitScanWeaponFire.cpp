@@ -9,6 +9,12 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TimerManager.h"
 
+#if ENABLE_DRAW_DEBUG
+#include "KismetTraceUtils.h"
+#endif
+
+#include "OvrlUtils.h"
+
 void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
@@ -42,14 +48,29 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 			const FVector BulletDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(PC->PlayerCameraManager->GetActorForwardVector(), WeaponInstance->GetSpreadAngle());
 
 			// Trace from center of the camera to the weapon max range
-			const FVector HitTraceStart = PC->PlayerCameraManager->GetCameraLocation();
-			const FVector HitTraceEnd = HitTraceStart + BulletDirection * WeaponInstance->GetMaxDamageRange();
+			const FVector TraceStart = PC->PlayerCameraManager->GetCameraLocation();
+			const FVector TraceEnd = TraceStart + BulletDirection * WeaponInstance->GetMaxDamageRange();
 
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(WeaponInstance);
 			Params.AddIgnoredActor(WeaponInstance->GetOwner());
 
-			GetWorld()->LineTraceSingleByChannel(HitResult, HitTraceStart, HitTraceEnd, ECC_Visibility, Params);
+			EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
+
+			GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
+
+#if ENABLE_DRAW_DEBUG
+			const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(WeaponInstance->GetOwner(), "Ovrl.Weapons");
+
+			if (bDebugEnabled)
+				DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, HitResult.bBlockingHit, HitResult, FLinearColor::Red, FLinearColor::Green, 5.f);
+#endif
+
+			if (!HitResult.bBlockingHit)
+			{
+				// Save the TraceEnd as ImpactPoint so that we can use it for other calculations
+				HitResult.ImpactPoint = TraceEnd;
+			}
 		}
 	}
 

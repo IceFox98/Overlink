@@ -7,8 +7,11 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "KismetTraceUtils.h"
 #include "MotionWarpingComponent.h"
+
+#if ENABLE_DRAW_DEBUG
+#include "KismetTraceUtils.h"
+#endif
 
 #include "Player/OvrlPlayerCharacter.h"
 #include "OvrlUtils.h"
