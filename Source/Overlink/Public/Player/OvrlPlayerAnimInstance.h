@@ -95,6 +95,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
 		FVector WeaponSwayMovement;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
+		FVector WeaponAimPosition;
+
 private:
 	FRotator WeaponSwayRotationPrev;
 	FVector WeaponSwayMovementPrev;

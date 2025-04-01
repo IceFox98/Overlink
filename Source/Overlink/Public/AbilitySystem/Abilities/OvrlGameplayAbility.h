@@ -35,6 +35,10 @@ public:
 
 	UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+public:
+
+	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
+
 protected:
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;

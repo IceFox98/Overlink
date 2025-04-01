@@ -7,6 +7,7 @@
 #include "OvrlPlayerController.generated.h"
 
 class UOvrlCharacterMovementComponent;
+class AOvrlCharacterBase;
 
 /**
  *
@@ -18,6 +19,7 @@ class OVERLINK_API AOvrlPlayerController : public APlayerController
 
 public:
 	virtual void UpdateRotation(float DeltaTime) override;
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
 protected:
 
@@ -27,6 +29,9 @@ private:
 
 	UPROPERTY()
 		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
+
+	UPROPERTY()
+		TObjectPtr<AOvrlCharacterBase> OwningCharacter;
 
 	FVector LastFrameGravity = FVector::ZeroVector;
 };

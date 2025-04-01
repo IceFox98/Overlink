@@ -2,7 +2,9 @@
 
 
 #include "Player/OvrlPlayerController.h"
+#include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/Character.h"
@@ -13,7 +15,7 @@ void AOvrlPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ACharacter* OwningCharacter = GetCharacter();
+	OwningCharacter = Cast<AOvrlCharacterBase>(GetCharacter());
 	check(OwningCharacter);
 
 	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
@@ -64,4 +66,14 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	{
 		P->FaceRotation(ViewRotation, DeltaTime);
 	}
+}
+
+void AOvrlPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
+{
+	if (UOvrlAbilitySystemComponent* OvrlASC = OwningCharacter->GetOvrlAbilitySystemComponent())
+	{
+		OvrlASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+	}
+
+	Super::PostProcessInput(DeltaTime, bGamePaused);
 }

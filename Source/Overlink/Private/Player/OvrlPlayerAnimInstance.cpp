@@ -74,7 +74,10 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 		WeaponCameraRecoil = EquippedWeapon->GetWeaponCameraRecoil();
 
 		UpdateWeaponSway(DeltaTime);
+
+		WeaponAimPosition = EquippedWeapon->GetAimPosition();
 	}
+	// TODO: Else to check if melee weapon?
 }
 
 void UOvrlPlayerAnimInstance::UpdateWeaponSway(float DeltaTime)

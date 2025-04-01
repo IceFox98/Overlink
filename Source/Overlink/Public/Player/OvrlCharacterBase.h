@@ -31,7 +31,8 @@ public:
 
 public:
 
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return (UAbilitySystemComponent*)AbilitySystemComponent; };
+	virtual UOvrlAbilitySystemComponent* GetOvrlAbilitySystemComponent() const { return AbilitySystemComponent; };
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual USceneComponent* GetEquipAttachmentComponent() const { return Cast<USceneComponent>(GetMesh()); }
 

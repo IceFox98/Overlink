@@ -44,6 +44,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		FTransform GetMuzzleTransform() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+		FVector GetAimPosition() const;
+
 protected:
 
 	void AddSpread();

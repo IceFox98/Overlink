@@ -147,3 +147,9 @@ FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
 	check(WeaponMesh);
 	return WeaponMesh->GetSocketTransform(MuzzleSocketName); // World Space
 }
+
+FVector AOvrlRangedWeaponInstance::GetAimPosition() const
+{
+	check(WeaponMesh);
+	return WeaponMesh->GetSocketTransform("AimSocket", ERelativeTransformSpace::RTS_Component).GetLocation();
+}

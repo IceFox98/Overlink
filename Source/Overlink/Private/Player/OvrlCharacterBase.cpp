@@ -51,3 +51,8 @@ void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 
 	Destroy();
 }
+
+UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const
+{
+	return GetOvrlAbilitySystemComponent();
+}
