@@ -47,6 +47,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		FVector GetAimPosition() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+		bool IsADS() const { return bIsADS; };
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+		void ToggleADS(bool bEnable) { bIsADS = bEnable; };
+
 protected:
 
 	void AddSpread();
@@ -142,4 +148,6 @@ private:
 	float CurrentSpread;
 
 	float CurrentCameraRecoil;
+
+	bool bIsADS;
 };

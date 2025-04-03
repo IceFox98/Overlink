@@ -74,7 +74,7 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 
 void AOvrlRangedWeaponInstance::AddSpread()
 {
-	CurrentHeat += HeatToHeatPerShot.GetRichCurve()->Eval(CurrentHeat) ;
+	CurrentHeat += HeatToHeatPerShot.GetRichCurve()->Eval(CurrentHeat);
 
 	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(CurrentHeat, 0.f, 100.f);
 	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat);
@@ -107,27 +107,34 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 {
 	float TargetMultiplier = 1.f;
 
-	if (OwnerMovementComp)
+	if (IsADS())
 	{
-		const float Velocity = OwnerMovementComp->GetLastUpdateVelocity().Length();
-		const bool bIsWalking = Velocity > 0.f && Velocity < 200.f;
-		const bool bIsRunning = Velocity > 200.f;
+		TargetMultiplier = 0.f;
+	}
+	else
+	{
+		if (OwnerMovementComp)
+		{
+			const float Velocity = OwnerMovementComp->GetLastUpdateVelocity().Length();
+			const bool bIsWalking = Velocity > 0.f && Velocity < 200.f;
+			const bool bIsRunning = Velocity > 200.f;
 
-		const bool bIsMoving = bIsWalking || bIsRunning;
+			const bool bIsMoving = bIsWalking || bIsRunning;
 
-		if (OwnerMovementComp->IsFalling())
-		{
-			TargetMultiplier = SpreadMultiplierFalling;
-		}
-		else if (OwnerMovementComp->IsCrouching())
-		{
-			TargetMultiplier = bIsMoving ? SpreadMultiplierCrouchWalking : SpreadMultiplierCrouchStanding;
-		}
-		else // Standing
-		{
-			if (bIsMoving)
+			if (OwnerMovementComp->IsFalling())
 			{
-				TargetMultiplier = bIsWalking ? SpreadMultiplierWalking : SpreadMultiplierRunning;
+				TargetMultiplier = SpreadMultiplierFalling;
+			}
+			else if (OwnerMovementComp->IsCrouching())
+			{
+				TargetMultiplier = bIsMoving ? SpreadMultiplierCrouchWalking : SpreadMultiplierCrouchStanding;
+			}
+			else // Standing
+			{
+				if (bIsMoving)
+				{
+					TargetMultiplier = bIsWalking ? SpreadMultiplierWalking : SpreadMultiplierRunning;
+				}
 			}
 		}
 	}

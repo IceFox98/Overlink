@@ -85,6 +85,11 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	}
 }
 
+UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() const
+{
+	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
+}
+
 void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
 {
 	GetMesh()->LinkAnimClassLayers(LayerClass);

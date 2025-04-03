@@ -41,7 +41,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
-		UOvrlCharacterMovementComponent* GetCharacterMovement() const { return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent()); };
+		UOvrlCharacterMovementComponent* GetCharacterMovement() const;
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };

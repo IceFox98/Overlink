@@ -21,4 +21,5 @@ void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, flo
 	const float SpreadRadius = FixedWeaponDistance * FMath::Tan(WeaponSpreadAngleRad);
 
 	CrosshairReticle->SetRadius(SpreadRadius);
+	CrosshairReticle->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
 }
