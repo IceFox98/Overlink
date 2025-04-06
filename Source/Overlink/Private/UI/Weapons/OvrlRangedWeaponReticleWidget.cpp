@@ -5,6 +5,13 @@
 #include "UI/Weapons/OvrlCircularReticleWidget.h"
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
+void UOvrlRangedWeaponReticleWidget::InitializeFromWeapon(AOvrlRangedWeaponInstance* Weapon)
+{
+	Super::InitializeFromWeapon(Weapon);
+
+	Weapon->OnHitSomething.BindUObject(this, &UOvrlRangedWeaponReticleWidget::OnWeaponHitSomething);
+}
+
 void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
@@ -22,4 +29,9 @@ void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, flo
 
 	CrosshairReticle->SetRadius(SpreadRadius);
 	CrosshairReticle->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
+}
+
+void UOvrlRangedWeaponReticleWidget::OnWeaponHitSomething(const FHitResult& HitData)
+{
+	K2_ShowHitMarker();
 }

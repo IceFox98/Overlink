@@ -3,12 +3,13 @@
 #pragma once
 
 #include "Pawn/OvrlPawnBase.h"
+#include "Core//OvrlDamageable.h"
 
 #include "OvrlEnemyBase.generated.h"
 
 
 UCLASS()
-class OVERLINK_API AOvrlEnemyBase : public AOvrlPawnBase
+class OVERLINK_API AOvrlEnemyBase : public AOvrlPawnBase, public IOvrlDamageable
 {
 	GENERATED_BODY()
 

@@ -22,7 +22,7 @@ public:
 
 	// Called when target data is ready
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl|Hit-Scan Weapon Fire", meta = (DisplayName = "On Ranged Weapon Target Data Ready"))
-		void K2_OnRangedWeaponTargetDataReady(const FHitResult & TargetData);
+		void K2_OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
 protected:
 

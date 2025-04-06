@@ -13,7 +13,7 @@
 
 void UOvrlGameUIManagerSubsystem::CreateBaseWidget(TSoftClassPtr<UOvrlBaseUILayers> BaseLayerWidgetClass)
 {
-	if (!BaseLayerWidgetClass.IsValid())
+	if (BaseLayerWidgetClass.IsNull())
 	{
 		OVRL_LOG_ERR(LogOverlink, true, "BaseLayerWidgetClass is NULL!");
 		return;
@@ -38,7 +38,7 @@ void UOvrlGameUIManagerSubsystem::AddWidgetToLayer(FGameplayTag LayerName, TSoft
 		return;
 	}
 
-	if (!WidgetClass.IsValid())
+	if (WidgetClass.IsNull())
 	{
 		OVRL_LOG_ERR(LogOverlink, true, "WidgetClass is NULL!");
 		return;

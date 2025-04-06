@@ -20,7 +20,7 @@ class OVERLINK_API UOvrlReticleWidgetBase : public UUserWidget
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Reticle Widget Base")
-		void InitializeFromWeapon(AOvrlRangedWeaponInstance* Weapon);
+		virtual void InitializeFromWeapon(AOvrlRangedWeaponInstance* Weapon);
 
 protected:
 

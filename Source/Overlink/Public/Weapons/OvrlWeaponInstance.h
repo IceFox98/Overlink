@@ -9,6 +9,8 @@
 
 #include "OvrlWeaponInstance.generated.h"
 
+DECLARE_DELEGATE_OneParam(FOnHitSomething, const FHitResult& HitData);
+
 class USphereComponent;
 
 /**
@@ -39,6 +41,8 @@ public:
 		virtual void Reload();
 
 	void ToggleWeaponPhysics(bool bEnable);
+
+protected:
 
 	// @TODO: Should not be used here anymore
 	UFUNCTION()
@@ -81,6 +85,8 @@ public:
 	// The speed of the sway movement interpolation
 	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Instance|Sway")
 		float WeaponSwayMovementSpeed;
+
+	FOnHitSomething OnHitSomething;
 
 protected:
 

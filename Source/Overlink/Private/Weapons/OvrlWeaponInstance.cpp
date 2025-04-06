@@ -2,6 +2,7 @@
 
 
 #include "Weapons/OvrlWeaponInstance.h"
+#include "Core/OvrlDamageable.h"
 
 #include "Components/SphereComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
@@ -28,6 +29,11 @@ void AOvrlWeaponInstance::BeginPlay()
 void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
 {
 	K2_OnFire(HitData);
+
+	if (HitData.GetActor() && HitData.GetActor()->Implements<UOvrlDamageable>())
+	{
+		OnHitSomething.ExecuteIfBound(HitData);
+	}
 }
 
 void AOvrlWeaponInstance::Reload()

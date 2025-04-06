@@ -25,9 +25,6 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject()))
 	{
 		StartRangedWeaponTargeting();
-		
-		//// Adding recoil and spread
-		//WeaponInstance->AddSpread();
 
 		// The fire rate is managed by GAS: if the ability is still active (weapon firing), it can't be acivate again until you call EndAbility
 		const float TimeBetweenShots = WeaponInstance->GetTimeBetweenShots();
@@ -39,7 +36,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 {
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetCurrentSourceObject(), 0);
 
-	FHitResult HitResult;
+	FGameplayAbilityTargetDataHandle HitTargetData;
 
 	if (PC)
 	{
@@ -57,6 +54,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 
 			EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
+			FHitResult HitResult;
 			GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
 
 #if ENABLE_DRAW_DEBUG
@@ -71,10 +69,14 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 				// Save the TraceEnd as ImpactPoint so that we can use it for other calculations
 				HitResult.ImpactPoint = TraceEnd;
 			}
+
+			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+			NewTargetData->HitResult = HitResult;
+			HitTargetData.Add(NewTargetData);
 		}
 	}
 
-	K2_OnRangedWeaponTargetDataReady(HitResult);
+	K2_OnRangedWeaponTargetDataReady(HitTargetData);
 }
 
 void UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown()
