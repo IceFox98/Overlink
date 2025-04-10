@@ -7,6 +7,19 @@
 
 #include "OvrlEnemyBase.generated.h"
 
+USTRUCT(BlueprintType)
+struct FOvrlKillMessage
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(BlueprintReadOnly)
+		AActor* Killer;
+
+	UPROPERTY(BlueprintReadOnly)
+		AActor* Victim;
+};
 
 UCLASS()
 class OVERLINK_API AOvrlEnemyBase : public AOvrlPawnBase, public IOvrlDamageable
@@ -26,5 +39,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
+
+	virtual void HandleDeath(AActor* InInstigator) override;
 
 };

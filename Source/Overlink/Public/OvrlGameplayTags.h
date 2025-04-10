@@ -4,6 +4,11 @@
 
 #include "NativeGameplayTags.h"
 
+namespace OvrlCoreTags
+{
+	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(EnemyKilled);
+};
+
 namespace OvrlAbilityTags
 {
 	// Declare all of the custom native tags that Overlink will use

@@ -24,6 +24,7 @@ public class Overlink : ModuleRules
             "SlateCore",
             "CommonUI",
             "Niagara",
+            "GameplayMessageRuntime",
         });
     }
 }

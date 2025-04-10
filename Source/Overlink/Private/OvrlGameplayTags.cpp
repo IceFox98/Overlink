@@ -2,6 +2,11 @@
 
 #include "OvrlGameplayTags.h"
 
+namespace OvrlCoreTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(EnemyKilled, "Ovrl.Core.EnemyKilled");
+};
+
 namespace OvrlAbilityTags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_IsDead, "Ovrl.Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
