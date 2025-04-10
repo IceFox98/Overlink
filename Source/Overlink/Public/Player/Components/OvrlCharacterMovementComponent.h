@@ -91,6 +91,11 @@ public:
 	FORCEINLINE FVector GetRightHandIKLocation() const { return RightHandIKLocation; };
 	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
 
+	// Returns the last update velocity, but relative to the player
+	FVector GetRelativeLastUpdateVelocity();
+
+	bool IsMovingForward(float AngleFromForwardVector = 90.f);
+
 	// ------ LOCOMOTION ------
 
 	FORCEINLINE const FGameplayTag& GetLocomotionAction() const { return LocomotionAction; }

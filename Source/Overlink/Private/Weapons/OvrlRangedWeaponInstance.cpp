@@ -116,8 +116,8 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 		if (OwnerMovementComp)
 		{
 			const float Velocity = OwnerMovementComp->GetLastUpdateVelocity().Length();
-			const bool bIsWalking = Velocity > 0.f && Velocity < 200.f;
-			const bool bIsRunning = Velocity > 200.f;
+			const bool bIsRunning = OwnerMovementComp->GetGait() == OvrlGaitTags::Running;
+			const bool bIsWalking = Velocity > 0.f && !bIsRunning;
 
 			const bool bIsMoving = bIsWalking || bIsRunning;
 

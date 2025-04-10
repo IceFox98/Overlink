@@ -96,7 +96,7 @@ void UOvrlPlayerAnimInstance::UpdateWeaponSway(float DeltaTime)
 	WeaponSwayRotationPrev = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 
 	// Manage sway movement
-	const FVector DeltaSwayMovement = PlayerCharacter->GetActorTransform().InverseTransformVector(CharacterMovementComponent->GetLastUpdateVelocity());
+	const FVector DeltaSwayMovement = CharacterMovementComponent->GetRelativeLastUpdateVelocity();
 
 	const float SwayX = FMath::Clamp(DeltaSwayMovement.X, -EquippedWeapon->WeaponSwayMovementLimit.X, EquippedWeapon->WeaponSwayMovementLimit.X);
 	const float SwayY = FMath::Clamp(DeltaSwayMovement.Y, -EquippedWeapon->WeaponSwayMovementLimit.Y, EquippedWeapon->WeaponSwayMovementLimit.Y);

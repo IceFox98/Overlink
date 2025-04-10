@@ -430,6 +430,7 @@ void UOvrlCharacterMovementComponent::OnPlayerLanded()
 
 void UOvrlCharacterMovementComponent::StartRunning()
 {
+	HandleCrouching(false);
 	MaxWalkSpeed = MaxRunSpeed;
 	SetGait(OvrlGaitTags::Running);
 }
@@ -720,12 +721,8 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 {
 	if (bCanCheckWallrun)
 	{
-		const FVector PlayerInputVector = GetLastInputVector();
-		const FVector PlayerForwardVector = Character->GetActorForwardVector();
-
 		const bool bIsPlayerNotGrounded = IsFalling();
-		//const bool bIsPlayerMoving = !PlayerInputVector.IsZero();
-		const bool bIsPlayerMovingForward = FVector::DotProduct(PlayerInputVector, PlayerForwardVector) > 0;
+		const bool bIsPlayerMovingForward = IsMovingForward();
 
 		if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
 		{
@@ -840,6 +837,7 @@ void UOvrlCharacterMovementComponent::EndWallrun()
 		bCanCheckWallrun = false;
 		SetLocomotionAction(FGameplayTag::EmptyTag);
 
+		// Allow player to wallrun again, only after a specific amount of time
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UOvrlCharacterMovementComponent::ResetWallrun, WallrunResetTime, false);
 	}
@@ -851,13 +849,13 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 		return;
 
 	const bool bIsPlayerGrounded = !IsFalling();
-	const bool bIsPlayerMoving = GetLastUpdateVelocity().Length() > 0;
+	const bool bIsPlayerMovingForward = IsMovingForward(60.f);
+	const bool bIsPlayerRunning = GetGait() == OvrlGaitTags::Running;
 
 	bShouldSlideOnLanded = !bIsPlayerGrounded;
 
-	if (bIsPlayerGrounded && bIsPlayerMoving)
+	if (bIsPlayerGrounded && bIsPlayerMovingForward && bIsPlayerRunning)
 	{
-		// Trace a down vector to check if sliding is possible
 		const FVector StartTrace = Character->GetActorLocation();
 		const FVector EndTrace = StartTrace + GetGravityDirection() * SlideDistanceCheck;
 		EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
@@ -867,11 +865,13 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 			DebugType = EDrawDebugTrace::ForDuration;
 #endif
 
+		// Trace a down vector to check if sliding is possible
 		FHitResult OutHit;
 		UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
 
 		if (OutHit.bBlockingHit)
 		{
+			// Change movement params to simulate sliding
 			GroundFriction = SlideGroundFriction;
 			BrakingDecelerationWalking = SlideBraking;
 			MaxWalkSpeedCrouched = SlideMaxWalkSpeedCrouched;
@@ -902,6 +902,19 @@ void UOvrlCharacterMovementComponent::CancelSliding()
 	MaxWalkSpeedCrouched = DefaultMaxWalkSpeedCrouched;
 
 	SetLocomotionAction(FGameplayTag::EmptyTag);
+}
+
+FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
+{
+	return Character->GetActorTransform().InverseTransformVector(GetLastUpdateVelocity());
+}
+
+bool UOvrlCharacterMovementComponent::IsMovingForward(float AngleFromForwardVector/* = 90.f*/)
+{
+	// Normalize between 0-1. 90° -> 0 (perpendicular). 0° -> 1 (perfectly aligned)
+	const float NormalizedAngle = 1.f - (FMath::Clamp(AngleFromForwardVector, 0.f, 90.f) / 90.f);
+	// Since the input vector is not relative to the player, we can easily check if the we're going forward using dot product
+	return FVector::DotProduct(GetLastInputVector(), Character->GetActorForwardVector()) > NormalizedAngle;
 }
 
 void UOvrlCharacterMovementComponent::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
