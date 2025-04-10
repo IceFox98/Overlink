@@ -25,6 +25,9 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 
 	bCanWalkOffLedgesWhenCrouching = true;
 
+	MaxWalkSpeed = 450.f;
+	MaxRunSpeed = 800.f;
+
 	// Parkour variables
 	WallrunCheckDistance = 75.f;
 	WallrunCheckAngle = 35.f;
@@ -423,6 +426,18 @@ void UOvrlCharacterMovementComponent::OnPlayerLanded()
 
 		bShouldSlideOnLanded = false;
 	}
+}
+
+void UOvrlCharacterMovementComponent::StartRunning()
+{
+	MaxWalkSpeed = MaxRunSpeed;
+	SetGait(OvrlGaitTags::Running);
+}
+
+void UOvrlCharacterMovementComponent::StopRunning()
+{
+	MaxWalkSpeed = DefaultMaxWalkSpeed;
+	SetGait(OvrlGaitTags::Walking);
 }
 
 void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)

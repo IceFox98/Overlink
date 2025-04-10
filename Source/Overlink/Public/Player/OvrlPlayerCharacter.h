@@ -59,12 +59,9 @@ public:
 
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
-
-	virtual void Crouch(bool bClientSimulation = false) override;
-	virtual void UnCrouch(bool bClientSimulation = false) override;
-
-	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void Input_Crouch(const FInputActionValue& InputActionValue);
+	void Input_StartRun(const FInputActionValue& InputActionValue);
+	void Input_EndRun(const FInputActionValue& InputActionValue);
 
 	// ------ LOCOMOTION ------
 

@@ -80,8 +80,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 		void OnPlayerLanded();
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-		void HandleCrouching(bool bInWantsToCrouch);
+	void StartRunning();
+	void StopRunning();
+	void HandleCrouching(bool bInWantsToCrouch);
 
 	FORCEINLINE bool IsWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
 
@@ -147,19 +148,8 @@ private:
 
 public:
 
-	// ------ LOCOMOTION ------
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Stance = OvrlStanceTags::Standing;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Gait = OvrlGaitTags::Walking;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
+		float MaxRunSpeed;
 
 	// -----------------------------
 	// ------ PARKOUR SECTION ------
@@ -246,6 +236,20 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 		float SlideMaxWalkSpeedCrouched;
+
+	// ------ LOCOMOTION ------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
+		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
+		FGameplayTag Stance = OvrlStanceTags::Standing;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
+		FGameplayTag Gait = OvrlGaitTags::Walking;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
+		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
 private:
 

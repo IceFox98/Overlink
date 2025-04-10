@@ -49,6 +49,7 @@ namespace OvrlViewModeTags
 namespace OvrlInputTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(Move, "Ovrl.InputTag.Move");
+	UE_DEFINE_GAMEPLAY_TAG(Run, "Ovrl.InputTag.Run");
 	UE_DEFINE_GAMEPLAY_TAG(Look_Mouse, "Ovrl.InputTag.LookMouse");
 	UE_DEFINE_GAMEPLAY_TAG(Crouch, "Ovrl.InputTag.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.InputTag.Jump");

@@ -82,6 +82,9 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Crouch, ETriggerEvent::Started, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Started, this, &ThisClass::Input_StartRun, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Completed, this, &ThisClass::Input_EndRun, /*bLogIfNotFound=*/ false);
 	}
 }
 
@@ -166,31 +169,19 @@ void AOvrlPlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	}
 }
 
-void AOvrlPlayerCharacter::Crouch(bool bClientSimulation/* = false*/)
+void AOvrlPlayerCharacter::Input_Crouch(const FInputActionValue& InputActionValue)
 {
-	Super::Crouch();
-
+	GetCharacterMovement()->HandleCrouching(!bIsCrouched);
 }
 
-void AOvrlPlayerCharacter::UnCrouch(bool bClientSimulation/* = false*/)
+void AOvrlPlayerCharacter::Input_StartRun(const FInputActionValue& InputActionValue)
 {
-	Super::UnCrouch();
+	GetCharacterMovement()->StartRunning();
 }
 
-void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+void AOvrlPlayerCharacter::Input_EndRun(const FInputActionValue& InputActionValue)
 {
-	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-
-	FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
-	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
-}
-
-void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
-{
-	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-
-	FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
-	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
+	GetCharacterMovement()->StopRunning();
 }
 
 void AOvrlPlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
