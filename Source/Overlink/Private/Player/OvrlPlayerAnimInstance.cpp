@@ -13,6 +13,7 @@
 
 // Engine
 #include "AbilitySystemGlobals.h"
+#include "Curves/CurveVector.h"
 
 void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 {
@@ -58,7 +59,6 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	LocomotionMode = CharacterMovementComponent->GetLocomotionMode();
 	Stance = CharacterMovementComponent->GetStance();
 	Gait = CharacterMovementComponent->GetGait();
-	//OverlayMode = CharacterMovementComponent->GetOverlayMode();
 	RightHandIKLocation = CharacterMovementComponent->GetRightHandIKLocation();
 	LeftHandIKLocation = CharacterMovementComponent->GetLeftHandIKLocation();
 }
@@ -67,49 +67,58 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaTime);
 
-	//const FBasedMovementInfo& BasedMovement = Character->GetBasedMovement();
 	if (IsValid(EquippedWeapon))
 	{
 		WeaponRecoil = EquippedWeapon->GetWeaponKickbackRecoil();
 		WeaponCameraRecoil = EquippedWeapon->GetWeaponCameraRecoil();
+		WeaponAimTransform = EquippedWeapon->GetAimTransform();
 
 		UpdateWeaponSway(DeltaTime);
-
-		WeaponAimPosition = EquippedWeapon->GetAimPosition();
 	}
 	// TODO: Else to check if melee weapon?
 }
 
 void UOvrlPlayerAnimInstance::UpdateWeaponSway(float DeltaTime)
 {
-	// Manage sway rotation
-	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(WeaponSwayRotationPrev, PlayerCharacter->GetCameraComponent()->GetComponentRotation());
-
-	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -EquippedWeapon->WeaponSwayRotationLimit.Y, EquippedWeapon->WeaponSwayRotationLimit.Y);
-	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -EquippedWeapon->WeaponSwayRotationLimit.X, EquippedWeapon->WeaponSwayRotationLimit.X);
-
-	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
-
-	WeaponSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(WeaponSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, .5f, .8f, DeltaTime, 0.006f).Rotator();
-
-	//WeaponSwayRotation = FMath::RInterpTo(WeaponSwayRotation, TargetSwayRotation, DeltaTime, EquippedWeapon->WeaponSwayRotationSpeed);
-	WeaponSwayRotationPrev = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+	// Sway applied when moving the camera around (mouse movement)
+	UpdateWeaponSwayLooking(DeltaTime);
 
 	// Manage sway movement
 	const FVector DeltaSwayMovement = CharacterMovementComponent->GetRelativeLastUpdateVelocity();
 
 	const float SwayX = FMath::Clamp(DeltaSwayMovement.X, -EquippedWeapon->WeaponSwayMovementLimit.X, EquippedWeapon->WeaponSwayMovementLimit.X);
 	const float SwayY = FMath::Clamp(DeltaSwayMovement.Y, -EquippedWeapon->WeaponSwayMovementLimit.Y, EquippedWeapon->WeaponSwayMovementLimit.Y);
-	const float SwayZ = FMath::Clamp(DeltaSwayMovement.Z, 0.f, EquippedWeapon->WeaponSwayMovementLimit.Z);
+	const float SwayZ = FMath::Clamp(DeltaSwayMovement.Z, -1.f, EquippedWeapon->WeaponSwayMovementLimit.Z);
+
+	const FVector Test = EquippedWeapon->GetWalkSwayCurve()->GetVectorValue(GetWorld()->GetTimeSeconds());
 
 	const FVector TargetSwayMovement = FVector(SwayY, -SwayX, SwayZ);
+	//const FVector TargetSwayMovement = EquippedWeapon->GetWalkSwayCurve()->GetVectorValue(GetWorld()->GetTimeSeconds());
+	
 	//WeaponSwayMovement = FMath::VInterpTo(WeaponSwayMovement, TargetSwayMovement, DeltaTime, EquippedWeapon->WeaponSwayMovementSpeed);
-
 	WeaponSwayMovement = UKismetMathLibrary::VectorSpringInterp(WeaponSwayMovement, TargetSwayMovement, SpringStateMovement, .4f, .3, DeltaTime, 0.006f);
 
 	//OVRL_LOG("Delta: %s - Current: %s - Target: %s", *DeltaSwayMovement.ToString(), *WeaponSwayMovement.ToString(), *TargetSwayMovement.ToString());
 
 	WeaponSwayMovementPrev = CharacterMovementComponent->GetLastUpdateVelocity();
+}
+
+void UOvrlPlayerAnimInstance::UpdateWeaponSwayLooking(float DeltaTime)
+{
+	// Get camera delta movement
+	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(WeaponSwayRotationPrev, PlayerCharacter->GetCameraComponent()->GetComponentRotation());
+
+	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -EquippedWeapon->WeaponSwayRotationLimit.Y, EquippedWeapon->WeaponSwayRotationLimit.Y);
+	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -EquippedWeapon->WeaponSwayRotationLimit.X, EquippedWeapon->WeaponSwayRotationLimit.X);
+	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
+
+	WeaponSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(WeaponSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, .5f, .8f, DeltaTime, 0.006f).Rotator();
+	//WeaponSwayRotation = FMath::RInterpTo(WeaponSwayRotation, TargetSwayRotation, DeltaTime, EquippedWeapon->WeaponSwayRotationSpeed);
+
+	WeaponSwayRotationPrev = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+
+	// Apply weapon sway looking to Anim BP
+	WeaponSwayLooking = FVector(0.f, WeaponSwayRotation.Yaw, WeaponSwayRotation.Pitch);
 }
 
 void UOvrlPlayerAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* EquippedItem)

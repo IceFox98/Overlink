@@ -8,6 +8,7 @@
 #include "OvrlRangedWeaponInstance.generated.h"
 
 class UOvrlCharacterMovementComponent;
+class UCurveVector;
 
 /**
  *
@@ -40,12 +41,13 @@ public:
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
 	FORCEINLINE float GetWeaponCameraRecoil() const { return CurrentCameraRecoil; };
+	FORCEINLINE UCurveVector* GetWalkSwayCurve() const { return WalkSwayCurve; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		FTransform GetMuzzleTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		FVector GetAimPosition() const;
+		FTransform GetAimTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		bool IsADS() const { return bIsADS; };
@@ -83,6 +85,10 @@ protected:
 	/** The fire rate of this weapon. This will represent the amount of bullets shot per minute */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
 		float FireRate;
+
+	/** The fire rate of this weapon. This will represent the amount of bullets shot per minute */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+		TObjectPtr<UCurveVector> WalkSwayCurve;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")

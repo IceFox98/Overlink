@@ -36,6 +36,7 @@ public:
 private:
 
 	void UpdateWeaponSway(float DeltaTime);
+	void UpdateWeaponSwayLooking(float DeltaTime);
 
 	UFUNCTION()
 	void OnNewItemEquipped(AOvrlEquipmentInstance* EquippedItem);
@@ -90,15 +91,16 @@ protected:
 		float WeaponCameraRecoil;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FRotator WeaponSwayRotation;
+		FVector WeaponSwayLooking;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
 		FVector WeaponSwayMovement;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FVector WeaponAimPosition;
+		FTransform WeaponAimTransform;
 
 private:
+	FRotator WeaponSwayRotation;
 	FRotator WeaponSwayRotationPrev;
 	FVector WeaponSwayMovementPrev;
 
