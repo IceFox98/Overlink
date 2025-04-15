@@ -90,10 +90,14 @@ void UOvrlPlayerAnimInstance::UpdateWeaponSway(float DeltaTime)
 	const float SwayY = FMath::Clamp(DeltaSwayMovement.Y, -EquippedWeapon->WeaponSwayMovementLimit.Y, EquippedWeapon->WeaponSwayMovementLimit.Y);
 	const float SwayZ = FMath::Clamp(DeltaSwayMovement.Z, -1.f, EquippedWeapon->WeaponSwayMovementLimit.Z);
 
-	//const FVector TargetSwayMovement = FVector(SwayY, -SwayX, SwayZ);
-	WeaponSwayMovement = EquippedWeapon->GetWalkSwayCurve()->GetVectorValue(GetWorld()->GetTimeSeconds());
-	
-	//WeaponSwayMovement = FMath::VInterpTo(WeaponSwayMovement, TargetSwayMovement, DeltaTime, EquippedWeapon->WeaponSwayMovementSpeed);
+	FVector TargetSwayMovement = FVector::ZeroVector;
+
+	if (CharacterMovementComponent->GetLastInputVector().Length() > 0.f)
+	{
+		TargetSwayMovement = EquippedWeapon->GetWalkSwayCurve()->GetVectorValue(GetWorld()->GetTimeSeconds());
+	}
+
+	WeaponSwayMovement = FMath::VInterpTo(WeaponSwayMovement, TargetSwayMovement, DeltaTime, EquippedWeapon->WeaponSwayMovementSpeed);
 	//WeaponSwayMovement = UKismetMathLibrary::VectorSpringInterp(WeaponSwayMovement, TargetSwayMovement, SpringStateMovement, .4f, .3, DeltaTime, 0.006f);
 
 	//OVRL_LOG("Delta: %s - Current: %s - Target: %s", *DeltaSwayMovement.ToString(), *WeaponSwayMovement.ToString(), *TargetSwayMovement.ToString());
