@@ -39,6 +39,6 @@ protected:
 		TWeakObjectPtr<UOvrlPlayerAnimInstance> Parent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		TObjectPtr<AOvrlPlayerCharacter> Character;
+		TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
 
 };

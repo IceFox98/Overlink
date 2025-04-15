@@ -10,6 +10,7 @@
 class UOvrlEquipmentDefinition;
 class UOvrlInventoryComponent;
 class UOvrlItemInstance;
+class UCurveVector;
 
 UCLASS()
 class OVERLINK_API AOvrlEquipmentInstance : public AActor
@@ -43,10 +44,38 @@ public:
 		FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
+	FORCEINLINE UCurveVector* GetWalkSwayCurve() const { return WalkSwayCurve; };
 
 protected:
 
 	void ApplyOverlayAnimation();
+
+public:
+
+	// This curve defines the movement of this equipped item while the player is walking
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Instance|Sway")
+		TObjectPtr<UCurveVector> WalkSwayCurve;
+
+	// The maximum sway rotation limit the equipped item can reach on both axis X and Y
+	// X -> Yaw Sway
+	// Y -> Pitch Sway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
+		FVector2D SwayRotationLimit;
+
+	// The speed of the sway rotation interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
+		float SwayRotationSpeed;
+
+	// The maximum sway movement limit the equipped can reach on all axis
+	// X -> Forward/Backward Sway
+	// Y -> Right/Left Sway
+	// Z -> Up/Down Sway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
+		FVector SwayMovementLimit;
+
+	// The speed of the sway movement interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
+		float SwayMovementSpeed;
 
 protected:
 

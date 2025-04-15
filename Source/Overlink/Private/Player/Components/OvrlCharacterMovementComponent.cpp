@@ -906,7 +906,7 @@ void UOvrlCharacterMovementComponent::CancelSliding()
 
 FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
 {
-	return Character->GetActorTransform().InverseTransformVector(GetLastUpdateVelocity());
+	return Character ? Character->GetActorTransform().InverseTransformVector(GetLastUpdateVelocity()) : FVector::ZeroVector;
 }
 
 bool UOvrlCharacterMovementComponent::IsMovingForward(float AngleFromForwardVector/* = 90.f*/)

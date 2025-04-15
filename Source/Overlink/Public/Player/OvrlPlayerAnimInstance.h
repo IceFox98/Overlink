@@ -6,7 +6,6 @@
 #include "Animation/AnimInstance.h"
 #include "OvrlGameplayTags.h"
 #include "GameplayEffectTypes.h"
-#include "Kismet/KismetMathLibrary.h"
 
 #include "OvrlPlayerAnimInstance.generated.h"
 
@@ -32,14 +31,6 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
-
-private:
-
-	void UpdateWeaponSway(float DeltaTime);
-	void UpdateWeaponSwayLooking(float DeltaTime);
-
-	UFUNCTION()
-	void OnNewItemEquipped(AOvrlEquipmentInstance* EquippedItem);
 
 protected:
 
@@ -83,30 +74,4 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|IK", Transient)
 		FVector LeftHandIKLocation;
 
-	// ------ WEAPON ------
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FTransform WeaponRecoil;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		float WeaponCameraRecoil;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FVector WeaponSwayLooking;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FVector WeaponSwayMovement;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FTransform WeaponAimTransform;
-
-private:
-	FRotator WeaponSwayRotation;
-	FRotator WeaponSwayRotationPrev;
-	FVector WeaponSwayMovementPrev;
-
-	FVectorSpringState SpringStateMovement;
-	FQuaternionSpringState SpringStateRotation;
-
-	UPROPERTY()
-		AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
 };

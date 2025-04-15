@@ -15,8 +15,8 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
 	PickupSphere->SetupAttachment(RootComponent);
 
-	WeaponSwayRotationLimit = FVector2D(3.f, 10.f);
-	WeaponSwayRotationSpeed = 5.f;
+	SwayRotationLimit = FVector2D(3.f, 10.f);
+	SwayRotationSpeed = 5.f;
 }
 
 void AOvrlWeaponInstance::BeginPlay()
