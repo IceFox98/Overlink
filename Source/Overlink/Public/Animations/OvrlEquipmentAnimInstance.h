@@ -23,6 +23,10 @@ class OVERLINK_API UOvrlEquipmentAnimInstance : public UOvrlLinkedAnimInstance
 
 public:
 
+	UOvrlEquipmentAnimInstance();
+
+public:
+
 	virtual void NativeInitializeAnimation() override;
 
 	virtual void NativeBeginPlay() override;
@@ -47,19 +51,42 @@ protected:
 
 	// ------- CONFIG VARIABLES -------
 
-	// The maximum sway rotation limit the equipped item can reach on both axis X and Y
+	// The maximum sway looking rotation limit the equipped item can reach on both axis X and Y
 	// X -> Yaw Sway
 	// Y -> Pitch Sway
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance")
-		FVector2D SwayRotationLimit;
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+		FVector2D SwayLookingRotationLimit;
 
 	// The speed of the sway movement interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
 		float SwayMovementSpeed;
 
-	// The speed of the sway movement interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance")
+	// How much the equipped item should move, when the player moves sideway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
+		float SwayMovementMultiplier;
+
+	// How much the equipped item should roll, when the player moves sideway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
+		float SwayMovementRollMultiplier;
+
+	// This curve defines the movement of the equipped item while the player is walking
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+		TObjectPtr<UCurveVector> WalkSwayCurve;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+		FVector SwayWalkRotationMultiplier;
+
+	// The speed of the walk sway interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
 		float SwayWalkSpeed;
+
+	// This curve defines the movement of this equipped item while the player is walking
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Jump")
+		TObjectPtr<UCurveVector> JumpSwayCurve;
+
+	// Multiplier applied when player jumps while moving right/left
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Jump")
+		FVector SwayJumpRotationMultiplier;
 
 	// ------- RUNTIME VALUES -------
 
@@ -71,25 +98,27 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 		FVector SwayMovementAmount;
 
+	// Sway rotation applied when player moves
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+		FRotator SwayMovementRotationAmount;
+
 	// Sway applied when player is moving, it simulates a walking animation
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 		FVector SwayWalkAmount;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
-		FVector SwayWalkRotationMultiplier;
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+		FRotator SwayWalkRotationAmount;
 
 	// Sway applied when player jumps, it simulates a jump animation
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 		FVector SwayJumpAmount;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
-		FVector SwayJumpRotationMultiplier;
+	// Sway rotation applied when player jumps
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+		FRotator SwayJumpRotationAmount;
 
-	// This curve defines the movement of this equipped item while the player is walking
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
-		TObjectPtr<UCurveVector> JumpSwayCurve;
-
-	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
+	UPROPERTY()
+		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
 	UPROPERTY()
 		AOvrlEquipmentInstance* EquippedItem = nullptr;

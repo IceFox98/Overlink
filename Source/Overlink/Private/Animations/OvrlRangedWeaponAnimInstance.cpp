@@ -12,10 +12,19 @@ void UOvrlRangedWeaponAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaT
 
 	if (IsValid(EquippedWeapon))
 	{
+		AimSpeed = EquippedWeapon->GetAimSpeed();
 		WeaponRecoil = EquippedWeapon->GetWeaponKickbackRecoil();
 		WeaponCameraRecoil = EquippedWeapon->GetWeaponCameraRecoil();
 		WeaponAimTransform = EquippedWeapon->GetAimTransform();
+
+		UpdateAim(DeltaTime);
 	}
+}
+
+void UOvrlRangedWeaponAnimInstance::UpdateAim(float DeltaTime)
+{
+	const float TargetAimAlpha = EquippedWeapon->IsADS() ? 1.f : 0.f;
+	AimAlpha = FMath::FInterpTo(AimAlpha, TargetAimAlpha, DeltaTime, AimSpeed);
 }
 
 void UOvrlRangedWeaponAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)

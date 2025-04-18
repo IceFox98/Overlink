@@ -25,20 +25,29 @@ protected:
 
 	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem) override;
 
+private:
+
+	void UpdateAim(float DeltaTime);
+
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+		float AimAlpha;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+		float AimSpeed;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 		FTransform WeaponRecoil;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 		float WeaponCameraRecoil;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 		FTransform WeaponAimTransform;
 
 protected:
 
 	UPROPERTY()
 		AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
-
 };

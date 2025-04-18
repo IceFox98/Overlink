@@ -9,17 +9,25 @@
 #include "Inventory/OvrlInventoryComponent.h"
 #include "Weapons/OvrlRangedWeaponInstance.h"
 #include "Player/Components/OvrlCameraComponent.h"
+#include "OvrlUtils.h"
+#include "Overlink.h"
 
 // Engine
 #include "Curves/CurveVector.h"
+
+UOvrlEquipmentAnimInstance::UOvrlEquipmentAnimInstance()
+{
+	SwayMovementSpeed = 20.f;
+	SwayMovementMultiplier = 1.f;
+	SwayMovementRollMultiplier = 2.f;
+	SwayWalkSpeed = 20.f;
+}
 
 void UOvrlEquipmentAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
 	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());
-
-	SwayMovementSpeed = 20.f;
 }
 
 void UOvrlEquipmentAnimInstance::NativeBeginPlay()
@@ -29,7 +37,8 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 	check(PlayerCharacter);
 	PlayerCharacter->GetInventoryComponent()->OnItemEquipped.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnNewItemEquipped);
 
-	check(JumpSwayCurve);
+	ensureAlways(WalkSwayCurve);
+	ensureAlways(JumpSwayCurve);
 }
 
 void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
@@ -42,7 +51,7 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaTime);
 
-	if (IsValid(EquippedItem))
+	if (IsValid(PlayerCharacter))
 	{
 		UpdateSwayMovement(DeltaTime);
 		UpdateSwayLooking(DeltaTime);
@@ -56,8 +65,8 @@ void UOvrlEquipmentAnimInstance::UpdateSwayLooking(float DeltaTime)
 	// Get camera delta movement
 	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(LastPlayerCameraRotation, PlayerCharacter->GetCameraComponent()->GetComponentRotation());
 
-	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -SwayRotationLimit.Y, SwayRotationLimit.Y);
-	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -SwayRotationLimit.X, SwayRotationLimit.X);
+	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -SwayLookingRotationLimit.Y, SwayLookingRotationLimit.Y);
+	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -SwayLookingRotationLimit.X, SwayLookingRotationLimit.X);
 	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
 
 	SwayRotationAmount = UKismetMathLibrary::QuaternionSpringInterp(FQuat(SwayRotationAmount), FQuat(TargetSwayRotation), SpringStateRotation, .5f, .8f, DeltaTime, 0.006f).Rotator();
@@ -78,25 +87,45 @@ void UOvrlEquipmentAnimInstance::UpdateSwayMovement(float DeltaTime)
 	const float ForwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorForwardVector()) / CharacterMovementComponent->MaxWalkSpeed;
 	const float RightwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorRightVector()) / CharacterMovementComponent->MaxWalkSpeed;
 
-	const FVector TargetMovementAmount = FVector(ForwardAmount, RightwardAmount, 0.f);
+	const FVector TargetMovementAmount = FVector(ForwardAmount, RightwardAmount, 0.f) * SwayMovementMultiplier;
 
 	SwayMovementAmount = FMath::VInterpTo(SwayMovementAmount, TargetMovementAmount, DeltaTime, SwayMovementSpeed);
+
+	SwayMovementRotationAmount = FRotator(0.f, 0.f, FMath::Clamp(SwayMovementAmount.Y, -1.f, 1.f) * -SwayMovementRollMultiplier);
 }
 
 void UOvrlEquipmentAnimInstance::UpdateSwayWalk(float DeltaTime)
 {
-	FVector TargetSwayWalk = FVector::ZeroVector;
-
-	if (CharacterMovementComponent->GetLastInputVector().Length() > 0.f)
+	if (!WalkSwayCurve)
 	{
-		TargetSwayWalk = EquippedItem->GetWalkSwayCurve()->GetVectorValue(GetWorld()->GetTimeSeconds());
+		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayCurve is NULL!");
+		return;
 	}
 
+	FVector TargetSwayWalk = FVector::ZeroVector;
+
+	// Read the value only when player moves
+	if (CharacterMovementComponent->GetLastInputVector().Length() > 0.f)
+	{
+		TargetSwayWalk = WalkSwayCurve->GetVectorValue(GetWorld()->GetTimeSeconds());
+	}
+
+	// Simulate a walk animation
 	SwayWalkAmount = FMath::VInterpTo(SwayWalkAmount, TargetSwayWalk, DeltaTime, SwayWalkSpeed);
+
+	// Calculate the rotation to apply when player walk
+	const FVector WalkRotationVector = SwayWalkAmount * SwayWalkRotationMultiplier;
+	SwayWalkRotationAmount = FRotator(WalkRotationVector.Y, WalkRotationVector.Z, WalkRotationVector.X);
 }
 
 void UOvrlEquipmentAnimInstance::UpdateSwayJump(float DeltaTime)
 {
+	if (!JumpSwayCurve)
+	{
+		OVRL_LOG_ERR(LogOverlink, false, "JumpSwayCurve is NULL!");
+		return;
+	}
+
 	const FVector PlayerVelocity = CharacterMovementComponent->GetLastUpdateVelocity();
 
 	// Calculate "how much" the player is jumping/falling
@@ -106,10 +135,14 @@ void UOvrlEquipmentAnimInstance::UpdateSwayJump(float DeltaTime)
 
 	const float SideSwayMultiplier = .4f;
 
-	// Apply some side sway movement if jumping while moving right/left
+	// Apply some side sway movement, only when player jumps sideway
 	const FVector TargetJumpAmount = JumpSwayCurve->GetVectorValue(-UpwardAmount) * FVector(1.f, -RightwardAmount * SideSwayMultiplier, 1.f);
 
 	SwayJumpAmount = UKismetMathLibrary::VectorSpringInterp(SwayJumpAmount, TargetJumpAmount, SpringStateJump, .5f, .45f, DeltaTime, 0.005f, 5.f);
+
+	// Calculate the rotation to apply when player jumps sideway
+	const FVector JumpRotationVector = FVector(SwayJumpAmount.Y, 0.f, SwayJumpAmount.Y) * SwayJumpRotationMultiplier;
+	SwayJumpRotationAmount = FRotator(0.f, JumpRotationVector.Z, JumpRotationVector.X);
 }
 
 void UOvrlEquipmentAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)

@@ -40,6 +40,7 @@ public:
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
 	FORCEINLINE float GetWeaponCameraRecoil() const { return CurrentCameraRecoil; };
+	FORCEINLINE float GetAimSpeed() const { return AimSpeed; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		FTransform GetMuzzleTransform() const;
@@ -76,13 +77,17 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ForceUnits = cm))
 		float MaxDamageRange;
 
-	/** The time (in seconds) you need to reload the weapon */
+	// The time (in seconds) you need to reload the weapon
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 		float ReloadingTime;
 
-	/** The fire rate of this weapon. This will represent the amount of bullets shot per minute */
+	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
 		float FireRate;
+
+	// How quickly the weapon enters to ADS
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
+		float AimSpeed;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")

@@ -15,6 +15,7 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	BulletsPerCartridge = 1;
 	MaxDamageRange = 25000.0f;
 	FireRate = 400.f;
+	AimSpeed = 25.f;
 
 	KickbackRecoverySpeed = 10.f;
 	CameraRecoilRecoverySpeed = 10.f;
