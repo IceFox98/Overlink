@@ -62,20 +62,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
 		FVector2D SwayRotationLimit;
 
-	// The speed of the sway rotation interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
-		float SwayRotationSpeed;
-
 	// The maximum sway movement limit the equipped can reach on all axis
 	// X -> Forward/Backward Sway
 	// Y -> Right/Left Sway
 	// Z -> Up/Down Sway
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
 		FVector SwayMovementLimit;
-
-	// The speed of the sway movement interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Instance|Sway")
-		float SwayMovementSpeed;
 
 protected:
 

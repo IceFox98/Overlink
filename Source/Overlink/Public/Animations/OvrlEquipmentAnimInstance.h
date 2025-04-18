@@ -11,9 +11,10 @@
 class UOvrlCharacterMovementComponent;
 class AOvrlRangedWeaponInstance;
 class AOvrlEquipmentInstance;
+class UCurveVector;
 
 /**
- * 
+ *
  */
 UCLASS()
 class OVERLINK_API UOvrlEquipmentAnimInstance : public UOvrlLinkedAnimInstance
@@ -39,14 +40,54 @@ private:
 
 	void UpdateSwayLooking(float DeltaTime);
 	void UpdateSwayMovement(float DeltaTime);
+	void UpdateSwayJump(float DeltaTime);
+	void UpdateSwayWalk(float DeltaTime);
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+	// ------- CONFIG VARIABLES -------
+
+	// The maximum sway rotation limit the equipped item can reach on both axis X and Y
+	// X -> Yaw Sway
+	// Y -> Pitch Sway
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance")
+		FVector2D SwayRotationLimit;
+
+	// The speed of the sway movement interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance")
+		float SwayMovementSpeed;
+
+	// The speed of the sway movement interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance")
+		float SwayWalkSpeed;
+
+	// ------- RUNTIME VALUES -------
+
+	// Sway applied when moving the camera around (mouse movement)
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 		FVector SwayLookingAmount;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+	// Sway that follows the player movement
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 		FVector SwayMovementAmount;
+
+	// Sway applied when player is moving, it simulates a walking animation
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+		FVector SwayWalkAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
+		FVector SwayWalkRotationMultiplier;
+
+	// Sway applied when player jumps, it simulates a jump animation
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+		FVector SwayJumpAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
+		FVector SwayJumpRotationMultiplier;
+
+	// This curve defines the movement of this equipped item while the player is walking
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
+		TObjectPtr<UCurveVector> JumpSwayCurve;
 
 	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
@@ -60,5 +101,6 @@ private:
 	FVector SwayMovementAmountPrev;
 
 	FVectorSpringState SpringStateMovement;
+	FVectorSpringState SpringStateJump;
 	FQuaternionSpringState SpringStateRotation;
 };
