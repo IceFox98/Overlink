@@ -17,10 +17,15 @@
 
 UOvrlEquipmentAnimInstance::UOvrlEquipmentAnimInstance()
 {
-	SwayMovementSpeed = 20.f;
-	SwayMovementMultiplier = 1.f;
-	SwayMovementRollMultiplier = 2.f;
-	SwayWalkSpeed = 20.f;
+	MovementSwaySpeed = 20.f;
+	MovementSwayMultiplier = 1.f;
+	MovementSwayRollMultiplier = 2.f;
+	WalkSwaySpeed = 20.f;
+
+	LookingSwayAlpha = 1.f;
+	MovementSwayAlpha = 1.f;
+	WalkSwayAlpha = 1.f;
+	JumpSwayAlpha = 1.f;
 }
 
 void UOvrlEquipmentAnimInstance::NativeInitializeAnimation()
@@ -53,32 +58,32 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 
 	if (IsValid(PlayerCharacter))
 	{
-		UpdateSwayMovement(DeltaTime);
-		UpdateSwayLooking(DeltaTime);
-		UpdateSwayWalk(DeltaTime);
-		UpdateSwayJump(DeltaTime);
+		UpdateLookingSway(DeltaTime);
+		UpdateMovementSway(DeltaTime);
+		UpdateWalkSway(DeltaTime);
+		UpdateJumpSway(DeltaTime);
 	}
 }
 
-void UOvrlEquipmentAnimInstance::UpdateSwayLooking(float DeltaTime)
+void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 {
 	// Get camera delta movement
 	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(LastPlayerCameraRotation, PlayerCharacter->GetCameraComponent()->GetComponentRotation());
 
-	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -SwayLookingRotationLimit.Y, SwayLookingRotationLimit.Y);
-	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -SwayLookingRotationLimit.X, SwayLookingRotationLimit.X);
+	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -LookingSwayRotationLimit.Y, LookingSwayRotationLimit.Y);
+	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -LookingSwayRotationLimit.X, LookingSwayRotationLimit.X);
 	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
 
-	SwayRotationAmount = UKismetMathLibrary::QuaternionSpringInterp(FQuat(SwayRotationAmount), FQuat(TargetSwayRotation), SpringStateRotation, .5f, .8f, DeltaTime, 0.006f).Rotator();
+	LookingSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(LookingSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, .5f, .8f, DeltaTime, 0.006f).Rotator();
 
 	// Apply weapon sway looking to Anim BP
-	SwayLookingAmount = FVector(0.f, SwayRotationAmount.Yaw, SwayRotationAmount.Pitch);
+	LookingSwayTranslation = FVector(0.f, LookingSwayRotation.Yaw, LookingSwayRotation.Pitch);
 
 	// Save the last sway rotation
 	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 }
 
-void UOvrlEquipmentAnimInstance::UpdateSwayMovement(float DeltaTime)
+void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
 {
 	const FVector PlayerVelocity = CharacterMovementComponent->GetLastUpdateVelocity();
 
@@ -87,14 +92,14 @@ void UOvrlEquipmentAnimInstance::UpdateSwayMovement(float DeltaTime)
 	const float ForwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorForwardVector()) / CharacterMovementComponent->MaxWalkSpeed;
 	const float RightwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorRightVector()) / CharacterMovementComponent->MaxWalkSpeed;
 
-	const FVector TargetMovementAmount = FVector(ForwardAmount, RightwardAmount, 0.f) * SwayMovementMultiplier;
+	const FVector TargetMovementAmount = FVector(ForwardAmount, RightwardAmount, 0.f) * MovementSwayMultiplier;
 
-	SwayMovementAmount = FMath::VInterpTo(SwayMovementAmount, TargetMovementAmount, DeltaTime, SwayMovementSpeed);
+	MovementSwayTranslation = FMath::VInterpTo(MovementSwayTranslation, TargetMovementAmount, DeltaTime, MovementSwaySpeed);
 
-	SwayMovementRotationAmount = FRotator(0.f, 0.f, FMath::Clamp(SwayMovementAmount.Y, -1.f, 1.f) * -SwayMovementRollMultiplier);
+	MovementSwayRotation = FRotator(0.f, 0.f, FMath::Clamp(MovementSwayTranslation.Y, -1.f, 1.f) * -MovementSwayRollMultiplier);
 }
 
-void UOvrlEquipmentAnimInstance::UpdateSwayWalk(float DeltaTime)
+void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
 {
 	if (!WalkSwayCurve)
 	{
@@ -111,14 +116,14 @@ void UOvrlEquipmentAnimInstance::UpdateSwayWalk(float DeltaTime)
 	}
 
 	// Simulate a walk animation
-	SwayWalkAmount = FMath::VInterpTo(SwayWalkAmount, TargetSwayWalk, DeltaTime, SwayWalkSpeed);
+	WalkSwayTranslation = FMath::VInterpTo(WalkSwayTranslation, TargetSwayWalk, DeltaTime, WalkSwaySpeed);
 
 	// Calculate the rotation to apply when player walk
-	const FVector WalkRotationVector = SwayWalkAmount * SwayWalkRotationMultiplier;
-	SwayWalkRotationAmount = FRotator(WalkRotationVector.Y, WalkRotationVector.Z, WalkRotationVector.X);
+	const FVector WalkRotationVector = WalkSwayTranslation * WalkSwayRotationMultiplier;
+	WalkSwayRotation = FRotator(WalkRotationVector.Y, WalkRotationVector.Z, WalkRotationVector.X);
 }
 
-void UOvrlEquipmentAnimInstance::UpdateSwayJump(float DeltaTime)
+void UOvrlEquipmentAnimInstance::UpdateJumpSway(float DeltaTime)
 {
 	if (!JumpSwayCurve)
 	{
@@ -138,11 +143,11 @@ void UOvrlEquipmentAnimInstance::UpdateSwayJump(float DeltaTime)
 	// Apply some side sway movement, only when player jumps sideway
 	const FVector TargetJumpAmount = JumpSwayCurve->GetVectorValue(-UpwardAmount) * FVector(1.f, -RightwardAmount * SideSwayMultiplier, 1.f);
 
-	SwayJumpAmount = UKismetMathLibrary::VectorSpringInterp(SwayJumpAmount, TargetJumpAmount, SpringStateJump, .5f, .45f, DeltaTime, 0.005f, 5.f);
+	JumpSwayTranslation = UKismetMathLibrary::VectorSpringInterp(JumpSwayTranslation, TargetJumpAmount, SpringStateJump, .5f, .45f, DeltaTime, 0.005f, 5.f);
 
 	// Calculate the rotation to apply when player jumps sideway
-	const FVector JumpRotationVector = FVector(SwayJumpAmount.Y, 0.f, SwayJumpAmount.Y) * SwayJumpRotationMultiplier;
-	SwayJumpRotationAmount = FRotator(0.f, JumpRotationVector.Z, JumpRotationVector.X);
+	const FVector JumpRotationVector = FVector(JumpSwayTranslation.Y, 0.f, JumpSwayTranslation.Y) * -JumpSwayRotationMultiplier;
+	JumpSwayRotation = FRotator(0.f, JumpRotationVector.Z, JumpRotationVector.X);
 }
 
 void UOvrlEquipmentAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)

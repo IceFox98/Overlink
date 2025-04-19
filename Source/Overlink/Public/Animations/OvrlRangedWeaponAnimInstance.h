@@ -19,6 +19,10 @@ class OVERLINK_API UOvrlRangedWeaponAnimInstance : public UOvrlEquipmentAnimInst
 
 public:
 
+	UOvrlRangedWeaponAnimInstance();
+
+public:
+
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 
 protected:
@@ -31,20 +35,48 @@ private:
 
 protected:
 
+	// ------- CONFIG VARIABLES -------
+
+	// How much of the looking sway animation should be applied during ADS
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
+		float LookingSwayAlphaADS;
+
+	// How much of the movement sway animation should be applied during ADS
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
+		float MovementSwayAlphaADS;
+	
+	// How much of the walk sway animation should be applied during ADS
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
+		float WalkSwayAlphaADS;
+	
+	// How much of the jump sway animation should be applied during ADS
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
+		float JumpSwayAlphaADS;
+
+	// ------- RUNTIME VALUES -------
+
+	// Represents the alpha of the ADS animation
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 		float AimAlpha;
 
+	// How quickly the weapon enters to ADS
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 		float AimSpeed;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FTransform WeaponRecoil;
+		FVector WeaponRecoilTranslation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+		FRotator WeaponRecoilRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 		float WeaponCameraRecoil;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FTransform WeaponAimTransform;
+		FVector WeaponAimTranslation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
+		FRotator WeaponAimRotation;
 
 protected:
 
