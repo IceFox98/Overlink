@@ -767,7 +767,7 @@ bool UOvrlCharacterMovementComponent::HandleWallrunMovement(bool bIsLeftSide)
 
 		// Returns the direction of where the player should be launched. It follows the wall surface.
 		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection());
-		const FVector LaunchVelocity = WallForwardDirection * DefaultMaxWalkSpeed * -WallDirection;
+		const FVector LaunchVelocity = WallForwardDirection * MaxWalkSpeed * -WallDirection;
 
 		Character->LaunchCharacter(LaunchVelocity, true, true);
 
