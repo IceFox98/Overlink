@@ -34,6 +34,8 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	WallrunCameraTiltAngle = 15.f;
 	WallrunResetTime = .35f;
 	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
+	VerticalWallrunMaxVelocity = 600.f;
+	VerticalWallrunVelocityFalloff = 100.f;
 
 	SlideDistanceCheck = 200.f;
 	SlideForce = 800.f;
@@ -88,6 +90,8 @@ void UOvrlCharacterMovementComponent::BeginPlay()
 	DefaultMaxWalkSpeedCrouched = MaxWalkSpeedCrouched;
 	DefaultGroundFriction = GroundFriction;
 	DefaultBrakingDecelerationWalking = BrakingDecelerationWalking;
+
+	VerticalWallrunVelocity = VerticalWallrunMaxVelocity;
 }
 
 void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -349,34 +353,9 @@ void UOvrlCharacterMovementComponent::UnCrouch(bool bClientSimulation)
 
 bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTime)
 {
-	const FTraversalResult TraversalResult = CheckForTraversal();
-
-	if (TraversalResult.bFound) // Let's overcome the traversal
+	if (HandleTraversals())
 	{
-		// Allow the animation's root motion to ignore the gravity.
-		SetMovementMode(EMovementMode::MOVE_Flying);
-
-		// @TODO: Valutare se è meglio lasciare questo oppure no, o farlo in base all'animazione.
-		// Perchè per un ostacolo corto, rende la scavalcata più smooth, ma per uno più lungo sembra che faccia uno "scattino" in su quando finisce l'animazione.
-		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		UpdateHandsIKTransform(TraversalResult);
-
-		switch (TraversalResult.Type)
-		{
-		case ETraversalType::Vault:
-			HandleVault(TraversalResult);
-			break;
-
-		case ETraversalType::Mantle:
-			HandleMantle(TraversalResult);
-			break;
-
-		default:
-			break;
-		}
-
-		return false; // Avoid jumping
+		return false; // Avoid jump
 	}
 
 	OnPlayerJumped();
@@ -462,6 +441,42 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 	}
 }
 
+
+bool UOvrlCharacterMovementComponent::HandleTraversals()
+{
+	const FTraversalResult TraversalResult = CheckForTraversal();
+
+	if (TraversalResult.bFound) // Let's overcome the traversal
+	{
+		// Allow the animation's root motion to ignore the gravity.
+		SetMovementMode(EMovementMode::MOVE_Flying);
+
+		// @TODO: Valutare se ï¿½ meglio lasciare questo oppure no, o farlo in base all'animazione.
+		// Perchï¿½ per un ostacolo corto, rende la scavalcata piï¿½ smooth, ma per uno piï¿½ lungo sembra che faccia uno "scattino" in su quando finisce l'animazione.
+		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		UpdateHandsIKTransform(TraversalResult);
+
+		switch (TraversalResult.Type)
+		{
+		case ETraversalType::Vault:
+			HandleVault(TraversalResult);
+			break;
+
+		case ETraversalType::Mantle:
+			HandleMantle(TraversalResult);
+			break;
+
+		default:
+			break;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 {
 	FTraversalResult TraversalResult;
@@ -503,7 +518,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const FVector InwardPosition = ForwardImpactPoint - ForwardTraversalHit.ImpactNormal * InwardOffset;
 
 	TraceStart = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z + (CapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
-	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z); // @TODO: Forse è meglio che il trace finisca a 10/15cm più sopra della mesh location
+	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z); // @TODO: Forse ï¿½ meglio che il trace finisca a 10/15cm piï¿½ sopra della mesh location
 
 	// Perform downward trace
 	FHitResult DownwardTraversalHit;
@@ -726,13 +741,14 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 
 		if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
 		{
-			if (HandleWallrunMovement(true))
+			bool bHandled = HandleVerticalWallrun(DeltaTime);
+			if (!bHandled)
 			{
-				//MovementType = EParkourMovementType::WallrunLeft;
-			}
-			else if (HandleWallrunMovement(false)) // Try the right side
-			{
-				//MovementType = EParkourMovementType::WallrunRight;
+				bHandled = HandleLateralWallrun(true);
+				if (!bHandled)
+				{
+					HandleLateralWallrun(false);
+				}
 			}
 		}
 	}
@@ -741,7 +757,49 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 	//HandleWallrunCameraTilt(DeltaTime);
 }
 
-bool UOvrlCharacterMovementComponent::HandleWallrunMovement(bool bIsLeftSide)
+bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
+{
+	if (IsWallrunning())
+	{
+		if (HandleTraversals())
+		{
+			ResetWallrun();
+			return true;
+		}
+	}
+
+	const FVector ForwardVector = Character->GetActorForwardVector() * WallrunCheckDistance;
+
+	const FVector StartTrace = Character->GetActorLocation();
+	const FVector EndTrace = Character->GetActorLocation() + ForwardVector;
+	EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
+
+#if ENABLE_DRAW_DEBUG
+	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
+		DebugType = EDrawDebugTrace::ForDuration;
+#endif
+
+	FHitResult OutHit;
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
+
+	if (OutHit.bBlockingHit)
+	{
+		const FVector LaunchVelocity = -GetGravityDirection() * VerticalWallrunVelocity;
+		Character->LaunchCharacter(LaunchVelocity, true, true);
+		SetLocomotionAction(OvrlLocomotionActionTags::WallrunningVertical);
+
+		VerticalWallrunVelocity -= VerticalWallrunVelocityFalloff * DeltaTime;
+
+		//FMath::Tanh(2.f);
+
+		//UKismetMathLibrary::Finterpo
+		return true;
+	}
+
+	return false;
+}
+
+bool UOvrlCharacterMovementComponent::HandleLateralWallrun(bool bIsLeftSide)
 {
 	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 
@@ -824,9 +882,10 @@ void UOvrlCharacterMovementComponent::HandleWallrunJump()
 
 void UOvrlCharacterMovementComponent::ResetWallrun()
 {
-	if (LocomotionAction == FGameplayTag::EmptyTag)
+	//if (LocomotionAction == FGameplayTag::EmptyTag)
 	{
 		bCanCheckWallrun = true;
+		VerticalWallrunVelocity = VerticalWallrunMaxVelocity;
 	}
 }
 
@@ -911,7 +970,7 @@ FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
 
 bool UOvrlCharacterMovementComponent::IsMovingForward(float AngleFromForwardVector/* = 90.f*/)
 {
-	// Normalize between 0-1. 90° -> 0 (perpendicular). 0° -> 1 (perfectly aligned)
+	// Normalize between 0-1. 90ï¿½ -> 0 (perpendicular). 0ï¿½ -> 1 (perfectly aligned)
 	const float NormalizedAngle = 1.f - (FMath::Clamp(AngleFromForwardVector, 0.f, 90.f) / 90.f);
 	// Since the input vector is not relative to the player, we can easily check if the we're going forward using dot product
 	return FVector::DotProduct(GetLastInputVector(), Character->GetActorForwardVector()) > NormalizedAngle;

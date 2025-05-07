@@ -17,6 +17,14 @@ enum class ETraversalType : uint8
 	Mantle
 };
 
+enum class EWallrunType : uint8
+{
+	Vertical,
+	Left,
+	Right
+};
+
+
 struct FTraversalResult
 {
 	// Set to true if any traversal has been detected.
@@ -84,7 +92,12 @@ public:
 	void StopRunning();
 	void HandleCrouching(bool bInWantsToCrouch);
 
-	FORCEINLINE bool IsWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+	FORCEINLINE bool IsWallrunning() const {
+		return
+			LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ||
+			LocomotionAction == OvrlLocomotionActionTags::WallrunningRight ||
+			LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical;
+	};
 
 	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
 
@@ -127,6 +140,7 @@ private:
 	void UpdateHandsIKTransform(const FTraversalResult& TraversalResult);
 
 	void FindLandingPoint(FTraversalResult& OutTraversalResult);
+	bool HandleTraversals();
 
 	// ------ VAULT ------
 	void HandleVault(const FTraversalResult& TraversalResult);
@@ -138,7 +152,8 @@ private:
 
 	void HandleWallrun(float DeltaTime);
 
-	bool HandleWallrunMovement(bool bIsLeftSide);
+	bool HandleVerticalWallrun(float DeltaTime);
+	bool HandleLateralWallrun(bool bIsLeftSide);
 	void HandleWallrunCameraTilt(float DeltaTime);
 	void HandleWallrunJump();
 
@@ -224,6 +239,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 		FVector WallrunJumpVelocity;
 
+	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+		float VerticalWallrunMaxVelocity;
+
+	// How much per second should the vertical velocity of the wallrun decrease.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+		float VerticalWallrunVelocityFalloff;
+
 	// ------ SLIDING VARS ------
 
 	// Vector that will be added to the player position, used to get the slope of the floor.
@@ -276,6 +299,7 @@ private:
 	// ------ WALLRUN VARS ------
 
 	bool bCanCheckWallrun;
+	float VerticalWallrunVelocity;
 	FVector WallrunNormal;
 
 	// ------ SLIDING VARS ------
