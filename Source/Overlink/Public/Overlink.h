@@ -20,5 +20,7 @@ private:
 
 #if ALLOW_CONSOLE
 	void OnRegisterConsoleAutoCompleteEntries(TArray<FAutoCompleteCommand>& AutoCompleteCommands);
+
+	void AddConsoleCommand(TArray<FAutoCompleteCommand>& AutoCompleteCommands, const FString& Command, const FString& Description);
 #endif
 };

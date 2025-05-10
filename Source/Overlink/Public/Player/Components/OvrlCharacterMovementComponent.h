@@ -153,7 +153,7 @@ private:
 	void HandleWallrun(float DeltaTime);
 
 	bool HandleVerticalWallrun(float DeltaTime);
-	bool HandleLateralWallrun(bool bIsLeftSide);
+	bool HandleLateralWallrun(float DeltaTime, bool bIsLeftSide);
 	void HandleWallrunCameraTilt(float DeltaTime);
 	void HandleWallrunJump();
 
@@ -243,9 +243,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 		float VerticalWallrunMaxVelocity;
 
-	// How much per second should the vertical velocity of the wallrun decrease.
+	// How fast the vertical velocity of the wallrun decrease.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float VerticalWallrunVelocityFalloff;
+		float VerticalWallrunVelocityFalloffSpeed;
 
 	// ------ SLIDING VARS ------
 
@@ -299,8 +299,10 @@ private:
 	// ------ WALLRUN VARS ------
 
 	bool bCanCheckWallrun;
-	float VerticalWallrunVelocity;
 	FVector WallrunNormal;
+
+	float VerticalWallrunAlpha;
+	float LateralWallrunAlpha;
 
 	// ------ SLIDING VARS ------
 

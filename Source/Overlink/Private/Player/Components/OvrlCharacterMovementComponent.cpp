@@ -35,7 +35,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	WallrunResetTime = .35f;
 	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
 	VerticalWallrunMaxVelocity = 600.f;
-	VerticalWallrunVelocityFalloff = 100.f;
+	VerticalWallrunVelocityFalloffSpeed = 1.5f;
 
 	SlideDistanceCheck = 200.f;
 	SlideForce = 800.f;
@@ -91,7 +91,7 @@ void UOvrlCharacterMovementComponent::BeginPlay()
 	DefaultGroundFriction = GroundFriction;
 	DefaultBrakingDecelerationWalking = BrakingDecelerationWalking;
 
-	VerticalWallrunVelocity = VerticalWallrunMaxVelocity;
+	ResetWallrun();
 }
 
 void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -734,20 +734,20 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 {
-	if (bCanCheckWallrun)
+	//if (bCanCheckWallrun)
 	{
 		const bool bIsPlayerNotGrounded = IsFalling();
-		const bool bIsPlayerMovingForward = IsMovingForward();
+		//const bool bIsPlayerMovingForward = IsMovingForward();
 
-		if (bIsPlayerNotGrounded && bIsPlayerMovingForward)
+		if (bIsPlayerNotGrounded/* && bIsPlayerMovingForward*/)
 		{
 			bool bHandled = HandleVerticalWallrun(DeltaTime);
 			if (!bHandled)
 			{
-				bHandled = HandleLateralWallrun(true);
+				bHandled = HandleLateralWallrun(DeltaTime, true);
 				if (!bHandled)
 				{
-					HandleLateralWallrun(false);
+					HandleLateralWallrun(DeltaTime, false);
 				}
 			}
 		}
@@ -775,7 +775,7 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 	EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
 #if ENABLE_DRAW_DEBUG
-	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
+	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Wallrun"))
 		DebugType = EDrawDebugTrace::ForDuration;
 #endif
 
@@ -784,22 +784,20 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 	if (OutHit.bBlockingHit)
 	{
-		const FVector LaunchVelocity = -GetGravityDirection() * VerticalWallrunVelocity;
+		float VelocityZ = FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, VerticalWallrunAlpha, 3.f);
+		VerticalWallrunAlpha = FMath::Clamp(VerticalWallrunAlpha - VerticalWallrunVelocityFalloffSpeed * DeltaTime, 0.f, 1.f);
+
+		const FVector LaunchVelocity = -GetGravityDirection() * VelocityZ;
 		Character->LaunchCharacter(LaunchVelocity, true, true);
 		SetLocomotionAction(OvrlLocomotionActionTags::WallrunningVertical);
 
-		VerticalWallrunVelocity -= VerticalWallrunVelocityFalloff * DeltaTime;
-
-		//FMath::Tanh(2.f);
-
-		//UKismetMathLibrary::Finterpo
 		return true;
 	}
 
 	return false;
 }
 
-bool UOvrlCharacterMovementComponent::HandleLateralWallrun(bool bIsLeftSide)
+bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool bIsLeftSide)
 {
 	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 
@@ -810,31 +808,37 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(bool bIsLeftSide)
 	EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
 #if ENABLE_DRAW_DEBUG
-	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
+	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Wallrun"))
 		DebugType = EDrawDebugTrace::ForDuration;
 #endif
 
 	FHitResult OutHit;
 	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
 
-	bool bHandled = false;
-
 	if (OutHit.bBlockingHit)
 	{
 		WallrunNormal = OutHit.Normal;
+
+		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
+
+		// How fast the velocity should decrease at the end
+		const float CurveExponent = .5f;
+		const FVector UpVelocity = FVector::UpVector * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
+		LateralWallrunAlpha = FMath::Clamp(LateralWallrunAlpha - DeltaTime, 0.f, 1.f);
 
 		// Returns the direction of where the player should be launched. It follows the wall surface.
 		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection());
 		const FVector LaunchVelocity = WallForwardDirection * MaxWalkSpeed * -WallDirection;
 
-		Character->LaunchCharacter(LaunchVelocity, true, true);
+		Character->LaunchCharacter(LaunchVelocity + UpVelocity, true, true);
 
 		const FGameplayTag TargetGameplayTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
 		SetLocomotionAction(TargetGameplayTag);
-		bHandled = true;
+
+		return true;
 	}
 
-	return bHandled;
+	return false;
 }
 
 void UOvrlCharacterMovementComponent::HandleWallrunCameraTilt(float DeltaTime)
@@ -884,8 +888,9 @@ void UOvrlCharacterMovementComponent::ResetWallrun()
 {
 	//if (LocomotionAction == FGameplayTag::EmptyTag)
 	{
-		bCanCheckWallrun = true;
-		VerticalWallrunVelocity = VerticalWallrunMaxVelocity;
+		//bCanCheckWallrun = true;
+		VerticalWallrunAlpha = 1.f;
+		LateralWallrunAlpha = 1.f;
 	}
 }
 
@@ -970,7 +975,7 @@ FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
 
 bool UOvrlCharacterMovementComponent::IsMovingForward(float AngleFromForwardVector/* = 90.f*/)
 {
-	// Normalize between 0-1. 90� -> 0 (perpendicular). 0� -> 1 (perfectly aligned)
+	// Normalize between 0-1. 90° -> 0 (perpendicular). 0° -> 1 (perfectly aligned)
 	const float NormalizedAngle = 1.f - (FMath::Clamp(AngleFromForwardVector, 0.f, 90.f) / 90.f);
 	// Since the input vector is not relative to the player, we can easily check if the we're going forward using dot product
 	return FVector::DotProduct(GetLastInputVector(), Character->GetActorForwardVector()) > NormalizedAngle;
