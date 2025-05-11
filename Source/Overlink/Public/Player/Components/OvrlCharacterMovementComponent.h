@@ -92,12 +92,9 @@ public:
 	void StopRunning();
 	void HandleCrouching(bool bInWantsToCrouch);
 
-	FORCEINLINE bool IsWallrunning() const {
-		return
-			LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ||
-			LocomotionAction == OvrlLocomotionActionTags::WallrunningRight ||
-			LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical;
-	};
+	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
+	FORCEINLINE bool IsLateralWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
 
 	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
 
@@ -155,7 +152,8 @@ private:
 	bool HandleVerticalWallrun(float DeltaTime);
 	bool HandleLateralWallrun(float DeltaTime, bool bIsLeftSide);
 	void HandleWallrunCameraTilt(float DeltaTime);
-	void HandleWallrunJump();
+	void HandleLateralWallrunJump();
+	void HandleVerticalWallrunJump();
 
 	void ResetWallrun();
 	void EndWallrun();

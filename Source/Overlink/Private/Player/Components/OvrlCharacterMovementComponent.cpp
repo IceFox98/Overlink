@@ -29,6 +29,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	MaxRunSpeed = 800.f;
 
 	// Parkour variables
+	bCanCheckWallrun = true;
 	WallrunCheckDistance = 75.f;
 	WallrunCheckAngle = 35.f;
 	WallrunCameraTiltAngle = 15.f;
@@ -385,7 +386,14 @@ void UOvrlCharacterMovementComponent::OnPlayerJumped()
 	}
 	else
 	{
-		HandleWallrunJump();
+		if (IsLateralWallrunning())
+		{
+			HandleLateralWallrunJump();
+		}
+		else if (IsVerticalWallrunning())
+		{
+			HandleVerticalWallrunJump();
+		}
 	}
 }
 
@@ -734,15 +742,15 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 {
-	//if (bCanCheckWallrun)
+	if (bCanCheckWallrun)
 	{
 		const bool bIsPlayerNotGrounded = IsFalling();
-		//const bool bIsPlayerMovingForward = IsMovingForward();
+		const bool bIsPlayerMoving = GetLastInputVector().Length() > 0.f;
 
 		if (bIsPlayerNotGrounded/* && bIsPlayerMovingForward*/)
 		{
 			bool bHandled = HandleVerticalWallrun(DeltaTime);
-			if (!bHandled)
+			if (!bHandled && bIsPlayerMoving)
 			{
 				bHandled = HandleLateralWallrun(DeltaTime, true);
 				if (!bHandled)
@@ -784,12 +792,24 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 	if (OutHit.bBlockingHit)
 	{
+		const bool bShouldStartWallrun = FVector::DotProduct(Character->GetActorForwardVector(), -OutHit.ImpactNormal) > .85f;
+
+		if (bShouldStartWallrun)
+		{
+			WallrunNormal = OutHit.ImpactNormal;
+			SetLocomotionAction(OvrlLocomotionActionTags::WallrunningVertical);
+		}
+	}
+
+	if (IsVerticalWallrunning())
+	{
 		float VelocityZ = FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, VerticalWallrunAlpha, 3.f);
 		VerticalWallrunAlpha = FMath::Clamp(VerticalWallrunAlpha - VerticalWallrunVelocityFalloffSpeed * DeltaTime, 0.f, 1.f);
 
+		const FVector StickVelocity = -WallrunNormal * 100.f;
+
 		const FVector LaunchVelocity = -GetGravityDirection() * VelocityZ;
-		Character->LaunchCharacter(LaunchVelocity, true, true);
-		SetLocomotionAction(OvrlLocomotionActionTags::WallrunningVertical);
+		Character->LaunchCharacter(LaunchVelocity + StickVelocity, true, true);
 
 		return true;
 	}
@@ -800,6 +820,7 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool bIsLeftSide)
 {
 	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
+	const FGameplayTag WallrunTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
 
 	const FVector BackwardVector = (Character->GetActorRightVector() * WallrunCheckDistance * WallDirection) + Character->GetActorForwardVector() * -WallrunCheckAngle;
 
@@ -815,9 +836,29 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	FHitResult OutHit;
 	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
 
+	// We get the normal only when we detect a wall, otherwise we use the cached one.
 	if (OutHit.bBlockingHit)
 	{
 		WallrunNormal = OutHit.Normal;
+
+		const FGameplayTag TargetGameplayTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
+		SetLocomotionAction(TargetGameplayTag);
+	}
+
+	// Execute only the wallrun we're actually performing
+	if (LocomotionAction == WallrunTag)
+	{
+		//OVRL_LOG("%s", *Velocity.ToString());
+		//DrawDebugDirectionalArrow(GetWorld(), OutHit.ImpactPoint, OutHit.ImpactPoint + OutHit.ImpactNormal * 100.f, 2.f, FColor::Blue, false, 3.f);
+
+		// Check if the player is looking too far away from the wall
+		bool bShouldEndWallrun = FMath::IsNearlyEqual(FVector::DotProduct(GetLastInputVector().GetSafeNormal(), WallrunNormal), 1.f, 0.1f);
+
+		if (bShouldEndWallrun)
+		{
+			EndWallrun();
+			return false;
+		}
 
 		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
 
@@ -826,14 +867,14 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 		const FVector UpVelocity = FVector::UpVector * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
 		LateralWallrunAlpha = FMath::Clamp(LateralWallrunAlpha - DeltaTime, 0.f, 1.f);
 
+		// Forcethe player to stick to the wall
+		const FVector LateralVelocity = -WallrunNormal * 200.f;
+
 		// Returns the direction of where the player should be launched. It follows the wall surface.
 		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection());
 		const FVector LaunchVelocity = WallForwardDirection * MaxWalkSpeed * -WallDirection;
 
-		Character->LaunchCharacter(LaunchVelocity + UpVelocity, true, true);
-
-		const FGameplayTag TargetGameplayTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
-		SetLocomotionAction(TargetGameplayTag);
+		Character->LaunchCharacter(LaunchVelocity + UpVelocity + LateralVelocity, true, true);
 
 		return true;
 	}
@@ -860,35 +901,73 @@ void UOvrlCharacterMovementComponent::HandleWallrunCameraTilt(float DeltaTime)
 	Character->GetController()->SetControlRotation(FinalRotation);
 }
 
-void UOvrlCharacterMovementComponent::HandleWallrunJump()
+void UOvrlCharacterMovementComponent::HandleLateralWallrunJump()
 {
-	if (IsWallrunning())
+	const float WallDirection = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? -1.f : 1.f;
+	const float AwayVelocity = WallrunJumpVelocity.X;
+	const float ForwardVelocity = WallrunJumpVelocity.Y;
+	const float UpwardVelocity = WallrunJumpVelocity.Z;
+
+	// Get the wall forward vector as forward vector for the direction
+	const FVector ForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection()) * -WallDirection;
+
+	// Combine all directions together
+	const FVector LaunchVelocity = (WallrunNormal * AwayVelocity) + (ForwardDirection * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
+
+	//UKismetSystemLibrary::DrawDebugArrow(this, Character->GetActorLocation(), Character->GetActorLocation() + LaunchVelocity, 4.f, FLinearColor::Green, 10.f, 5.f);
+
+	EndWallrun();
+	Character->LaunchCharacter(LaunchVelocity, false, true);
+}
+
+void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
+{
+	const float AwayVelocity = WallrunJumpVelocity.X;
+	const float ForwardVelocity = WallrunJumpVelocity.Y;
+	const float UpwardVelocity = WallrunJumpVelocity.Z;
+
+	FVector LaunchVelocity = FVector::ZeroVector;
+
+	// How much the player input is aligned with the wall normal
+	const float InputAlignedDotValue = FVector::DotProduct(GetLastInputVector().GetSafeNormal(), WallrunNormal);
+
+	// How muche the player pointing direction is aligned with the wall normal
+	const float PlayerAlignedDotValue = FVector::DotProduct(Character->GetActorForwardVector(), WallrunNormal);
+
+	const bool bHasNoInput = FMath::IsNearlyZero(GetLastInputVector().Length());
+
+	if (bHasNoInput) 
 	{
-		const float WallDirection = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? -1.f : 1.f;
-
-		EndWallrun();
-
-		const float AwayVelocity = WallrunJumpVelocity.X;
-		const float ForwardVelocity = WallrunJumpVelocity.Y;
-		const float UpwardVelocity = WallrunJumpVelocity.Z;
-
-		// Get the wall forward vector as forward vector for the direction
-		const FVector ForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection()) * -WallDirection;
-
-		// Combine all directions together
-		const FVector LaunchVelocity = (WallrunNormal * AwayVelocity) + (ForwardDirection * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
-
-		//UKismetSystemLibrary::DrawDebugArrow(this, Character->GetActorLocation(), Character->GetActorLocation() + LaunchVelocity, 4.f, FLinearColor::Green, 10.f, 5.f);
-
-		Character->LaunchCharacter(LaunchVelocity, false, true);
+		if (PlayerAlignedDotValue < 0.f) // Facing the wall, no input --> back jump
+		{
+			LaunchVelocity = (WallrunNormal * AwayVelocity) + (-Character->GetActorForwardVector() * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
+		}
+		else // Facing out of the wall, no input --> jump out of the wall
+		{
+			LaunchVelocity = (WallrunNormal * AwayVelocity) + (-GetGravityDirection() * UpwardVelocity);
+		}
 	}
+	else
+	{
+		if (PlayerAlignedDotValue < 0.f) // Facing the wall, has input --> up jump
+		{
+			LaunchVelocity = /*(Character->GetActorForwardVector() * ForwardVelocity) + */(-GetGravityDirection() * UpwardVelocity);
+		}
+		else // Facing out of the wall, has input --> jump toward the input direction
+		{
+			LaunchVelocity = (Character->GetActorForwardVector() * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
+		}
+	}
+
+	EndWallrun();
+	Character->LaunchCharacter(LaunchVelocity, true, true);
 }
 
 void UOvrlCharacterMovementComponent::ResetWallrun()
 {
 	//if (LocomotionAction == FGameplayTag::EmptyTag)
 	{
-		//bCanCheckWallrun = true;
+		bCanCheckWallrun = true;
 		VerticalWallrunAlpha = 1.f;
 		LateralWallrunAlpha = 1.f;
 	}

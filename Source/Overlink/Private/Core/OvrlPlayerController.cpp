@@ -43,7 +43,7 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	{
 		double TargetRoll = 0;
 
-		if (CharacterMovementComponent->IsWallrunning())
+		if (CharacterMovementComponent->IsLateralWallrunning())
 		{
 			TargetRoll = CharacterMovementComponent->LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? CharacterMovementComponent->WallrunCameraTiltAngle : -CharacterMovementComponent->WallrunCameraTiltAngle;
 		}
