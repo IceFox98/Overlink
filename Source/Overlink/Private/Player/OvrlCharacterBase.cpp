@@ -52,6 +52,12 @@ void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 	Destroy();
 }
 
+void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
+{
+	check(ObjectToEquip);
+	ObjectToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+}
+
 UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const
 {
 	return GetOvrlAbilitySystemComponent();

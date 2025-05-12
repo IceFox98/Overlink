@@ -31,5 +31,5 @@ public:
 		TSubclassOf<UOvrlLinkedAnimInstance> OverlayAnimInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		FTransform RelativeTransform;
+		TObjectPtr<UStaticMesh> DisplayMesh;
 };

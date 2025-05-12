@@ -34,12 +34,13 @@ public:
 	virtual UOvrlAbilitySystemComponent* GetOvrlAbilitySystemComponent() const { return AbilitySystemComponent; };
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual USceneComponent* GetEquipAttachmentComponent() const { return Cast<USceneComponent>(GetMesh()); }
+	//virtual USceneComponent* GetEquipAttachmentComponent() const { return Cast<USceneComponent>(GetMesh()); }
 
 	UFUNCTION()
 		virtual void HandleDeath(AActor* InInstigator);
 
 	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
+	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay);
 
 protected:
 

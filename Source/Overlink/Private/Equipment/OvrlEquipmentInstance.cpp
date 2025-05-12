@@ -34,7 +34,11 @@ void AOvrlEquipmentInstance::OnEquipped()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
-		AttachToComponent(OwningPawn->GetEquipAttachmentComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
+		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
+
+		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
+
+		//AttachToComponent(OwningPawn->GetEquipAttachmentComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
 		// TODO: Spanw and attach skeletal mesh to FullBody mesh
 
 		bIsEquipped = true;

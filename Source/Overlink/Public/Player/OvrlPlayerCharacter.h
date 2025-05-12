@@ -15,7 +15,6 @@ class USceneComponent;
 class UOvrlInventoryComponent;
 class UMotionWarpingComponent;
 class UOvrlInputConfig;
-class USpringArmComponent;
 class UInputMappingContext;
 struct FInputActionValue;
 
@@ -49,9 +48,10 @@ public:
 
 public:
 
-	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
+	//virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
 
 	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
+	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay) override;
 
 	void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
 
@@ -62,6 +62,9 @@ public:
 	void Input_Crouch(const FInputActionValue& InputActionValue);
 	void Input_StartRun(const FInputActionValue& InputActionValue);
 	void Input_EndRun(const FInputActionValue& InputActionValue);
+
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
 	// ------ LOCOMOTION ------
 
@@ -87,7 +90,7 @@ protected:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USpringArmComponent> SpringArm;
+		TObjectPtr<USkeletalMeshComponent> FullBodyMesh;
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
