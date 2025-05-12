@@ -33,7 +33,7 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(GetMesh(), TEXT("head"));
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
-	CameraComp->FirstPersonScale = .4f; // Used to avoid arms compenetrating walls when too close
+	CameraComp->FirstPersonScale = .2f; // Used to avoid arms compenetrating walls when too close
 	CameraComp->bEnableFirstPersonScale = true;
 
 	GetMesh()->CastShadow = false;

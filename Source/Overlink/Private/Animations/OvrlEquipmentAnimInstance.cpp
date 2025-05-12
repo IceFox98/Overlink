@@ -62,6 +62,9 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		UpdateMovementSway(DeltaTime);
 		UpdateWalkSway(DeltaTime);
 		UpdateJumpSway(DeltaTime);
+
+		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
 	}
 }
 

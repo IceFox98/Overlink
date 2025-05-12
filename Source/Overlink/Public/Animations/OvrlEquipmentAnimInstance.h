@@ -129,6 +129,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 		FRotator JumpSwayRotation;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Camera", Transient)
+		FRotator WallrunCameraTiltRotation;
+
 	UPROPERTY()
 		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
