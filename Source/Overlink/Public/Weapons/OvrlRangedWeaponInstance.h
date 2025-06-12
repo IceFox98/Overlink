@@ -147,6 +147,10 @@ private:
 		UOvrlCharacterMovementComponent* OwnerMovementComp;
 
 	FTransform CurrentKickbackRecoil;
+	FRotator RecoilStartRotation;
+	FRotator AccumulatedRecoil;
+	bool bIsRecoiling = false;
+
 
 	float SpreadMultiplier;
 	float CurrentHeat;

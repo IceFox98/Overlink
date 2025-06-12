@@ -21,6 +21,8 @@ public:
 	virtual void UpdateRotation(float DeltaTime) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 
+	FORCEINLINE FRotator GetLastRotationInput() const { return LastRotationInput; };
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -34,4 +36,6 @@ private:
 		TObjectPtr<AOvrlCharacterBase> OwningCharacter;
 
 	FVector LastFrameGravity = FVector::ZeroVector;
+
+	FRotator LastRotationInput;
 };

@@ -36,6 +36,8 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	// Now we can work with the rotation as if no custom gravity was affecting it.
 	ViewRotation = UOvrlUtils::GetGravityRelativeRotation(ViewRotation, GravityDirection);
 
+	LastRotationInput = RotationInput;
+
 	// Calculate Delta to be applied on ViewRotation
 	FRotator DeltaRot(RotationInput);
 

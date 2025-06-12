@@ -4,6 +4,7 @@
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "Core/OvrlPlayerController.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Curves/CurveFloat.h"
@@ -64,8 +65,31 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 {
 	Super::Fire(HitData);
 
-	CurrentKickbackRecoil = KickbackRecoil;
+
+	//if (!bIsRecoiling)
+	//{
+	//	bIsRecoiling = true;
+	//	RecoilStartRotation = PlayerController->GetControlRotation();
+	//	AccumulatedRecoil = FRotator::ZeroRotator;
+	//}
+
+	//AccumulatedRecoil += FRotator(CameraRecoil, 0.f, 0.f);
+
+	//// Applica il rinculo immediato
+	//FRotator NewRot = PlayerController->GetControlRotation() + FRotator(CameraRecoil, 0.f, 0.f);
+	//PlayerController->SetControlRotation(NewRot);
+
+	AController* PlayerController = GetOwner()->GetInstigatorController();
+
+	if (FMath::IsNearlyZero(CurrentCameraRecoil))
+	{
+		RecoilStartRotation = PlayerController->GetControlRotation();
+	}
+
 	CurrentCameraRecoil = FMath::Clamp(CurrentCameraRecoil + CameraRecoil, 0.f, CameraMaxRecoil);
+	PlayerController->SetControlRotation(PlayerController->GetControlRotation() + FRotator(CurrentCameraRecoil, 0.f, 0.f));
+
+	CurrentKickbackRecoil = KickbackRecoil;
 
 	AddSpread();
 
@@ -87,11 +111,40 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 
 	if (CurrentCameraRecoil > 0.f)
 	{
-		CurrentCameraRecoil -= CameraRecoilRecoverySpeed * DeltaTime;
-		CurrentCameraRecoil = FMath::Max(CurrentCameraRecoil, 0.f);
+		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
+		RecoilStartRotation += PlayerController->GetLastRotationInput();
 
-		//GetOwner()->GetInstigatorController()->AddController
+		//	FRotator Current = GetOwner()->GetInstigatorController()->GetControlRotation();
+
+		//	//// Applica parte del rinculo gradualmente
+		//	//FRotator RecoilThisFrame = RecoilSpeed * DeltaTime;
+
+		//	//ControlRotation.Pitch += CurrentCameraRecoil;
+		//	//ControlRotation.Yaw -= RecoilThisFrame.Yaw;
+
+		//Cast<APawn>(GetOwner())->AddControllerPitchInput(-CurrentCameraRecoil * DeltaTime);
+
+		FRotator CurrentRot = PlayerController->GetControlRotation();
+		FRotator TargetRot = FMath::RInterpTo(CurrentRot, RecoilStartRotation, DeltaTime, CameraRecoilRecoverySpeed);
+		PlayerController->SetControlRotation(TargetRot);
+
+		CurrentCameraRecoil = UKismetMathLibrary::FInterpTo(CurrentCameraRecoil, 0.f, DeltaTime, CameraRecoilRecoverySpeed);
+
+		//	//CurrentCameraRecoil -= CameraRecoilRecoverySpeed * DeltaTime;
+		//	//CurrentCameraRecoil = FMath::Max(CurrentCameraRecoil, 0.f);
 	}
+
+
+	//OVRL_LOG("%s", *PlayerController->GetLastRotationInput().ToString());
+
+	//if (!PlayerController || AccumulatedRecoil.IsNearlyZero()) return;
+
+	//FRotator PlayerDelta = CurrentRot - (RecoilStartRotation + AccumulatedRecoil);
+	//FRotator RemainingRecoil = AccumulatedRecoil - PlayerDelta;
+
+	//// Ritorna solo la parte non compensata dal giocatore
+
+	//FRotator TargetRot = RecoilStartRotation + AccumulatedRecoil;
 }
 
 void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
