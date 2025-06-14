@@ -34,6 +34,11 @@ void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
 	}
 }
 
+void AOvrlWeaponInstance::StopFire()
+{
+	// No implementation
+}
+
 void AOvrlWeaponInstance::Reload()
 {
 	// No implementation

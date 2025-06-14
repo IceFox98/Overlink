@@ -34,12 +34,13 @@ public:
 	virtual void OnEquipped() override;
 
 	virtual void Fire(const FHitResult& HitData) override;
+	virtual void StopFire() override;
 
 	FORCEINLINE float GetTimeBetweenShots() const { return 60.f / FireRate; };
 	FORCEINLINE float GetMaxDamageRange() const { return MaxDamageRange; };
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
-	FORCEINLINE float GetWeaponCameraRecoil() const { return CurrentCameraRecoil; };
+	FORCEINLINE float GetWeaponCameraRecoil() const { return CurrentCameraRecoil.Pitch; };
 	FORCEINLINE float GetAimSpeed() const { return AimSpeed; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
@@ -150,13 +151,18 @@ private:
 	FRotator RecoilStartRotation;
 	FRotator AccumulatedRecoil;
 	bool bIsRecoiling = false;
-
+	bool bCanRecover = false;
 
 	float SpreadMultiplier;
 	float CurrentHeat;
 	float CurrentSpread;
 
-	float CurrentCameraRecoil;
+	FRotator CurrentCameraRecoil;
+	FRotator LastControllerRotation;
+	FRotator DeltaRotation;
+	FRotator DeltaRotation2;
+	float CameraRecoilRecovery;
+	float CameraRecoilRecoveryTarget;
 
 	bool bIsADS;
 };

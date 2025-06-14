@@ -34,6 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 		virtual void Fire(const FHitResult& HitData);
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
+		virtual void StopFire();
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Weapon Instance", meta = (DisplayName = "On Fire"))
 		void K2_OnFire(const FHitResult& HitData);
 
