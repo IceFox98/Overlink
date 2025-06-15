@@ -58,6 +58,7 @@ public:
 protected:
 
 	void AddSpread();
+	void AddRecoil();
 
 	void UpdateRecoil(float DeltaTime);
 	void UpdateSpread(float DeltaTime);
@@ -147,22 +148,18 @@ private:
 	UPROPERTY()
 		UOvrlCharacterMovementComponent* OwnerMovementComp;
 
-	FTransform CurrentKickbackRecoil;
-	FRotator RecoilStartRotation;
-	FRotator AccumulatedRecoil;
-	bool bIsRecoiling = false;
-	bool bCanRecover = false;
 
+	// Spread
 	float SpreadMultiplier;
 	float CurrentHeat;
 	float CurrentSpread;
-
+	
+	// Recoil
+	FTransform CurrentKickbackRecoil;
 	FRotator CurrentCameraRecoil;
 	FRotator LastControllerRotation;
 	FRotator DeltaRotation;
-	FRotator DeltaRotation2;
-	float CameraRecoilRecovery;
-	float CameraRecoilRecoveryTarget;
+	bool bCanRecoverFromRecoil;
 
 	bool bIsADS;
 };

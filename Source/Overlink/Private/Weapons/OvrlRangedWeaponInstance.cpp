@@ -65,37 +65,7 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 {
 	Super::Fire(HitData);
 
-
-	//if (!bIsRecoiling)
-	//{
-	//	bIsRecoiling = true;
-	//	RecoilStartRotation = PlayerController->GetControlRotation();
-	//	AccumulatedRecoil = FRotator::ZeroRotator;
-	//}
-
-	//AccumulatedRecoil += FRotator(CameraRecoil, 0.f, 0.f);
-
-	//// Applica il rinculo immediato
-	//FRotator NewRot = PlayerController->GetControlRotation() + FRotator(CameraRecoil, 0.f, 0.f);
-	//PlayerController->SetControlRotation(NewRot);
-
-	AController* PlayerController = GetOwner()->GetInstigatorController();
-
-	//if (FMath::IsNearlyZero(CurrentCameraRecoil.Pitch))
-	//{
-	//	RecoilStartRotation = PlayerController->GetControlRotation();
-	//}
-
-	LastControllerRotation = PlayerController->GetControlRotation();
-	CurrentCameraRecoil.Pitch = FMath::Clamp(CurrentCameraRecoil.Pitch + CameraRecoil, 0.f, CameraMaxRecoil);
-	//CameraRecoilRecoveryTarget = -CurrentCameraRecoil;
-	//PlayerController->SetControlRotation(RecoilStartRotation + FRotator(CurrentCameraRecoil, 0.f, 0.f));
-	//OVRL_LOG("%f", CurrentCameraRecoil);
-
-	CurrentKickbackRecoil = KickbackRecoil;
-
-	bCanRecover = false;
-
+	AddRecoil();
 	AddSpread();
 
 	SpawnFireVFX(HitData);
@@ -106,7 +76,7 @@ void AOvrlRangedWeaponInstance::StopFire()
 {
 	Super::StopFire();
 
-	bCanRecover = true;
+	bCanRecoverFromRecoil = true;
 }
 
 void AOvrlRangedWeaponInstance::AddSpread()
@@ -117,60 +87,49 @@ void AOvrlRangedWeaponInstance::AddSpread()
 	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat);
 }
 
+void AOvrlRangedWeaponInstance::AddRecoil()
+{
+	CurrentCameraRecoil.Pitch = FMath::Clamp(CurrentCameraRecoil.Pitch + CameraRecoil, 0.f, CameraMaxRecoil);
+	CurrentKickbackRecoil = KickbackRecoil;
+	bCanRecoverFromRecoil = false;
+}
+
 void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 {
 	CurrentKickbackRecoil = UKismetMathLibrary::TInterpTo(CurrentKickbackRecoil, FTransform::Identity, DeltaTime, KickbackRecoverySpeed);
 
-	AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
-
-	if (CurrentCameraRecoil.Pitch > 0.f)
+	if (CurrentCameraRecoil.Pitch > 0.f || CurrentCameraRecoil.Yaw > 0.f)
 	{
-		//RecoilStartRotation += PlayerController->GetLastRotationInput();
+		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
 
-		//CurrentCameraRecoil.Pitch -= FMath::Abs(PlayerController->GetLastRotationInput().Pitch);
-		//CurrentCameraRecoil.Pitch += PlayerController->GetLastRotationInput().Pitch;
-		//CameraRecoilRecovery += PlayerController->GetLastRotationInput().Pitch;
-		//	FRotator Current = GetOwner()->GetInstigatorController()->GetControlRotation();
-
-		//	//ControlRotation.Pitch += CurrentCameraRecoil;
-		//	//ControlRotation.Yaw -= RecoilThisFrame.Yaw;
-
+		// Get the controller Delta Rotation to know how much the recoil has been applied, considering the eventual player mouse compensation
 		DeltaRotation += UKismetMathLibrary::NormalizedDeltaRotator(PlayerController->GetControlRotation(), LastControllerRotation);
-		//DeltaRotation += PlayerController->GetLastRotationInput();
-		DeltaRotation.Pitch = FMath::Clamp(DeltaRotation.Pitch / -PlayerController->InputPitchScale_DEPRECATED, 0.f, 360.f);
 
-		//CameraRecoilRecovery = UKismetMathLibrary::FInterpTo_Constant(CurrentCameraRecoil, CameraRecoilRecoveryTarget, DeltaTime, CameraRecoilRecoverySpeed);
-		FRotator RecoilStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, CurrentCameraRecoil, DeltaTime, CameraRecoilRecoverySpeed);
+		// Consider only the positive delta, because maybe the player has over-compensated the recoil
+		DeltaRotation.Pitch = FMath::Clamp(DeltaRotation.Pitch, 0.f, 360.f);
+		DeltaRotation.Yaw = FMath::Clamp(DeltaRotation.Yaw, 0.f, 360.f);
 
-		Cast<APawn>(GetOwner())->AddControllerPitchInput(-RecoilStep.Pitch);
-
-		DeltaRotation2 += RecoilStep;
-
-		LastControllerRotation = PlayerController->GetControlRotation();
-
+		// Going from zero to target since we're adding recoil each frame
+		const FRotator RecoilStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, CurrentCameraRecoil, DeltaTime, CameraRecoilRecoverySpeed);
+		OwnerMovementComp->GetPawnOwner()->AddControllerPitchInput(RecoilStep.Pitch);
+		OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(RecoilStep.Yaw);
 		CurrentCameraRecoil -= RecoilStep;
 
-		//FRotator TargetRot = RecoilStartRotation + CurrentCameraRecoil;
-		//FRotator TargetRot = PlayerController->GetControlRotation() + FRotator(CameraRecoilRecovery * DeltaTime, 0.f, 0.f);
-		//FRotator TargetRot = FMath::RInterpTo(CurrentRot, RecoilStartRotationf, DeltaTime, CameraRecoilRecoverySpeed);
-		//PlayerController->SetControlRotation(TargetRot);
-
-		//OVRL_LOG("DeltaRotation2: %s", *DeltaRotation2.ToString());
-
-		//	//CurrentCameraRecoil -= CameraRecoilRecoverySpeed * DeltaTime;
-		//	//CurrentCameraRecoil = FMath::Max(CurrentCameraRecoil, 0.f);
+		LastControllerRotation = PlayerController->GetControlRotation();
 	}
-	else if (bCanRecover)
+	else if (bCanRecoverFromRecoil)
 	{
-		FRotator RecoveryStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, DeltaRotation, DeltaTime, 30.f);
+		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
 
-		Cast<APawn>(GetOwner())->AddControllerPitchInput(RecoveryStep.Pitch);
+		// This logic handles the recoil recovery of the weapon
+		const FRotator RecoilRecoveryStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, DeltaRotation, DeltaTime, 30.f);
+		OwnerMovementComp->GetPawnOwner()->AddControllerPitchInput(-RecoilRecoveryStep.Pitch);
+		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(-RecoilRecoveryStep.Yaw);
+		DeltaRotation -= RecoilRecoveryStep;
 
-		DeltaRotation -= RecoveryStep;
+		// Update last controller rotation to avoid bugs when new recoil is applied meanwhile the recovery is ongoing
+		LastControllerRotation = PlayerController->GetControlRotation();
 	}
-
-	OVRL_LOG("DeltaRotation: %s", *DeltaRotation.ToString());
-
 }
 
 void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
