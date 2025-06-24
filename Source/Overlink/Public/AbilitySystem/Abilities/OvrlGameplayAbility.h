@@ -39,6 +39,9 @@ public:
 
 	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 
+	virtual void OnAbilityInputPressed() {};
+	virtual void OnAbilityInputReleased() {};
+
 protected:
 
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;

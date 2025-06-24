@@ -52,11 +52,8 @@ void UOvrlAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGam
 			{
 				AbilitySpec->InputPressed = false;
 
-				if (AbilitySpec->IsActive())
-				{
-					// Ability is active so pass along the input event.
-					AbilitySpecInputReleased(*AbilitySpec);
-				}
+				// Ability is active so pass along the input event.
+				AbilitySpecInputReleased(*AbilitySpec);
 			}
 		}
 	}
@@ -85,16 +82,17 @@ void UOvrlAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec&
 {
 	Super::AbilitySpecInputReleased(Spec);
 
-	if (Spec.IsActive())
+	PRAGMA_DISABLE_DEPRECATION_WARNINGS;
+	if (UOvrlGameplayAbility* OvrlAbilityInstance = Cast<UOvrlGameplayAbility>(Spec.GetPrimaryInstance()))
 	{
-		PRAGMA_DISABLE_DEPRECATION_WARNINGS;
-		const UGameplayAbility* Instance = Spec.GetPrimaryInstance();
-		FPredictionKey OriginalPredictionKey = Instance ? Instance->GetCurrentActivationInfo().GetActivationPredictionKey() : Spec.ActivationInfo.GetActivationPredictionKey();
-		PRAGMA_ENABLE_DEPRECATION_WARNINGS;
+		OvrlAbilityInstance->OnAbilityInputReleased();
+
+		FPredictionKey OriginalPredictionKey = OvrlAbilityInstance ? OvrlAbilityInstance->GetCurrentActivationInfo().GetActivationPredictionKey() : Spec.ActivationInfo.GetActivationPredictionKey();
 
 		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, OriginalPredictionKey);
 	}
+	PRAGMA_ENABLE_DEPRECATION_WARNINGS;
 }
 
 void UOvrlAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)

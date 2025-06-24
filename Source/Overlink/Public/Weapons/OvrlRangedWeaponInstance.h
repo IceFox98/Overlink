@@ -159,6 +159,7 @@ private:
 	FRotator CurrentCameraRecoil;
 	FRotator LastControllerRotation;
 	FRotator DeltaRotation;
+	FRotator RecoilStep;
 	bool bCanRecoverFromRecoil;
 
 	bool bIsADS;

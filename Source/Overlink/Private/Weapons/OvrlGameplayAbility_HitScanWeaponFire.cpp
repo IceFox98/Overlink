@@ -83,3 +83,13 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
+
+void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputReleased()
+{
+	Super::OnAbilityInputPressed();
+
+	if (AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(GetCurrentSourceObject()))
+	{
+		WeaponInstance->StopFire();
+	}
+}
