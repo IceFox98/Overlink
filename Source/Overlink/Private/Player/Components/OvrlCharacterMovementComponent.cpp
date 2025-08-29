@@ -406,7 +406,7 @@ void UOvrlCharacterMovementComponent::OnPlayerLanded()
 		Character->Crouch();
 
 		// Is Player still moving?
-		if (GetLastUpdateVelocity().Length() > 0)
+		if (GetLastUpdateVelocity().Length() > 0.f)
 		{
 			HandleSliding();
 		}
@@ -415,11 +415,14 @@ void UOvrlCharacterMovementComponent::OnPlayerLanded()
 	}
 }
 
-void UOvrlCharacterMovementComponent::StartRunning()
+void UOvrlCharacterMovementComponent::TryStartRunning()
 {
-	HandleCrouching(false);
-	MaxWalkSpeed = MaxRunSpeed;
-	SetGait(OvrlGaitTags::Running);
+	if (GetLastUpdateVelocity().Length() > 0.f)
+	{
+		HandleCrouching(false);
+		MaxWalkSpeed = MaxRunSpeed;
+		SetGait(OvrlGaitTags::Running);
+	}
 }
 
 void UOvrlCharacterMovementComponent::StopRunning()
@@ -936,7 +939,7 @@ void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
 
 	const bool bHasNoInput = FMath::IsNearlyZero(GetLastInputVector().Length());
 
-	if (bHasNoInput) 
+	if (bHasNoInput)
 	{
 		if (PlayerAlignedDotValue < 0.f) // Facing the wall, no input --> back jump
 		{

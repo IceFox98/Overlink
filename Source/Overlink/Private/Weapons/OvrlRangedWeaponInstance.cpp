@@ -66,7 +66,11 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 	Super::Fire(HitData);
 
 	AddRecoil();
-	AddSpread();
+
+	if (!IsADS())
+	{
+		AddSpread();
+	}
 
 	SpawnFireVFX(HitData);
 	SpawnImpactVFX(HitData);

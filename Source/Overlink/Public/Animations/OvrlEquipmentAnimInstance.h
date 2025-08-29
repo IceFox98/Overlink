@@ -46,6 +46,7 @@ private:
 	void UpdateMovementSway(float DeltaTime);
 	void UpdateJumpSway(float DeltaTime);
 	void UpdateWalkSway(float DeltaTime);
+	void UpdateRunningAlpha(float DeltaTime);
 
 protected:
 
@@ -87,6 +88,17 @@ protected:
 	// Multiplier applied when player jumps while moving right/left
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Jump")
 		FVector JumpSwayRotationMultiplier;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Running")
+		float RunningTransitionSpeed;
+
+	// Translation applied when player is running
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Running")
+		FVector RunningTranslation;
+
+	// Rotation applied when player is running
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Running")
+		FRotator RunningRotation;
 
 	// ------- RUNTIME VALUES -------
 
@@ -131,6 +143,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Camera", Transient)
 		FRotator WallrunCameraTiltRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Running", Transient)
+		float RunningAlpha;
 
 	UPROPERTY()
 		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;

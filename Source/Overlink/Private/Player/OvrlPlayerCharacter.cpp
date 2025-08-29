@@ -192,7 +192,7 @@ void AOvrlPlayerCharacter::Input_Crouch(const FInputActionValue& InputActionValu
 
 void AOvrlPlayerCharacter::Input_StartRun(const FInputActionValue& InputActionValue)
 {
-	GetCharacterMovement()->StartRunning();
+	GetCharacterMovement()->TryStartRunning();
 }
 
 void AOvrlPlayerCharacter::Input_EndRun(const FInputActionValue& InputActionValue)

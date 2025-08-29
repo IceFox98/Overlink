@@ -62,6 +62,7 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		UpdateMovementSway(DeltaTime);
 		UpdateWalkSway(DeltaTime);
 		UpdateJumpSway(DeltaTime);
+		UpdateRunningAlpha(DeltaTime);
 
 		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
@@ -151,6 +152,13 @@ void UOvrlEquipmentAnimInstance::UpdateJumpSway(float DeltaTime)
 	// Calculate the rotation to apply when player jumps sideway
 	const FVector JumpRotationVector = FVector(JumpSwayTranslation.Y, 0.f, JumpSwayTranslation.Y) * -JumpSwayRotationMultiplier;
 	JumpSwayRotation = FRotator(0.f, JumpRotationVector.Z, JumpRotationVector.X);
+}
+
+void UOvrlEquipmentAnimInstance::UpdateRunningAlpha(float DeltaTime)
+{
+	const bool bIsPlayerRunning = CharacterMovementComponent->IsRunning();
+	const float TargetRunningAlpha = bIsPlayerRunning ? 1.f : 0.f;
+	RunningAlpha = FMath::FInterpTo(RunningAlpha, TargetRunningAlpha, DeltaTime, RunningTransitionSpeed);
 }
 
 void UOvrlEquipmentAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)

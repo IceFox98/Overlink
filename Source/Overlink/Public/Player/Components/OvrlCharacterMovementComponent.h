@@ -88,10 +88,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 		void OnPlayerLanded();
 
-	void StartRunning();
+	void TryStartRunning();
 	void StopRunning();
 	void HandleCrouching(bool bInWantsToCrouch);
 
+	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
 	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
 	FORCEINLINE bool IsLateralWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
 	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
