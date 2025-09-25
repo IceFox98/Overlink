@@ -395,6 +395,11 @@ void UOvrlCharacterMovementComponent::OnPlayerJumped()
 			HandleVerticalWallrunJump();
 		}
 	}
+
+	if (LocomotionAction == OvrlLocomotionActionTags::Sliding)
+	{
+		CancelSliding();
+	}
 }
 
 void UOvrlCharacterMovementComponent::OnPlayerLanded()
@@ -444,7 +449,7 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 
 		HandleSliding();
 	}
-	else
+	else if (Character->bIsCrouched)
 	{
 		Character->UnCrouch();
 
@@ -1034,7 +1039,9 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 bool UOvrlCharacterMovementComponent::ShouldCancelSliding()
 {
 	if (!IsSliding())
+	{
 		return false;
+	}
 
 	//OvrlLOG("%f", GetLastUpdateVelocity().Length());
 

@@ -72,9 +72,12 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 
 void AOvrlPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
-	if (UOvrlAbilitySystemComponent* OvrlASC = OwningCharacter->GetOvrlAbilitySystemComponent())
+	if (ensure(OwningCharacter))
 	{
-		OvrlASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+		if (UOvrlAbilitySystemComponent* OvrlASC = OwningCharacter->GetOvrlAbilitySystemComponent())
+		{
+			OvrlASC->ProcessAbilityInput(DeltaTime, bGamePaused);
+		}
 	}
 
 	Super::PostProcessInput(DeltaTime, bGamePaused);

@@ -105,6 +105,8 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 	if (CurrentCameraRecoil.Pitch > 0.f || CurrentCameraRecoil.Yaw > 0.f)
 	{
 		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
+		if (!PlayerController)
+			return;
 
 		// Get the controller Delta Rotation to know how much the recoil has been applied, considering the eventual player mouse compensation
 		const FRotator ControllerDeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(PlayerController->GetControlRotation(), LastControllerRotation);
@@ -134,6 +136,8 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 	else if (bCanRecoverFromRecoil)
 	{
 		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
+		if (!PlayerController)
+			return;
 
 		// This logic handles the recoil recovery of the weapon
 		const FRotator RecoilRecoveryStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, DeltaRotation, DeltaTime, 30.f);
