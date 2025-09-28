@@ -104,7 +104,7 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 	if (ShouldCancelSliding())
 	{
 		// TODO: Replace with Gameplay Ability
-		Character->UnCrouch();
+		//Character->UnCrouch();
 		CancelSliding();
 	}
 }
@@ -869,14 +869,12 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 		}
 
 		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
-
-		// How fast the velocity should decrease at the end
-		const float CurveExponent = .5f;
+		const float CurveExponent = .5f; // How fast the velocity should decrease at the end
 		const FVector UpVelocity = FVector::UpVector * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
 		LateralWallrunAlpha = FMath::Clamp(LateralWallrunAlpha - DeltaTime, 0.f, 1.f);
 
 		// Forcethe player to stick to the wall
-		const FVector LateralVelocity = -WallrunNormal * 200.f;
+		const FVector LateralVelocity = -WallrunNormal * 600.f;
 
 		// Returns the direction of where the player should be launched. It follows the wall surface.
 		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection());
