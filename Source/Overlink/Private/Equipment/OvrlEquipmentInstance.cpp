@@ -34,6 +34,7 @@ void AOvrlEquipmentInstance::Destroyed()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
+		// Remove object "preview" from owner
 		OwningPawn->UnequipObject();
 		OwningPawn->RestoreAnimLayerClass();
 	}
@@ -45,12 +46,10 @@ void AOvrlEquipmentInstance::OnEquipped()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
-		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-
-		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
-
 		bIsEquipped = true;
 
+		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
+		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
 		ApplyOverlayAnimation();
 
 		SetActorHiddenInGame(false);

@@ -12,6 +12,7 @@ class UOvrlItemInstance;
 class AOvrlEquipmentInstance;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
