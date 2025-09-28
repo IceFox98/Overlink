@@ -39,24 +39,29 @@ public:
 	UFUNCTION()
 		virtual void HandleDeath(AActor* InInstigator);
 
-	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
+	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
+	virtual void RestoreAnimLayerClass() { unimplemented(); };
 	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay);
+	virtual void UnequipObject() {};
 
 protected:
 
 	/** Components that manages the player abilities */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UOvrlHealthComponent* HealthComponent;
 
 public:
 
 	// Ability sets to grant to this pawn's ability system.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Abilities")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
 		TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Grip")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
 		FName GripPointName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
+		TSubclassOf<UOvrlLinkedAnimInstance> DefaultAnimLayerClass;
 };

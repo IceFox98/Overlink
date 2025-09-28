@@ -16,16 +16,21 @@ void AOvrlPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	OwningCharacter = Cast<AOvrlCharacterBase>(GetCharacter());
-	check(OwningCharacter);
+	ensure(OwningCharacter);
 
 	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
-	check(CharacterMovementComponent);
+	ensure(CharacterMovementComponent);
 }
 
 void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 {
 	//Super::UpdateRotation(DeltaTime);
 	//return;
+
+	if (!CharacterMovementComponent)
+	{
+		return;
+	}
 
 	FVector GravityDirection = CharacterMovementComponent->GetGravityDirection();
 

@@ -93,24 +93,54 @@ UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() co
 	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
 }
 
-void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
+void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
 {
-	GetMesh()->LinkAnimClassLayers(LayerClass);
-	FullBodyMesh->LinkAnimClassLayers(LayerClass);
+	if (GetMesh() && FullBodyMesh)
+	{
+		GetMesh()->LinkAnimClassLayers(LayerClass);
+		FullBodyMesh->LinkAnimClassLayers(LayerClass);
+	}
+}
+
+void AOvrlPlayerCharacter::RestoreAnimLayerClass()
+{
+	if (GetMesh() && FullBodyMesh)
+	{
+		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
+		FullBodyMesh->LinkAnimClassLayers(DefaultAnimLayerClass);
+	}
 }
 
 void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
 {
 	Super::EquipObject(ObjectToEquip, MeshToDisplay);
 
-	check(MeshToDisplay);
+	ensure(MeshToDisplay);
 
 	// Spawn static mesh that is only used to cast shadows
-	AStaticMeshActor* DisplayMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>();
-	DisplayMeshActor->SetMobility(EComponentMobility::Movable);
-	DisplayMeshActor->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
-	DisplayMeshActor->SetActorEnableCollision(false);
-	DisplayMeshActor->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+	if (!IsValid(EquippedObjectMesh))
+	{
+		EquippedObjectMesh = GetWorld()->SpawnActor<AStaticMeshActor>();
+		EquippedObjectMesh->SetMobility(EComponentMobility::Movable);
+		EquippedObjectMesh->SetActorEnableCollision(false);
+		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+	}
+
+	if (EquippedObjectMesh)
+	{
+		EquippedObjectMesh->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
+		EquippedObjectMesh->SetActorHiddenInGame(false);
+	}
+}
+
+void AOvrlPlayerCharacter::UnequipObject()
+{
+	Super::UnequipObject();
+
+	if (EquippedObjectMesh)
+	{
+		EquippedObjectMesh->SetActorHiddenInGame(true);
+	}
 }
 
 void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)

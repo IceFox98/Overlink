@@ -16,6 +16,7 @@ class UOvrlInventoryComponent;
 class UMotionWarpingComponent;
 class UOvrlInputConfig;
 class UInputMappingContext;
+class AStaticMeshActor;
 struct FInputActionValue;
 
 /**
@@ -50,8 +51,10 @@ public:
 
 	//virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
 
-	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
+	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
+	virtual void RestoreAnimLayerClass() override;
 	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay) override;
+	virtual void UnequipObject() override;
 
 	void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
 
@@ -108,7 +111,7 @@ protected:
 
 	// ------ LOCOMOTION ------
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
 public:
@@ -116,13 +119,18 @@ public:
 	// ------ INPUT ------
 
 	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl|Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 		TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 		TObjectPtr<UOvrlInputConfig> InputConfig;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throwing")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 		float ThrowForce;
+
+private:
+
+	UPROPERTY()
+		TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
 };

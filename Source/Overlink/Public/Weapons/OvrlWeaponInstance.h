@@ -31,6 +31,9 @@ protected:
 
 public:
 
+	virtual void OnEquipped() override;
+	virtual void OnUnequipped() override;
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 		virtual void Fire(const FHitResult& HitData);
 

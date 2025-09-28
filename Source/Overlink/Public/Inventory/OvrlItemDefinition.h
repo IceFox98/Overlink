@@ -41,6 +41,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
 		FText DisplayName;
 
+	//Visual representation of the item
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
+		UStaticMesh* DisplayMesh;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Display, Instanced)
 		TArray<TObjectPtr<UOvrlItemFragment>> Fragments;
 };

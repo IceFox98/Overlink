@@ -31,6 +31,9 @@ private:
 
 	void OnWeaponHitSomething(const FHitResult& HitData);
 
+	UFUNCTION()
+	void OnWeaponDestroyed(AActor* DestroyedActor);
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidget))

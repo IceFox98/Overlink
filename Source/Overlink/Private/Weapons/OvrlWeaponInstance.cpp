@@ -14,7 +14,7 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 
 	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
-	PickupSphere->SetupAttachment(RootComponent);
+	PickupSphere->SetupAttachment(WeaponMesh);
 }
 
 void AOvrlWeaponInstance::BeginPlay()
@@ -22,6 +22,20 @@ void AOvrlWeaponInstance::BeginPlay()
 	Super::BeginPlay();
 
 	WeaponMesh->OnComponentHit.AddDynamic(this, &AOvrlWeaponInstance::OnWeaponHit);
+}
+
+void AOvrlWeaponInstance::OnEquipped()
+{
+	Super::OnEquipped();
+
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+}
+
+void AOvrlWeaponInstance::OnUnequipped()
+{
+	Super::OnUnequipped();
+
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::None;
 }
 
 void AOvrlWeaponInstance::Fire(const FHitResult& HitData)

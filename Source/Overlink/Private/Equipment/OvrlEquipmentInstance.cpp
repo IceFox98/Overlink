@@ -30,6 +30,17 @@ void AOvrlEquipmentInstance::Tick(float DeltaTime)
 
 }
 
+void AOvrlEquipmentInstance::Destroyed()
+{
+	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
+	{
+		OwningPawn->UnequipObject();
+		OwningPawn->RestoreAnimLayerClass();
+	}
+
+	Super::Destroyed();
+}
+
 void AOvrlEquipmentInstance::OnEquipped()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
@@ -37,9 +48,6 @@ void AOvrlEquipmentInstance::OnEquipped()
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 
 		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
-
-		//AttachToComponent(OwningPawn->GetEquipAttachmentComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
-		// TODO: Spanw and attach skeletal mesh to FullBody mesh
 
 		bIsEquipped = true;
 
@@ -63,7 +71,7 @@ void AOvrlEquipmentInstance::ApplyOverlayAnimation()
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-		OwningPawn->ApplyAnimClassLayer(EquipmentDefinition->OverlayAnimInstance);
+		OwningPawn->ApplyAnimLayerClass(EquipmentDefinition->OverlayAnimInstance);
 	}
 }
 
