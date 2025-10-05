@@ -34,7 +34,8 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	WallrunCheckAngle = 35.f;
 	WallrunCameraTiltAngle = 15.f;
 	WallrunResetTime = .35f;
-	WallrunJumpVelocity = FVector(1000.f, 1000.f, 800.f);
+	WallrunJumpVelocity = FVector(1000.f, 500.f, 800.f);
+	VerticalWallrunJumpVelocity = FVector(1000.f, 1500.f, 800.f);
 	VerticalWallrunMaxVelocity = 600.f;
 	VerticalWallrunVelocityFalloffSpeed = 1.5f;
 
@@ -928,9 +929,9 @@ void UOvrlCharacterMovementComponent::HandleLateralWallrunJump()
 
 void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
 {
-	const float AwayVelocity = WallrunJumpVelocity.X;
-	const float ForwardVelocity = WallrunJumpVelocity.Y;
-	const float UpwardVelocity = WallrunJumpVelocity.Z;
+	const float AwayVelocity = VerticalWallrunJumpVelocity.X;
+	const float ForwardVelocity = VerticalWallrunJumpVelocity.Y;
+	const float UpwardVelocity = VerticalWallrunJumpVelocity.Z;
 
 	FVector LaunchVelocity = FVector::ZeroVector;
 

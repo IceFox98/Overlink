@@ -246,6 +246,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 		float VerticalWallrunVelocityFalloffSpeed;
 
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+		FVector VerticalWallrunJumpVelocity;
+
 	// ------ SLIDING VARS ------
 
 	// Vector that will be added to the player position, used to get the slope of the floor.
