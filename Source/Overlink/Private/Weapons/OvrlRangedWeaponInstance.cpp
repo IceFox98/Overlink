@@ -5,9 +5,13 @@
 
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Core/OvrlPlayerController.h"
+#include "Player/OvrlCharacterBase.h"
+#include "Inventory/OvrlItemInstance.h"
+#include "OvrlGameplayTags.h"
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Curves/CurveFloat.h"
+#include "Animation/AnimMontage.h"
 
 #include "OvrlUtils.h"
 
@@ -81,6 +85,39 @@ void AOvrlRangedWeaponInstance::StopFire()
 	Super::StopFire();
 
 	bCanRecoverFromRecoil = true;
+}
+
+void AOvrlRangedWeaponInstance::StartReloading()
+{
+	Super::StartReloading();
+
+	if (UAnimMontage* ReloadAnimMontage = ReloadMontage.LoadSynchronous())
+	{
+		if (AOvrlCharacterBase* Character = Cast<AOvrlCharacterBase>(GetOwner()))
+		{
+			Character->PlayAnimMontage(ReloadAnimMontage);
+		}
+	}
+	else
+	{
+		ensureMsgf(false, TEXT("ReloadAnimMontage is NULL! The reload animation will be skipped and weapon will instantly reload."));
+		PerformReload();
+	}
+}
+
+void AOvrlRangedWeaponInstance::PerformReload()
+{
+	Super::PerformReload();
+
+	if (UOvrlItemInstance* Item = GetAssociatedItem())
+	{
+		const int32 CurrentMagazineAmmo = Item->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
+		const int32 MagazineSize = Item->GetTagStackCount(OvrlWeaponTags::MagazineSize);
+		const int32 ShotsFired = MagazineSize - CurrentMagazineAmmo;
+
+		Item->RemoveStack(OvrlWeaponTags::SpareAmmo, ShotsFired); // Decrease total ammo 
+		Item->AddStack(OvrlWeaponTags::MagazineAmmo, ShotsFired); // Reset magazine ammo
+	}
 }
 
 void AOvrlRangedWeaponInstance::AddSpread()
@@ -208,12 +245,30 @@ void AOvrlRangedWeaponInstance::SpawnFireVFX(const FHitResult& HitData)
 
 FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
 {
-	check(WeaponMesh);
-	return WeaponMesh->GetSocketTransform(MuzzleSocketName); // World Space
+	if (ensure(WeaponMesh))
+	{
+		return WeaponMesh->GetSocketTransform(MuzzleSocketName); // World Space
+	}
+
+	return FTransform::Identity;
+}
+
+FTransform AOvrlRangedWeaponInstance::GetLeftHandIKTransform() const
+{
+	if (ensure(WeaponMesh))
+	{
+		return WeaponMesh->GetSocketTransform("LeftHandIK", ERelativeTransformSpace::RTS_Component);
+	}
+
+	return FTransform::Identity;
 }
 
 FTransform AOvrlRangedWeaponInstance::GetAimTransform() const
 {
-	check(WeaponMesh);
-	return WeaponMesh->GetSocketTransform("AimSocket", ERelativeTransformSpace::RTS_Component);
+	if (ensure(WeaponMesh))
+	{
+		return WeaponMesh->GetSocketTransform("AimSocket", ERelativeTransformSpace::RTS_Component);
+	}
+
+	return FTransform::Identity;
 }

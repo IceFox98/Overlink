@@ -145,7 +145,8 @@ void AOvrlPlayerCharacter::UnequipObject()
 
 void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
 {
-	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+	Super::PlayAnimMontage(MontageToPlay, StartTime);
+
 	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
 }
 

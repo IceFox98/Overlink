@@ -44,6 +44,8 @@ public:
 	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay);
 	virtual void UnequipObject() {};
 
+	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
+
 protected:
 
 	/** Components that manages the player abilities */

@@ -44,7 +44,13 @@ public:
 		void K2_OnFire(const FHitResult& HitData);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-		virtual void Reload();
+		virtual void StartReloading();
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
+		virtual void PerformReload();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Weapon Instance")
+		virtual bool IsReloading() const { return bIsReloading; }
 
 	void ToggleWeaponPhysics(bool bEnable);
 
@@ -77,4 +83,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
 		UNiagaraSystem* BulletImpactVFX;
+
+private:
+
+	bool bIsReloading;
 };

@@ -8,6 +8,7 @@
 #include "OvrlRangedWeaponInstance.generated.h"
 
 class UOvrlCharacterMovementComponent;
+class UAnimMontage;
 
 /**
  *
@@ -36,6 +37,9 @@ public:
 	virtual void Fire(const FHitResult& HitData) override;
 	virtual void StopFire() override;
 
+	virtual void StartReloading() override;
+	virtual void PerformReload() override;
+
 	FORCEINLINE float GetTimeBetweenShots() const { return 60.f / FireRate; };
 	FORCEINLINE float GetMaxDamageRange() const { return MaxDamageRange; };
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
@@ -45,6 +49,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		FTransform GetMuzzleTransform() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+		FTransform GetLeftHandIKTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 		FTransform GetAimTransform() const;
@@ -79,10 +86,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ForceUnits = cm))
 		float MaxDamageRange;
 
-	// The time (in seconds) you need to reload the weapon
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-		float ReloadingTime;
-
 	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
 		float FireRate;
@@ -90,6 +93,12 @@ protected:
 	// How quickly the weapon enters to ADS
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
 		float AimSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+		TSoftObjectPtr<UAnimMontage> ReloadMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
+		TObjectPtr<UNiagaraSystem> MuzzleFlashVFX;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
@@ -140,8 +149,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
 		float SpreadMultiplierFalling;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
-		UNiagaraSystem* MuzzleFlashVFX;
 
 private:
 

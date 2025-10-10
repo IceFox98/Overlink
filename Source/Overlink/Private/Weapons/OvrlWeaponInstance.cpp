@@ -53,9 +53,14 @@ void AOvrlWeaponInstance::StopFire()
 	// No implementation
 }
 
-void AOvrlWeaponInstance::Reload()
+void AOvrlWeaponInstance::StartReloading()
 {
-	// No implementation
+	bIsReloading = true;
+}
+
+void AOvrlWeaponInstance::PerformReload()
+{
+	bIsReloading = false;
 }
 
 void AOvrlWeaponInstance::ToggleWeaponPhysics(bool bEnable)

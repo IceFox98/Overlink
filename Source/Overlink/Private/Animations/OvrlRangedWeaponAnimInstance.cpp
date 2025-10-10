@@ -26,6 +26,7 @@ void UOvrlRangedWeaponAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaT
 		WeaponCameraRecoil = EquippedWeapon->GetWeaponCameraRecoil();
 		WeaponAimTranslation = EquippedWeapon->GetAimTransform().GetLocation();
 		WeaponAimRotation = EquippedWeapon->GetAimTransform().GetRotation().Rotator();
+		WeaponLeftHandIKLocation = EquippedWeapon->GetLeftHandIKTransform().GetLocation();
 
 		UpdateAim(DeltaTime);
 	}

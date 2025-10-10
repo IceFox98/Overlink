@@ -25,7 +25,7 @@ public:
 
 	virtual void Fire(const FHitResult& HitData) override;
 
-	virtual void Reload() override;
+	virtual void StartReloading() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl|Projectile Weapon Fire")
 		void FireProjectile(const FHitResult& HitResult);

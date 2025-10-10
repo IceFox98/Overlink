@@ -49,7 +49,7 @@ public:
 
 protected:
 
-	void ApplyOverlayAnimation();
+	void ApplyOverlayAnimInstance();
 
 protected:
 
@@ -57,7 +57,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Instance")
 		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinitionClass;
 
-	UPROPERTY()
+	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Equipment Instance")
 		TObjectPtr<UOvrlItemInstance> AssociatedItem;
 
 private:

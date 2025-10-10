@@ -58,9 +58,9 @@ void AOvrlProjectileWeaponInstance::FireProjectile(const FHitResult& HitResult)
 	}
 }
 
-void AOvrlProjectileWeaponInstance::Reload()
+void AOvrlProjectileWeaponInstance::StartReloading()
 {
-	Super::Reload();
+	Super::StartReloading();
 
 	if (!Owner)
 	{

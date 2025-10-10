@@ -60,6 +60,11 @@ void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToD
 	}
 }
 
+void AOvrlCharacterBase::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime)
+{
+	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+}
+
 UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const
 {
 	return GetOvrlAbilitySystemComponent();

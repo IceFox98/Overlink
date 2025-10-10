@@ -32,10 +32,10 @@ private:
 
 	friend class UOvrlItemInstance;
 
-	UPROPERTY()
+	UPROPERTY(VisibleInstanceOnly)
 		FGameplayTag Tag;
 
-	UPROPERTY()
+	UPROPERTY(VisibleInstanceOnly)
 		int32 StackCount = 0;
 };
 
@@ -74,7 +74,7 @@ private:
 	TSubclassOf<UOvrlItemDefinition> ItemDef;
 
 	// List of gameplay tag stacks
-	UPROPERTY()
+	UPROPERTY(VisibleInstanceOnly)
 		TArray<FGameplayTagStack> Stacks;
 
 	// Accelerated list of tag stacks for queries

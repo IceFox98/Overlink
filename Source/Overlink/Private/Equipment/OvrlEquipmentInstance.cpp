@@ -48,9 +48,15 @@ void AOvrlEquipmentInstance::OnEquipped()
 	{
 		bIsEquipped = true;
 
+		// Attach Display Mesh to 3rd person mesh
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
-		ApplyOverlayAnimation();
+
+		// Play equip montage
+		OwningPawn->PlayAnimMontage(EquipmentDefinition->EquipMontage);
+
+		// Apply anim layer class of the equip instance, used for 1st person mesh
+		ApplyOverlayAnimInstance();
 
 		SetActorHiddenInGame(false);
 		K2_OnEquipped();
@@ -65,7 +71,7 @@ void AOvrlEquipmentInstance::OnUnequipped()
 	K2_OnUnequipped();
 }
 
-void AOvrlEquipmentInstance::ApplyOverlayAnimation()
+void AOvrlEquipmentInstance::ApplyOverlayAnimInstance()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{

@@ -58,7 +58,7 @@ public:
 	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay) override;
 	virtual void UnequipObject() override;
 
-	void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
+	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
 
 	// ------ MOVEMENT ------
 
