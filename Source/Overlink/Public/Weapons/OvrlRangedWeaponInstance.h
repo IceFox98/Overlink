@@ -8,6 +8,8 @@
 #include "OvrlRangedWeaponInstance.generated.h"
 
 class UOvrlCharacterMovementComponent;
+class UOvrlWeaponSightDefinition;
+class UOvrlCameraModifier_FOV;
 class UAnimMontage;
 
 /**
@@ -60,7 +62,7 @@ public:
 		bool IsADS() const { return bIsADS; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		void ToggleADS(bool bEnable) { bIsADS = bEnable; };
+		void ToggleADS(bool bEnable);
 
 protected:
 
@@ -90,15 +92,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
 		float FireRate;
 
-	// How quickly the weapon enters to ADS
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
-		float AimSpeed;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 		TSoftObjectPtr<UAnimMontage> ReloadMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
 		TObjectPtr<UNiagaraSystem> MuzzleFlashVFX;
+
+	// How quickly the weapon enters to ADS
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f))
+		float AimSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim")
+		TObjectPtr<UOvrlWeaponSightDefinition> SightDefinition;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
@@ -153,14 +158,16 @@ protected:
 private:
 
 	UPROPERTY()
-		UOvrlCharacterMovementComponent* OwnerMovementComp;
+		TObjectPtr<UOvrlCharacterMovementComponent> OwnerMovementComp;
 
+	UPROPERTY()
+		TObjectPtr<UOvrlCameraModifier_FOV> CameraFOV;
 
 	// Spread
 	float SpreadMultiplier;
 	float CurrentHeat;
 	float CurrentSpread;
-	
+
 	// Recoil
 	FTransform CurrentKickbackRecoil;
 	FRotator CurrentCameraRecoil;

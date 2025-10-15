@@ -2,6 +2,7 @@
 
 
 #include "Core/OvrlPlayerController.h"
+#include "Core/OvrlPlayerCameraManager.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
@@ -10,6 +11,11 @@
 #include "GameFramework/Character.h"
 
 #include "OvrlUtils.h"
+
+AOvrlPlayerController::AOvrlPlayerController()
+{
+	PlayerCameraManagerClass = AOvrlPlayerCameraManager::StaticClass();
+}
 
 void AOvrlPlayerController::BeginPlay()
 {

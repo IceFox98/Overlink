@@ -22,7 +22,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	const bool bCanActivateAbility = CommitAbility(Handle, ActorInfo, ActivationInfo);
 
 	//if (bCanActivateAbility)
-	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject()))
+	if (AOvrlRangedWeaponInstance* WeaponInstance = GetWeaponInstance())
 	{
 		StartRangedWeaponTargeting();
 
@@ -30,6 +30,13 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 		const float TimeBetweenShots = WeaponInstance->GetTimeBetweenShots();
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_FireCooldown, this, &UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown, TimeBetweenShots, false);
 	}
+}
+
+void UOvrlGameplayAbility_HitScanWeaponFire::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
+	StopWeaponFire();
 }
 
 void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
@@ -40,7 +47,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 
 	if (PC)
 	{
-		if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject()))
+		if (AOvrlRangedWeaponInstance* WeaponInstance = GetWeaponInstance())
 		{
 			const FVector BulletDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(PC->PlayerCameraManager->GetActorForwardVector(), WeaponInstance->GetSpreadAngle());
 
@@ -88,8 +95,18 @@ void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputReleased()
 {
 	Super::OnAbilityInputPressed();
 
-	if (AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(GetCurrentSourceObject()))
+	StopWeaponFire();
+}
+
+void UOvrlGameplayAbility_HitScanWeaponFire::StopWeaponFire()
+{
+	if (AOvrlRangedWeaponInstance* WeaponInstance = GetWeaponInstance())
 	{
 		WeaponInstance->StopFire();
 	}
+}
+
+AOvrlRangedWeaponInstance* UOvrlGameplayAbility_HitScanWeaponFire::GetWeaponInstance() const
+{
+	return Cast<AOvrlRangedWeaponInstance>(GetCurrentSourceObject());
 }

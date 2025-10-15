@@ -18,6 +18,10 @@ class OVERLINK_API AOvrlPlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
+
+	AOvrlPlayerController();
+
+public:
 	virtual void UpdateRotation(float DeltaTime) override;
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 

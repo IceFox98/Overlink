@@ -3,12 +3,16 @@
 
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
+#include "Core/OvrlPlayerCameraManager.h"
+#include "Weapons/OvrlWeaponSightDefinition.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-#include "Core/OvrlPlayerController.h"
+#include "Player/Components/OvrlCameraComponent.h"
+#include "Player/CameraModifiers/OvrlCameraModifier_FOV.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Inventory/OvrlItemInstance.h"
 #include "OvrlGameplayTags.h"
 
+#include "GameFramework/PlayerController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Curves/CurveFloat.h"
 #include "Animation/AnimMontage.h"
@@ -120,6 +124,40 @@ void AOvrlRangedWeaponInstance::PerformReload()
 	}
 }
 
+void AOvrlRangedWeaponInstance::ToggleADS(bool bEnable)
+{
+	bIsADS = bEnable;
+
+	if (!ensure(SightDefinition))
+	{
+		return;
+	}
+
+	if (AOvrlPlayerCameraManager* CameraManager = AOvrlPlayerCameraManager::Get(this))
+	{
+		if (bIsADS)
+		{
+			if (ensure(SightDefinition->CameraFOV))
+			{
+				CameraFOV = CameraManager->GetOrAddCameraModifier<UOvrlCameraModifier_FOV>(SightDefinition->CameraFOV);
+				if (CameraFOV)
+				{
+					// Enable every time since we're re-using the same modifier
+					CameraFOV->EnableModifier();
+
+					const float TargetFOV = SightDefinition->GetMagnifiedFOV(CameraManager->DefaultFOV);
+					CameraFOV->SetTargetFOV(TargetFOV);
+					CameraFOV->SetInterpSpeed(AimSpeed);
+				}
+			}
+		}
+		else if (CameraFOV)
+		{
+			CameraFOV->DisableModifier();
+		}
+	}
+}
+
 void AOvrlRangedWeaponInstance::AddSpread()
 {
 	CurrentHeat += HeatToHeatPerShot.GetRichCurve()->Eval(CurrentHeat);
@@ -141,7 +179,7 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 
 	if (CurrentCameraRecoil.Pitch > 0.f || CurrentCameraRecoil.Yaw > 0.f)
 	{
-		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
+		APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
 		if (!PlayerController)
 			return;
 
@@ -172,7 +210,7 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 	}
 	else if (bCanRecoverFromRecoil)
 	{
-		AOvrlPlayerController* PlayerController = Cast<AOvrlPlayerController>(GetOwner()->GetInstigatorController());
+		APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
 		if (!PlayerController)
 			return;
 
