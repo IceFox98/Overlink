@@ -58,6 +58,11 @@ void AOvrlProjectileWeaponInstance::FireProjectile(const FHitResult& HitResult)
 	}
 }
 
+void AOvrlProjectileWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
+{
+	// No instant impact effect for projectile weapons, handled by projectile
+}
+
 void AOvrlProjectileWeaponInstance::StartReloading()
 {
 	Super::StartReloading();

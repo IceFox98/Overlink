@@ -22,9 +22,12 @@ public class Overlink : ModuleRules
             "UMG",
             "Slate",
             "SlateCore",
+            "PhysicsCore",
             "CommonUI",
             "Niagara",
             "GameplayMessageRuntime",
         });
+
+        OptimizeCode = CodeOptimization.InShippingBuildsOnly;
     }
 }

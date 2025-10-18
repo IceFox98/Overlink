@@ -5,6 +5,7 @@
 
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
+#include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
 AOvrlHitScanWeaponInstance::AOvrlHitScanWeaponInstance()
@@ -34,13 +35,16 @@ void AOvrlHitScanWeaponInstance::SpawnFireVFX(const FHitResult& HitData)
 {
 	Super::SpawnFireVFX(HitData);
 
-	if (BulletTrailVFX)
+	if (ensureAlways(BulletTrailVFX))
 	{
 		const FTransform MuzzleTransform = GetMuzzleTransform();
 		const FRotator FXRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleTransform.GetLocation(), HitData.ImpactPoint);
 		UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, BulletTrailVFX, MuzzleTransform.GetLocation(), FXRotation, FVector::OneVector);
+		ensureAlways(NiagaraComp);
 
-		check(NiagaraComp);
-		NiagaraComp->SetNiagaraVariablePosition("EndLocation", HitData.ImpactPoint);
+		TArray<FVector> HitPositions;
+		HitPositions.Add(HitData.ImpactPoint);
+
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(NiagaraComp, "User.ImpactPositions", HitPositions);
 	}
 }

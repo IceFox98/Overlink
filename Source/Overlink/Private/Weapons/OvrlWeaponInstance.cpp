@@ -6,6 +6,7 @@
 
 #include "Components/SphereComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 AOvrlWeaponInstance::AOvrlWeaponInstance()
 {
@@ -114,26 +115,48 @@ void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 
 void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
 {
-	UNiagaraComponent* NiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, BulletImpactVFX, HitData.ImpactPoint, FRotator::ZeroRotator, FVector::OneVector);
+	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType1; // 1 -> Concrete
 
-	TArray<FVector> HitPositions;
-	HitPositions.Add(HitData.ImpactPoint);
-
-	TArray<FVector> HitNormals;
-	HitNormals.Add(HitData.ImpactNormal);
-
-	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType_Default;
-
+	// Get impact surface
 	if (HitData.PhysMaterial.IsValid())
 	{
 		SurfaceType = HitData.PhysMaterial->SurfaceType;
 	}
 
-	TArray<int32> SurfaceTypes;
-	SurfaceTypes.Add(2);
+	// Get different effects depending on the surface type
+	FBulletImpactEffects ImpactEffects = BulletImpactEffects.FindRef(SurfaceType);
 
-	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(NiagaraComp, "User.ImpactPositions", HitPositions);
-	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(NiagaraComp, "User.ImpactNormals", HitNormals);
-	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayInt32(NiagaraComp, "User.ImpactSurfaces", SurfaceTypes);
-	NiagaraComp->SetNiagaraVariableInt("User.NumberOfHits", 1);
+	// Spawn impact decal effect
+	ensureAlwaysMsgf(ImpactEffects.ImpactDecal, TEXT("Did you forget to set the Effect in the map?"));
+	SpawnEffect(ImpactEffects.ImpactDecal, SurfaceType, HitData);
+
+	// Spawn bullet impact effect
+	ensureAlwaysMsgf(ImpactEffects.ImpactEffect, TEXT("Did you forget to set the Effect in the map?"));
+	SpawnEffect(ImpactEffects.ImpactEffect, SurfaceType, HitData);
+
+	// Play impact sound
+	ensureAlwaysMsgf(ImpactEffects.ImpactSound, TEXT("Did you forget to set the Effect in the map?"));
+	UGameplayStatics::PlaySoundAtLocation(this, ImpactEffects.ImpactSound, HitData.ImpactPoint);
+}
+
+void AOvrlWeaponInstance::SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData)
+{
+	UNiagaraComponent* EffectNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, HitData.ImpactPoint, FRotator::ZeroRotator, FVector::OneVector);
+	if (ensureAlways(EffectNiagaraComp))
+	{
+		// Update Niagara FX params
+		TArray<FVector> HitPositions;
+		HitPositions.Add(HitData.ImpactPoint);
+
+		TArray<FVector> HitNormals;
+		HitNormals.Add(HitData.ImpactNormal);
+
+		TArray<int32> SurfaceTypes;
+		SurfaceTypes.Add(SurfaceType);
+
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(EffectNiagaraComp, "User.ImpactPositions", HitPositions);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(EffectNiagaraComp, "User.ImpactNormals", HitNormals);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayInt32(EffectNiagaraComp, "User.ImpactSurfaces", SurfaceTypes);
+		EffectNiagaraComp->SetNiagaraVariableInt("User.NumberOfHits", 1);
+	}
 }

@@ -12,6 +12,22 @@
 DECLARE_DELEGATE_OneParam(FOnHitSomething, const FHitResult& HitData);
 
 class USphereComponent;
+class USoundBase;
+
+USTRUCT()
+struct FBulletImpactEffects
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UNiagaraSystem> ImpactDecal;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<UNiagaraSystem> ImpactEffect;
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USoundBase> ImpactSound;
+};
 
 /**
  *
@@ -35,22 +51,22 @@ public:
 	virtual void OnUnequipped() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-		virtual void Fire(const FHitResult& HitData);
+	virtual void Fire(const FHitResult& HitData);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-		virtual void StopFire();
+	virtual void StopFire();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Weapon Instance", meta = (DisplayName = "On Fire"))
-		void K2_OnFire(const FHitResult& HitData);
+	void K2_OnFire(const FHitResult& HitData);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-		virtual void StartReloading();
+	virtual void StartReloading();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-		virtual void PerformReload();
+	virtual void PerformReload();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Weapon Instance")
-		virtual bool IsReloading() const { return bIsReloading; }
+	virtual bool IsReloading() const { return bIsReloading; }
 
 	void ToggleWeaponPhysics(bool bEnable);
 
@@ -58,31 +74,35 @@ protected:
 
 	// @TODO: Should not be used here anymore
 	UFUNCTION()
-		void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	virtual void SpawnImpactVFX(const FHitResult& HitData);
+
+private:
+
+	void SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData);
 
 public:
 
 	// ----- COMPONENTS -----
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
-		TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
-		TObjectPtr<USphereComponent> PickupSphere;
+	TObjectPtr<USphereComponent> PickupSphere;
 
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
-		TSubclassOf<UGameplayEffect> GE_Damage;
+	TSubclassOf<UGameplayEffect> GE_Damage;
 
 	FOnHitSomething OnHitSomething;
 
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
-		UNiagaraSystem* BulletImpactVFX;
+	TMap<TEnumAsByte<EPhysicalSurface>, FBulletImpactEffects> BulletImpactEffects;
 
 private:
 

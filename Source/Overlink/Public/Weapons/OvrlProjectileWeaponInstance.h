@@ -30,6 +30,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl|Projectile Weapon Fire")
 		void FireProjectile(const FHitResult& HitResult);
 
+protected:
+
+	virtual void SpawnImpactVFX(const FHitResult& HitData) override;
+
 public:
 
 	//// ----- COMPONENTS -----
