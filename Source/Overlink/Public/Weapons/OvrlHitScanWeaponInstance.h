@@ -25,7 +25,7 @@ public:
 
 protected:
 
-	virtual void SpawnFireVFX(const FHitResult& HitData) override;
+	virtual void SpawnTrailVFX(const FHitResult& HitData);
 
 protected:
 

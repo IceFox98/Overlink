@@ -80,7 +80,7 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 		AddSpread();
 	}
 
-	SpawnFireVFX(HitData);
+	PlayFireAnimation();
 	SpawnImpactVFX(HitData);
 }
 
@@ -274,11 +274,16 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 	SpreadMultiplier = FMath::FInterpTo(SpreadMultiplier, TargetMultiplier, DeltaTime, 10.f);
 }
 
-void AOvrlRangedWeaponInstance::SpawnFireVFX(const FHitResult& HitData)
+void AOvrlRangedWeaponInstance::PlayFireAnimation()
 {
-	ensureMsgf(MuzzleFlashVFX, TEXT("A ranged weapon should have a MuzzleFlashVFX set!"));
-	const FTransform MuzzleTransform = GetMuzzleTransform();
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, MuzzleFlashVFX, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator(), FVector::OneVector);
+	//ensureMsgf(FireAnimation, TEXT("A ranged weapon should have a MuzzleFlashVFX set!"));
+	//const FTransform MuzzleTransform = GetMuzzleTransform();
+	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, MuzzleFlashVFX, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator(), FVector::OneVector);
+
+	if (ensure(WeaponMesh && FireAnimation))
+	{
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
 }
 
 FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const

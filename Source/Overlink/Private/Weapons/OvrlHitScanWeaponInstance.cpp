@@ -29,12 +29,12 @@ void AOvrlHitScanWeaponInstance::Fire(const FHitResult& HitData)
 			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, InstigatorASC->MakeEffectContext());
 		}
 	}
+
+	SpawnTrailVFX(HitData);
 }
 
-void AOvrlHitScanWeaponInstance::SpawnFireVFX(const FHitResult& HitData)
+void AOvrlHitScanWeaponInstance::SpawnTrailVFX(const FHitResult& HitData)
 {
-	Super::SpawnFireVFX(HitData);
-
 	if (ensureAlways(BulletTrailVFX))
 	{
 		const FTransform MuzzleTransform = GetMuzzleTransform();

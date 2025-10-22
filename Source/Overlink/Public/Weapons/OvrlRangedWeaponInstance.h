@@ -11,6 +11,7 @@ class UOvrlCharacterMovementComponent;
 class UOvrlWeaponSightDefinition;
 class UOvrlCameraModifier_FOV;
 class UAnimMontage;
+class UAnimSequence;
 
 /**
  *
@@ -73,7 +74,7 @@ protected:
 	void UpdateSpread(float DeltaTime);
 	void UpdateSpreadMultiplier(float DeltaTime);
 
-	virtual void SpawnFireVFX(const FHitResult& HitData);
+	virtual void PlayFireAnimation();
 
 protected:
 
@@ -96,7 +97,7 @@ protected:
 		TSoftObjectPtr<UAnimMontage> ReloadMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
-		TObjectPtr<UNiagaraSystem> MuzzleFlashVFX;
+		TObjectPtr<UAnimSequence> FireAnimation;
 
 	// How quickly the weapon enters to ADS
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f))
