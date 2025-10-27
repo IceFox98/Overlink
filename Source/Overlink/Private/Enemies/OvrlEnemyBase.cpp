@@ -2,6 +2,9 @@
 
 
 #include "Enemies/OvrlEnemyBase.h"
+#include "OvrlGameplayTags.h"
+
+#include "GameFramework/GameplayMessageSubsystem.h"
 
 // Sets default values
 AOvrlEnemyBase::AOvrlEnemyBase()
@@ -23,5 +26,18 @@ void AOvrlEnemyBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AOvrlEnemyBase::HandleDeath(AActor* InInstigator)
+{
+	FOvrlKillMessage KillMessage;
+	KillMessage.Killer = InInstigator;
+	KillMessage.Victim = this;
+
+	// Notify kill
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
+	MessageSystem.BroadcastMessage(OvrlCoreTags::EnemyKilled, KillMessage);
+
+	Super::HandleDeath(InInstigator);
 }
 

@@ -18,7 +18,7 @@ class OVERLINK_API UOvrlItemFragment_SetStats : public UOvrlItemFragment
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = Equipment)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Item Fragment")
 		TMap<FGameplayTag, int32> InitialItemStats;
 
 public:

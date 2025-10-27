@@ -11,6 +11,8 @@
 
 class AOvrlPlayerCharacter;
 class UOvrlCharacterMovementComponent;
+class AOvrlEquipmentInstance;
+class AOvrlRangedWeaponInstance;
 
 /**
  *
@@ -72,10 +74,4 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|IK", Transient)
 		FVector LeftHandIKLocation;
 
-	// ------ WEAPON ------
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		FTransform WeaponRecoil;	
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Weapon", Transient)
-		float WeaponCameraRecoil;
 };

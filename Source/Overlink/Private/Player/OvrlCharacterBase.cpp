@@ -12,7 +12,7 @@
 AOvrlCharacterBase::AOvrlCharacterBase(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	HealthComponent = CreateDefaultSubobject<UOvrlHealthComponent>(TEXT("HealthComponent"));
@@ -42,7 +42,7 @@ void AOvrlCharacterBase::BeginPlay()
 void AOvrlCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 }
 
 void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
@@ -50,4 +50,22 @@ void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 	OVRL_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
 
 	Destroy();
+}
+
+void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
+{
+	if (ensure(ObjectToEquip))
+	{
+		ObjectToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+	}
+}
+
+void AOvrlCharacterBase::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime)
+{
+	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+}
+
+UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const
+{
+	return GetOvrlAbilitySystemComponent();
 }

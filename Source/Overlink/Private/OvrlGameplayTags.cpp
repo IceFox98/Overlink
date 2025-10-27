@@ -2,6 +2,11 @@
 
 #include "OvrlGameplayTags.h"
 
+namespace OvrlCoreTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(EnemyKilled, "Ovrl.Core.EnemyKilled");
+};
+
 namespace OvrlAbilityTags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_IsDead, "Ovrl.Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
@@ -30,6 +35,7 @@ namespace OvrlLocomotionActionTags
 	UE_DEFINE_GAMEPLAY_TAG(Vaulting, "Ovrl.LocomotionAction.Vaulting");
 	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, "Ovrl.LocomotionAction.Ragdolling");
 	UE_DEFINE_GAMEPLAY_TAG(Sliding, "Ovrl.LocomotionAction.Sliding");
+	UE_DEFINE_GAMEPLAY_TAG(WallrunningVertical, "Ovrl.LocomotionAction.WallrunningVertical");
 	UE_DEFINE_GAMEPLAY_TAG(WallrunningLeft, "Ovrl.LocomotionAction.WallrunningLeft");
 	UE_DEFINE_GAMEPLAY_TAG(WallrunningRight, "Ovrl.LocomotionAction.WallrunningRight");
 	UE_DEFINE_GAMEPLAY_TAG(GettingUp, "Ovrl.LocomotionAction.GettingUp");
@@ -44,6 +50,7 @@ namespace OvrlViewModeTags
 namespace OvrlInputTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(Move, "Ovrl.InputTag.Move");
+	UE_DEFINE_GAMEPLAY_TAG(Run, "Ovrl.InputTag.Run");
 	UE_DEFINE_GAMEPLAY_TAG(Look_Mouse, "Ovrl.InputTag.LookMouse");
 	UE_DEFINE_GAMEPLAY_TAG(Crouch, "Ovrl.InputTag.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.InputTag.Jump");
@@ -69,6 +76,7 @@ namespace OvrlWeaponTags
 	UE_DEFINE_GAMEPLAY_TAG(Fire, "Ovrl.Weapon.Fire");
 	UE_DEFINE_GAMEPLAY_TAG(FireAuto, "Ovrl.Weapon.FireAuto");
 	UE_DEFINE_GAMEPLAY_TAG(Reload, "Ovrl.Weapon.Reload");
+	UE_DEFINE_GAMEPLAY_TAG(ReloadCompleted, "Ovrl.Weapon.ReloadCompleted");
 
 	UE_DEFINE_GAMEPLAY_TAG(MagazineAmmo, "Ovrl.Weapon.MagazineAmmo");
 	UE_DEFINE_GAMEPLAY_TAG(MagazineSize, "Ovrl.Weapon.MagazineSize");
@@ -80,3 +88,9 @@ namespace OvrlCheatTags
 	UE_DEFINE_GAMEPLAY_TAG(GodMode, "Ovrl.Cheat.GodMode");
 	UE_DEFINE_GAMEPLAY_TAG(UnlimitedHealth, "Ovrl.Cheat.UnlimitedHealth");
 }
+
+namespace OvrlUILayerTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(LayerGame, "Ovrl.UI.Layer.Game");
+	UE_DEFINE_GAMEPLAY_TAG(LayerMenu, "Ovrl.UI.Layer.Menu");
+};

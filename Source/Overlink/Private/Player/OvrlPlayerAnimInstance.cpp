@@ -6,8 +6,6 @@
 // Internal
 #include "Player/OvrlPlayerCharacter.h"	
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-#include "Inventory/OvrlInventoryComponent.h"
-#include "Weapons/OvrlRangedWeaponInstance.h"
 
 // Engine
 #include "AbilitySystemGlobals.h"
@@ -19,7 +17,7 @@ void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 	PlayerCharacter = Cast<AOvrlPlayerCharacter>(GetOwningActor());
 
 #if WITH_EDITOR
-	const UWorld* World = GetWorld() ;
+	const UWorld* World = GetWorld();
 
 	if (IsValid(World) && !World->IsGameWorld() && !IsValid(PlayerCharacter))
 	{
@@ -54,21 +52,11 @@ void UOvrlPlayerAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	LocomotionMode = CharacterMovementComponent->GetLocomotionMode();
 	Stance = CharacterMovementComponent->GetStance();
 	Gait = CharacterMovementComponent->GetGait();
-	//OverlayMode = CharacterMovementComponent->GetOverlayMode();
 	RightHandIKLocation = CharacterMovementComponent->GetRightHandIKLocation();
 	LeftHandIKLocation = CharacterMovementComponent->GetLeftHandIKLocation();
-
-	if (AOvrlRangedWeaponInstance* WeaponInstance = Cast<AOvrlRangedWeaponInstance>(PlayerCharacter->GetInventoryComponent()->GetSelectedItem()))
-	{
-		WeaponRecoil = WeaponInstance->GetWeaponKickbackRecoil();
-		WeaponCameraRecoil = WeaponInstance->GetWeaponCameraRecoil();
-	}
 }
 
 void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaTime);
-
-	//const FBasedMovementInfo& BasedMovement = Character->GetBasedMovement();
-
 }

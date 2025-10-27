@@ -1,27 +1,28 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Player/OvrlPlayerCharacter.h"
 
+// Internal
 #include "Player/Components/OvrlCameraComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Player/Components/OvrlHealthComponent.h"
 #include "Player/Components/OvrlInteractionComponent.h"
-#include "Player/Components/OvrlParkourComponent.h"
 #include "Player/Input/OvrlInputComponent.h"
 #include "Player/Input/OvrlInputConfig.h"
 #include "Inventory/OvrlInventoryComponent.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "OvrlUtils.h"
+
+// Engine
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Animations/OvrlLinkedAnimInstance.h"
 #include "MotionWarpingComponent.h"
-
 #include "Components/StaticMeshComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameplayEffectTypes.h"
+#include "Engine/StaticMeshActor.h"
 
-#include "OvrlUtils.h"
 
 AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOvrlCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -30,24 +31,24 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 
 	// Create a follow camera
 	CameraComp = CreateDefaultSubobject<UOvrlCameraComponent>(TEXT("CameraComp"));
-	CameraComp->SetupAttachment(RootComponent);
+	CameraComp->SetupAttachment(GetMesh(), TEXT("head"));
 	CameraComp->bUsePawnControlRotation = true; // Camera does not rotate relative to arm
+	CameraComp->FirstPersonScale = .2f; // Used to avoid arms compenetrating walls when too close
+	CameraComp->bEnableFirstPersonScale = true;
 
-	FPMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPMesh"));
-	FPMesh->SetupAttachment(CameraComp);
-	FPMesh->CastShadow = false;
+	GetMesh()->CastShadow = false;
+	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson; // Used to avoid arms compenetrating walls when too close
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetDisablePostProcessBlueprint(true);
 
 	FullBodyMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FullBodyMesh"));
 	FullBodyMesh->SetupAttachment(RootComponent);
-	FullBodyMesh->bOwnerNoSee = true;
-	FullBodyMesh->bCastHiddenShadow = true;
+	FullBodyMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FullBodyMesh->SetDisablePostProcessBlueprint(true);
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-
-	GetMesh()->CastShadow = false;
 
 	ThrowForce = 1200.f;
 }
@@ -81,20 +82,72 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Crouch, ETriggerEvent::Started, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Started, this, &ThisClass::Input_StartRun, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Completed, this, &ThisClass::Input_EndRun, /*bLogIfNotFound=*/ false);
 	}
 }
 
-void AOvrlPlayerCharacter::ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
+UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() const
 {
-	FPMesh->LinkAnimClassLayers(LayerClass);
-	FullBodyMesh->LinkAnimClassLayers(LayerClass);
+	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
+}
+
+void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
+{
+	if (GetMesh() && FullBodyMesh)
+	{
+		GetMesh()->LinkAnimClassLayers(LayerClass);
+		FullBodyMesh->LinkAnimClassLayers(LayerClass);
+	}
+}
+
+void AOvrlPlayerCharacter::RestoreAnimLayerClass()
+{
+	if (GetMesh() && FullBodyMesh)
+	{
+		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
+		FullBodyMesh->LinkAnimClassLayers(DefaultAnimLayerClass);
+	}
+}
+
+void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
+{
+	Super::EquipObject(ObjectToEquip, MeshToDisplay);
+
+	ensure(MeshToDisplay);
+
+	// Spawn static mesh that is only used to cast shadows
+	if (!IsValid(EquippedObjectMesh))
+	{
+		EquippedObjectMesh = GetWorld()->SpawnActor<AStaticMeshActor>();
+		EquippedObjectMesh->SetMobility(EComponentMobility::Movable);
+		EquippedObjectMesh->SetActorEnableCollision(false);
+		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+	}
+
+	if (EquippedObjectMesh)
+	{
+		EquippedObjectMesh->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
+		EquippedObjectMesh->SetActorHiddenInGame(false);
+	}
+}
+
+void AOvrlPlayerCharacter::UnequipObject()
+{
+	Super::UnequipObject();
+
+	if (EquippedObjectMesh)
+	{
+		EquippedObjectMesh->SetActorHiddenInGame(true);
+	}
 }
 
 void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
 {
-	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+	Super::PlayAnimMontage(MontageToPlay, StartTime);
+
 	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
-	FPMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
 }
 
 void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
@@ -163,15 +216,19 @@ void AOvrlPlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 	}
 }
 
-void AOvrlPlayerCharacter::Crouch(bool bClientSimulation/* = false*/)
+void AOvrlPlayerCharacter::Input_Crouch(const FInputActionValue& InputActionValue)
 {
-	Super::Crouch();
-
+	GetCharacterMovement()->HandleCrouching(!bIsCrouched);
 }
 
-void AOvrlPlayerCharacter::UnCrouch(bool bClientSimulation/* = false*/)
+void AOvrlPlayerCharacter::Input_StartRun(const FInputActionValue& InputActionValue)
 {
-	Super::UnCrouch();
+	GetCharacterMovement()->TryStartRunning();
+}
+
+void AOvrlPlayerCharacter::Input_EndRun(const FInputActionValue& InputActionValue)
+{
+	GetCharacterMovement()->StopRunning();
 }
 
 void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)

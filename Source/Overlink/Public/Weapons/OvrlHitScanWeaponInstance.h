@@ -22,4 +22,13 @@ public:
 public:
 
 	virtual void Fire(const FHitResult& HitData) override;
+
+protected:
+
+	virtual void SpawnTrailVFX(const FHitResult& HitData);
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Hit-Scan Weapon Instance", meta = (AllowPrivateAccess = true))
+		UNiagaraSystem* BulletTrailVFX;
 };

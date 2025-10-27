@@ -22,10 +22,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ovrl|Pickup")
 		TSubclassOf<UOvrlItemDefinition> ItemDefinition;
 
-	//Visual representation of the pickup
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup|Mesh")
-		UStaticMesh* DisplayMesh;
-
 	//Sets the height of the display mesh above the Weapon spawner
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup|Mesh")
 		FVector MeshScale = FVector(1.0f, 1.0f, 1.0f);

@@ -3,20 +3,23 @@
 
 #include "Inventory/OvrlItemInstance.h"
 #include "Inventory/OvrlItemDefinition.h"
+#include "Inventory/OvrlPickupDefinition.h"
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
+#include "Inventory/OvrlItemPickupActor.h"
 #include "Equipment/OvrlEquipmentInstance.h"
 #include "Equipment/OvrlEquipmentDefinition.h"
 
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/OvrlAbilitySet.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "AbilitySystemGlobals.h"
 
 UOvrlInventoryComponent::UOvrlInventoryComponent()
 {
 }
 
-UOvrlItemInstance* UOvrlInventoryComponent::AddItemDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount)
+UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount/* = 1*/)
 {
 	UOvrlItemInstance* ItemInstance = nullptr;
 
@@ -32,27 +35,34 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemDefinition(TSubclassOf<UOvrlI
 		}
 	}
 
+	AddItem(ItemInstance, StackCount);
+
+	return ItemInstance;
+}
+
+void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 StackCount)
+{
+	Items.Add(Item);
+
 	// Spawn Item if equippable
-	if (const UOvrlItemFragment_EquippableItem* EquipInfo = ItemInstance->FindFragmentByClass<UOvrlItemFragment_EquippableItem>())
+	if (const UOvrlItemFragment_EquippableItem* EquipInfo = Item->FindFragmentByClass<UOvrlItemFragment_EquippableItem>())
 	{
 		TSubclassOf<UOvrlEquipmentDefinition> EquipDefClass = EquipInfo->EquipmentDefinition;
 		if (EquipDefClass)
 		{
 			const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipDefClass);
 
-			AOvrlEquipmentInstance* EquippedItem = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->InstanceType);
-			EquippedItem->EquipmentDefinitionClass = EquipDefClass;
-			EquippedItem->AssociatedItem = ItemInstance;
-			EquippedItem->SetOwner(GetOwner());
-			EquippedItem->SetInstigator(Cast<APawn>(GetOwner()));
+			AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->InstanceType);
+			EquipmentInstance->EquipmentDefinitionClass = EquipDefClass;
+			EquipmentInstance->AssociatedItem = Item;
+			EquipmentInstance->SetOwner(GetOwner());
+			EquipmentInstance->SetInstigator(Cast<APawn>(GetOwner()));
 
-			EquippedItems.Emplace(EquippedItem);
+			EquippedItems.Emplace(EquipmentInstance);
 		}
 	}
 
 	SetActiveSlotIndex(EquippedItems.Num() - 1);
-
-	return ItemInstance;
 }
 
 UOvrlAbilitySystemComponent* UOvrlInventoryComponent::GetAbilitySystemComponent() const
@@ -73,7 +83,7 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 {
 	// You can equip a new Item only if there's no current equipped item.
 	// Be sure to call UnequipCurrentItem first
-	if (!SelectedItem && EquippedItems.IsValidIndex(SelectedIndex))
+	if (!EquippedItem && EquippedItems.IsValidIndex(SelectedIndex))
 	{
 		AOvrlEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
 		EquipInstance->OnEquipped();
@@ -89,22 +99,111 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 			}
 		}
 
-		SelectedItem = EquipInstance;
+		EquippedItem = EquipInstance;
+		OnItemEquipped.Broadcast(EquippedItem);
 	}
 }
+//
+//void UOvrlInventoryComponent::EquipItem(AOvrlEquipmentInstance* ItemToEquip)
+//{
+//	// You can equip a new Item only if there's no current equipped item.
+//	// Be sure to call UnequipCurrentItem first
+//	if (!EquippedItem && EquippedItems.IsValidIndex(SelectedIndex))
+//	{
+//		AOvrlEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
+//		EquipInstance->OnEquipped();
+//
+//		const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipInstance->EquipmentDefinitionClass);
+//
+//		if (UOvrlAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+//		{
+//			// When the item is equipped, we give all its abilities/effects/attributes to player's ASC
+//			for (TObjectPtr<const UOvrlAbilitySet> AbilitySet : EquipmentDef->AbilitySetsToGrant)
+//			{
+//				AbilitySet->GiveToAbilitySystem(ASC, /*inout*/ &EquipInstance->GrantedHandles, EquipInstance);
+//			}
+//		}
+//
+//		EquippedItem = EquipInstance;
+//		OnItemEquipped.Broadcast(EquippedItem);
+//	}
+//}
 
 void UOvrlInventoryComponent::UnequipItemInSlot()
 {
-	if (SelectedItem)
+	//if (EquippedItem)
+	//{
+	//	EquippedItem->OnUnequipped();
+
+	//	if (UOvrlAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+	//	{
+	//		// When unequip the item, remove all given abilities/effects/attributes from player's ASC
+	//		EquippedItem->GrantedHandles.TakeFromAbilitySystem(ASC);
+	//	}
+
+	//	EquippedItem = nullptr;
+	//}
+
+	UnequipItem(EquippedItem);
+	EquippedItem = nullptr;
+}
+
+void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip)
+{
+	if (ItemToUnequip)
 	{
-		SelectedItem->OnUnequipped();
+		ItemToUnequip->OnUnequipped();
 
 		if (UOvrlAbilitySystemComponent* ASC = GetAbilitySystemComponent())
 		{
 			// When unequip the item, remove all given abilities/effects/attributes from player's ASC
-			SelectedItem->GrantedHandles.TakeFromAbilitySystem(ASC);
+			ItemToUnequip->GrantedHandles.TakeFromAbilitySystem(ASC);
 		}
 
-		SelectedItem = nullptr;
+		//ItemToUnequip = nullptr;
 	}
+}
+
+//void UOvrlInventoryComponent::RemoveCurrentItem()
+//{
+//	RemoveItem(SelectedIndex);
+//}
+
+void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove)
+{
+	Items.Remove(ItemToRemove);
+
+	// Search if the item is also an equipment, in that case unequip it
+	for (auto It = EquippedItems.CreateIterator(); It; ++It)
+	{
+		AOvrlEquipmentInstance*& EquipInstance = *It;
+
+		if (EquipInstance && EquipInstance->GetAssociatedItem() == ItemToRemove)
+		{
+			UnequipItem(EquipInstance);
+			EquipInstance->Destroy();
+
+			It.RemoveCurrent();
+			// TODO: Set EquippedItem = nullptr?
+		}
+	}
+}
+
+void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop)
+{
+ 	if (!ItemToDrop)
+	{
+		return;
+	}
+
+	FTransform Offset;
+	Offset.SetLocation(FVector(300.f, 300.f, 20.f));
+	Offset.SetScale3D(FVector::ZeroVector);
+
+	AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(AOvrlItemPickupActor::StaticClass(), GetOwner()->GetActorTransform() + Offset);
+	ItemPickupActor->SetCachedItemInstance(ItemToDrop);
+
+	UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform() + Offset);
+
+	RemoveItem(ItemToDrop);
 }

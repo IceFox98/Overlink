@@ -12,7 +12,9 @@
 				"GameplayAbilities",
 				"Engine",
 				"EnhancedInput",
-				"CoreUObject"
+				"CoreUObject",
+				"UMG",
+				"CommonUI"
 			]
 		}
 	],
@@ -50,6 +52,10 @@
 		},
 		{
 			"Name": "MotionWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationWarping",
 			"Enabled": true
 		}
 	]

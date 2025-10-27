@@ -17,6 +17,14 @@ enum class ETraversalType : uint8
 	Mantle
 };
 
+enum class EWallrunType : uint8
+{
+	Vertical,
+	Left,
+	Right
+};
+
+
 struct FTraversalResult
 {
 	// Set to true if any traversal has been detected.
@@ -80,15 +88,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 		void OnPlayerLanded();
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-		void HandleCrouching(bool bInWantsToCrouch);
+	void TryStartRunning();
+	void StopRunning();
+	void HandleCrouching(bool bInWantsToCrouch);
 
-	FORCEINLINE bool IsWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
+	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
+	FORCEINLINE bool IsLateralWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
 
 	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
 
 	FORCEINLINE FVector GetRightHandIKLocation() const { return RightHandIKLocation; };
 	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
+
+	// Returns the last update velocity, but relative to the player
+	FVector GetRelativeLastUpdateVelocity();
+
+	bool IsMovingForward(float AngleFromForwardVector = 90.f);
 
 	// ------ LOCOMOTION ------
 
@@ -121,6 +138,7 @@ private:
 	void UpdateHandsIKTransform(const FTraversalResult& TraversalResult);
 
 	void FindLandingPoint(FTraversalResult& OutTraversalResult);
+	bool HandleTraversals();
 
 	// ------ VAULT ------
 	void HandleVault(const FTraversalResult& TraversalResult);
@@ -132,9 +150,11 @@ private:
 
 	void HandleWallrun(float DeltaTime);
 
-	bool HandleWallrunMovement(bool bIsLeftSide);
+	bool HandleVerticalWallrun(float DeltaTime);
+	bool HandleLateralWallrun(float DeltaTime, bool bIsLeftSide);
 	void HandleWallrunCameraTilt(float DeltaTime);
-	void HandleWallrunJump();
+	void HandleLateralWallrunJump();
+	void HandleVerticalWallrunJump();
 
 	void ResetWallrun();
 	void EndWallrun();
@@ -147,19 +167,8 @@ private:
 
 public:
 
-	// ------ LOCOMOTION ------
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Stance = OvrlStanceTags::Standing;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
-		FGameplayTag Gait = OvrlGaitTags::Walking;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
+		float MaxRunSpeed;
 
 	// -----------------------------
 	// ------ PARKOUR SECTION ------
@@ -229,6 +238,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 		FVector WallrunJumpVelocity;
 
+	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+		float VerticalWallrunMaxVelocity;
+
+	// How fast the vertical velocity of the wallrun decrease.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+		float VerticalWallrunVelocityFalloffSpeed;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+		FVector VerticalWallrunJumpVelocity;
+
 	// ------ SLIDING VARS ------
 
 	// Vector that will be added to the player position, used to get the slope of the floor.
@@ -246,6 +266,20 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 		float SlideMaxWalkSpeedCrouched;
+
+	// ------ LOCOMOTION ------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
+		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
+		FGameplayTag Stance = OvrlStanceTags::Standing;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
+		FGameplayTag Gait = OvrlGaitTags::Walking;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
+		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
 private:
 
@@ -268,6 +302,9 @@ private:
 
 	bool bCanCheckWallrun;
 	FVector WallrunNormal;
+
+	float VerticalWallrunAlpha;
+	float LateralWallrunAlpha;
 
 	// ------ SLIDING VARS ------
 

@@ -15,8 +15,10 @@ class USceneComponent;
 class UOvrlInventoryComponent;
 class UMotionWarpingComponent;
 class UOvrlInputConfig;
-class USpringArmComponent;
 class UInputMappingContext;
+class AStaticMeshActor;
+class UPlayerCameraFXConfig;
+class UPlayerSFXConfig;
 struct FInputActionValue;
 
 /**
@@ -41,26 +43,30 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
-		UOvrlCharacterMovementComponent* GetCharacterMovement() const { return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent()); };
+		UOvrlCharacterMovementComponent* GetCharacterMovement() const;
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
+	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
 
 public:
 
-	virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(FPMesh); }
+	//virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
 
-	virtual void ApplyAnimClassLayer(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
+	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
+	virtual void RestoreAnimLayerClass() override;
+	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay) override;
+	virtual void UnequipObject() override;
 
-	void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
+	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
 
 	// ------ MOVEMENT ------
 
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
-
-	virtual void Crouch(bool bClientSimulation = false) override;
-	virtual void UnCrouch(bool bClientSimulation = false) override;
+	void Input_Crouch(const FInputActionValue& InputActionValue);
+	void Input_StartRun(const FInputActionValue& InputActionValue);
+	void Input_EndRun(const FInputActionValue& InputActionValue);
 
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
@@ -89,9 +95,6 @@ protected:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USkeletalMeshComponent> FPMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		TObjectPtr<USkeletalMeshComponent> FullBodyMesh;
 
 	/** FPS camera */
@@ -110,7 +113,7 @@ protected:
 
 	// ------ LOCOMOTION ------
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
 public:
@@ -118,13 +121,24 @@ public:
 	// ------ INPUT ------
 
 	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl|Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 		TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Input")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 		TObjectPtr<UOvrlInputConfig> InputConfig;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throwing")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 		float ThrowForce;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character")
+		TObjectPtr<UPlayerSFXConfig> SFXConfig;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character")
+		TObjectPtr<UPlayerCameraFXConfig> CameraFXConfig;
+
+private:
+
+	UPROPERTY()
+		TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
 };

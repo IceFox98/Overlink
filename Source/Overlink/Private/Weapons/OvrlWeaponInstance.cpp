@@ -2,16 +2,20 @@
 
 
 #include "Weapons/OvrlWeaponInstance.h"
+#include "Core/OvrlDamageable.h"
 
 #include "Components/SphereComponent.h"
+#include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 AOvrlWeaponInstance::AOvrlWeaponInstance()
 {
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 
 	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
-	PickupSphere->SetupAttachment(RootComponent);
+	PickupSphere->SetupAttachment(WeaponMesh);
 }
 
 void AOvrlWeaponInstance::BeginPlay()
@@ -21,14 +25,43 @@ void AOvrlWeaponInstance::BeginPlay()
 	WeaponMesh->OnComponentHit.AddDynamic(this, &AOvrlWeaponInstance::OnWeaponHit);
 }
 
+void AOvrlWeaponInstance::OnEquipped()
+{
+	Super::OnEquipped();
+
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+}
+
+void AOvrlWeaponInstance::OnUnequipped()
+{
+	Super::OnUnequipped();
+
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::None;
+}
+
 void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
 {
 	K2_OnFire(HitData);
+
+	if (HitData.GetActor() && HitData.GetActor()->Implements<UOvrlDamageable>())
+	{
+		OnHitSomething.ExecuteIfBound(HitData);
+	}
 }
 
-void AOvrlWeaponInstance::Reload()
+void AOvrlWeaponInstance::StopFire()
 {
 	// No implementation
+}
+
+void AOvrlWeaponInstance::StartReloading()
+{
+	bIsReloading = true;
+}
+
+void AOvrlWeaponInstance::PerformReload()
+{
+	bIsReloading = false;
 }
 
 void AOvrlWeaponInstance::ToggleWeaponPhysics(bool bEnable)
@@ -78,4 +111,52 @@ void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 	);
 
 	SetActorRotation(FQuat(RotationMatrix));
+}
+
+void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
+{
+	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType1; // 1 -> Concrete
+
+	// Get impact surface
+	if (HitData.PhysMaterial.IsValid())
+	{
+		SurfaceType = HitData.PhysMaterial->SurfaceType;
+	}
+
+	// Get different effects depending on the surface type
+	FBulletImpactEffects ImpactEffects = BulletImpactEffects.FindRef(SurfaceType);
+
+	// Spawn impact decal effect
+	ensureAlwaysMsgf(ImpactEffects.ImpactDecal, TEXT("Did you forget to set the Effect in the map?"));
+	SpawnEffect(ImpactEffects.ImpactDecal, SurfaceType, HitData);
+
+	// Spawn bullet impact effect
+	ensureAlwaysMsgf(ImpactEffects.ImpactEffect, TEXT("Did you forget to set the Effect in the map?"));
+	SpawnEffect(ImpactEffects.ImpactEffect, SurfaceType, HitData);
+
+	// Play impact sound
+	ensureAlwaysMsgf(ImpactEffects.ImpactSound, TEXT("Did you forget to set the Effect in the map?"));
+	UGameplayStatics::PlaySoundAtLocation(this, ImpactEffects.ImpactSound, HitData.ImpactPoint);
+}
+
+void AOvrlWeaponInstance::SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData)
+{
+	UNiagaraComponent* EffectNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, HitData.ImpactPoint, FRotator::ZeroRotator, FVector::OneVector);
+	if (ensureAlways(EffectNiagaraComp))
+	{
+		// Update Niagara FX params
+		TArray<FVector> HitPositions;
+		HitPositions.Add(HitData.ImpactPoint);
+
+		TArray<FVector> HitNormals;
+		HitNormals.Add(HitData.ImpactNormal);
+
+		TArray<int32> SurfaceTypes;
+		SurfaceTypes.Add(SurfaceType);
+
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayPosition(EffectNiagaraComp, "User.ImpactPositions", HitPositions);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(EffectNiagaraComp, "User.ImpactNormals", HitNormals);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayInt32(EffectNiagaraComp, "User.ImpactSurfaces", SurfaceTypes);
+		EffectNiagaraComp->SetNiagaraVariableInt("User.NumberOfHits", 1);
+	}
 }

@@ -18,7 +18,16 @@ public class Overlink : ModuleRules
             "GameplayTasks",
             "GameplayAbilities",
             "MotionWarping",
-            "EngineSettings"
+            "EngineSettings",
+            "UMG",
+            "Slate",
+            "SlateCore",
+            "PhysicsCore",
+            "CommonUI",
+            "Niagara",
+            "GameplayMessageRuntime",
         });
+
+        OptimizeCode = CodeOptimization.InShippingBuildsOnly;
     }
 }

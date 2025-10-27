@@ -30,16 +30,33 @@ void AOvrlEquipmentInstance::Tick(float DeltaTime)
 
 }
 
+void AOvrlEquipmentInstance::Destroyed()
+{
+	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
+	{
+		// Remove object "preview" from owner
+		OwningPawn->UnequipObject();
+		OwningPawn->RestoreAnimLayerClass();
+	}
+
+	Super::Destroyed();
+}
+
 void AOvrlEquipmentInstance::OnEquipped()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
-		AttachToComponent(OwningPawn->GetEquipAttachmentComponent(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, OwningPawn->GripPointName);
-		// TODO: Spanw and attach skeletal mesh to FullBody mesh
-
 		bIsEquipped = true;
 
-		ApplyOverlayAnimation();
+		// Attach Display Mesh to 3rd person mesh
+		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
+		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
+
+		// Play equip montage
+		OwningPawn->PlayAnimMontage(EquipmentDefinition->EquipMontage);
+
+		// Apply anim layer class of the equip instance, used for 1st person mesh
+		ApplyOverlayAnimInstance();
 
 		SetActorHiddenInGame(false);
 		K2_OnEquipped();
@@ -54,12 +71,12 @@ void AOvrlEquipmentInstance::OnUnequipped()
 	K2_OnUnequipped();
 }
 
-void AOvrlEquipmentInstance::ApplyOverlayAnimation()
+void AOvrlEquipmentInstance::ApplyOverlayAnimInstance()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-		OwningPawn->ApplyAnimClassLayer(EquipmentDefinition->OverlayAnimInstance);
+		OwningPawn->ApplyAnimLayerClass(EquipmentDefinition->OverlayAnimInstance);
 	}
 }
 
