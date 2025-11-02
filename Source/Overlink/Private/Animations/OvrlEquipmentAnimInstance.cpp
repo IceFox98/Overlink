@@ -62,10 +62,14 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		UpdateMovementSway(DeltaTime);
 		UpdateWalkSway(DeltaTime);
 		UpdateJumpSway(DeltaTime);
-		UpdateRunningAlpha(DeltaTime);
 
 		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
+
+		const bool bShouldLean = CheckCrouchLeaning();
+		const float TargetCrouchLeanAlpha = bShouldLean ? 1.f : 0.f;
+		const float CrouchLeanSpeed = CalculateCrouchLeanSpeed();
+		CrouchLeanAlpha = FMath::FInterpTo(CrouchLeanAlpha, TargetCrouchLeanAlpha, DeltaTime, CrouchLeanSpeed);
 	}
 }
 
@@ -154,14 +158,17 @@ void UOvrlEquipmentAnimInstance::UpdateJumpSway(float DeltaTime)
 	JumpSwayRotation = FRotator(0.f, JumpRotationVector.Z, JumpRotationVector.X);
 }
 
-void UOvrlEquipmentAnimInstance::UpdateRunningAlpha(float DeltaTime)
-{
-	const bool bIsPlayerRunning = CharacterMovementComponent->IsRunning();
-	const float TargetRunningAlpha = bIsPlayerRunning ? 1.f : 0.f;
-	RunningAlpha = FMath::FInterpTo(RunningAlpha, TargetRunningAlpha, DeltaTime, RunningTransitionSpeed);
-}
-
 void UOvrlEquipmentAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)
 {
 	EquippedItem = NewEquippedItem;
+}
+
+bool UOvrlEquipmentAnimInstance::CheckCrouchLeaning()
+{
+	return CharacterMovementComponent->IsCrouching();
+}
+
+float UOvrlEquipmentAnimInstance::CalculateCrouchLeanSpeed()
+{
+	return 10.f;
 }

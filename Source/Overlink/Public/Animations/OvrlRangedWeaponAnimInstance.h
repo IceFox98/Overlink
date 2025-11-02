@@ -10,7 +10,7 @@
 class AOvrlRangedWeaponInstance;
 
 /**
- * 
+ *
  */
 UCLASS()
 class OVERLINK_API UOvrlRangedWeaponAnimInstance : public UOvrlEquipmentAnimInstance
@@ -28,6 +28,8 @@ public:
 protected:
 
 	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem) override;
+	virtual bool CheckCrouchLeaning() override;
+	virtual float CalculateCrouchLeanSpeed() override;
 
 private:
 
@@ -39,50 +41,50 @@ protected:
 
 	// How much of the looking sway animation should be applied during ADS
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
-		float LookingSwayAlphaADS;
+	float LookingSwayAlphaADS;
 
 	// How much of the movement sway animation should be applied during ADS
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
-		float MovementSwayAlphaADS;
-	
+	float MovementSwayAlphaADS;
+
 	// How much of the walk sway animation should be applied during ADS
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
-		float WalkSwayAlphaADS;
-	
+	float WalkSwayAlphaADS;
+
 	// How much of the jump sway animation should be applied during ADS
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Anim Instance|ADS Sway Aplha")
-		float JumpSwayAlphaADS;
+	float JumpSwayAlphaADS;
 
 	// ------- RUNTIME VALUES -------
 
 	// Represents the alpha of the ADS animation
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		float AimAlpha;
+	float AimAlpha;
 
 	// How quickly the weapon enters to ADS
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		float AimSpeed;
+	float AimSpeed;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FVector WeaponRecoilTranslation;
+	FVector WeaponRecoilTranslation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FRotator WeaponRecoilRotation;
+	FRotator WeaponRecoilRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		float WeaponCameraRecoil;
+	float WeaponCameraRecoil;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FVector WeaponAimTranslation;
+	FVector WeaponAimTranslation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FRotator WeaponAimRotation;
+	FRotator WeaponAimRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-		FVector WeaponLeftHandIKLocation;
+	FVector WeaponLeftHandIKLocation;
 
 protected:
 
 	UPROPERTY()
-		AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
+	AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
 };

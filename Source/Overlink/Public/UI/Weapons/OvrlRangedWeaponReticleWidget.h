@@ -7,6 +7,7 @@
 #include "OvrlRangedWeaponReticleWidget.generated.h"
 
 class UOvrlCircularReticleWidget;
+class UImage;
 
 /**
  *
@@ -37,9 +38,8 @@ private:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidget))
-		TObjectPtr<UOvrlCircularReticleWidget> CrosshairReticle;
+	TObjectPtr<UOvrlCircularReticleWidget> CrosshairReticle;
 
-private:
-
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidgetOptional))
+	TObjectPtr<UImage> CenterDot;
 };

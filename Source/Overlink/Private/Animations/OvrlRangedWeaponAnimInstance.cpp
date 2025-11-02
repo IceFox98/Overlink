@@ -58,3 +58,27 @@ void UOvrlRangedWeaponAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* Ne
 		EquippedWeapon = nullptr;
 	}
 }
+
+bool UOvrlRangedWeaponAnimInstance::CheckCrouchLeaning()
+{
+	const bool bBaseCheck = Super::CheckCrouchLeaning();
+
+	if (EquippedWeapon)
+	{
+		return bBaseCheck && !EquippedWeapon->IsADS();
+	}
+
+	return bBaseCheck;
+}
+
+float UOvrlRangedWeaponAnimInstance::CalculateCrouchLeanSpeed()
+{
+	const float BaseSpeed = Super::CalculateCrouchLeanSpeed();
+
+	if (EquippedWeapon && EquippedWeapon->IsADS())
+	{
+		return BaseSpeed * 3.f;
+	}
+
+	return BaseSpeed;
+}
