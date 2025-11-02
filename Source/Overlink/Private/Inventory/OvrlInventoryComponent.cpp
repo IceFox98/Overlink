@@ -57,6 +57,7 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 StackCount)
 			EquipmentInstance->AssociatedItem = Item;
 			EquipmentInstance->SetOwner(GetOwner());
 			EquipmentInstance->SetInstigator(Cast<APawn>(GetOwner()));
+			EquipmentInstance->SetDisplayMesh(GetDefault<UOvrlItemDefinition>(Item->GetItemDef())->DisplayMesh);
 
 			EquippedItems.Emplace(EquipmentInstance);
 		}

@@ -124,12 +124,16 @@ void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshT
 		EquippedObjectMesh->SetMobility(EComponentMobility::Movable);
 		EquippedObjectMesh->SetActorEnableCollision(false);
 		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+		EquippedObjectMesh->SetActorHiddenInGame(true);
 	}
 
 	if (EquippedObjectMesh)
 	{
 		EquippedObjectMesh->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
-		EquippedObjectMesh->SetActorHiddenInGame(false);
+
+		// Setup invisible mesh, able to cast shadows
+		EquippedObjectMesh->GetStaticMeshComponent()->CastShadow = true;
+		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = true;
 	}
 }
 
@@ -139,7 +143,7 @@ void AOvrlPlayerCharacter::UnequipObject()
 
 	if (EquippedObjectMesh)
 	{
-		EquippedObjectMesh->SetActorHiddenInGame(true);
+		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = false;
 	}
 }
 

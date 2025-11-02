@@ -37,13 +37,14 @@ public:
 	virtual void OnUnequipped();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Equipment Instance", meta = (DisplayName = "On Equipped"))
-		void K2_OnEquipped();
+	void K2_OnEquipped();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Equipment Instance", meta = (DisplayName = "On Unequipped"))
-		void K2_OnUnequipped();
+	void K2_OnUnequipped();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Instance")
-		FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+	FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
+	FORCEINLINE void SetDisplayMesh(UStaticMesh* InDisplayMesh) { DisplayMesh = InDisplayMesh; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 
@@ -55,10 +56,10 @@ protected:
 
 	// The equipment class that got equipped
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Instance")
-		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinitionClass;
+	TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinitionClass;
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Equipment Instance")
-		TObjectPtr<UOvrlItemInstance> AssociatedItem;
+	TObjectPtr<UOvrlItemInstance> AssociatedItem;
 
 private:
 
@@ -70,7 +71,10 @@ private:
 	bool bIsEquipped = false;
 
 	UPROPERTY()
-		TObjectPtr<USceneComponent> TargetToFollow;
+	TObjectPtr<USceneComponent> TargetToFollow;
+
+	UPROPERTY()
+	TWeakObjectPtr<UStaticMesh> DisplayMesh;
 
 	FVector RelativeLocation;
 };

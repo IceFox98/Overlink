@@ -32,7 +32,11 @@ void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, flo
 
 		CrosshairReticle->SetRadius(SpreadRadius);
 		CrosshairReticle->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
-		CenterDot->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
+
+		if (CenterDot)
+		{
+			CenterDot->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
+		}
 	}
 }
 

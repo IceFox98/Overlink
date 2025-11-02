@@ -49,10 +49,10 @@ void AOvrlEquipmentInstance::OnEquipped()
 		bIsEquipped = true;
 
 		// Attach Display Mesh to 3rd person mesh
-		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-		OwningPawn->EquipObject(this, EquipmentDefinition->DisplayMesh);
+		OwningPawn->EquipObject(this, DisplayMesh.Get());
 
 		// Play equip montage
+		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 		OwningPawn->PlayAnimMontage(EquipmentDefinition->EquipMontage);
 
 		// Apply anim layer class of the equip instance, used for 1st person mesh

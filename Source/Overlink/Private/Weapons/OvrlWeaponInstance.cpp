@@ -47,6 +47,8 @@ void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
 	{
 		OnHitSomething.ExecuteIfBound(HitData);
 	}
+
+	OnFired.Broadcast(this);
 }
 
 void AOvrlWeaponInstance::StopFire()

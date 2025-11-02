@@ -51,19 +51,28 @@ public:
 	FORCEINLINE float GetAimSpeed() const { return AimSpeed; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		FTransform GetMuzzleTransform() const;
+	FTransform GetMuzzleTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		FTransform GetLeftHandIKTransform() const;
+	FTransform GetLeftHandIKTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		FTransform GetAimTransform() const;
+	FTransform GetAimTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		bool IsADS() const { return bIsADS; };
+	bool IsADS() const { return bIsADS; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-		void ToggleADS(bool bEnable);
+	void ToggleADS(bool bEnable);
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+	int32 GetMagazineSize() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+	int32 GetMagazineAmmo() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
+	int32 GetSpareAmmo() const;
 
 protected:
 
@@ -79,90 +88,90 @@ protected:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-		FName MuzzleSocketName;
+	FName MuzzleSocketName;
 
 	// Number of bullets to fire in a single cartridge (typically 1, but may be more for shotguns)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-		int32 BulletsPerCartridge;
+	int32 BulletsPerCartridge;
 
 	// The maximum distance at which this weapon can deal damage
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ForceUnits = cm))
-		float MaxDamageRange;
+	float MaxDamageRange;
 
 	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
-		float FireRate;
+	float FireRate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-		TSoftObjectPtr<UAnimMontage> ReloadMontage;
+	TSoftObjectPtr<UAnimMontage> ReloadMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
-		TObjectPtr<UAnimSequence> FireAnimation;
+	TObjectPtr<UAnimSequence> FireAnimation;
 
 	// How quickly the weapon enters to ADS
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f))
-		float AimSpeed;
+	float AimSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim")
-		TObjectPtr<UOvrlWeaponSightDefinition> SightDefinition;
+	TObjectPtr<UOvrlWeaponSightDefinition> SightDefinition;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-		FTransform KickbackRecoil;
+	FTransform KickbackRecoil;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-		float KickbackRecoverySpeed;
+	float KickbackRecoverySpeed;
 
 	// The recoil that will be applied to the player camera (pitch).
 	// This value is accumulated each shot.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-		float CameraRecoil;
+	float CameraRecoil;
 
 	// The maximum camera recoil (accumulated) that the camera can reach.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-		float CameraMaxRecoil;
+	float CameraMaxRecoil;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-		float CameraRecoilRecoverySpeed;
+	float CameraRecoilRecoverySpeed;
 
 	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
-		float MinSpreadAngle;
+	float MinSpreadAngle;
 
 	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
-		float MaxSpreadAngle;
+	float MaxSpreadAngle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
-		float SpreadRecoverySpeed;
+	float SpreadRecoverySpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
-		FRuntimeFloatCurve HeatToSpread;
+	FRuntimeFloatCurve HeatToSpread;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
-		FRuntimeFloatCurve HeatToHeatPerShot;
+	FRuntimeFloatCurve HeatToHeatPerShot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
-		float SpreadMultiplierWalking;
+	float SpreadMultiplierWalking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
-		float SpreadMultiplierRunning;
+	float SpreadMultiplierRunning;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
-		float SpreadMultiplierCrouchStanding;
+	float SpreadMultiplierCrouchStanding;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
-		float SpreadMultiplierCrouchWalking;
+	float SpreadMultiplierCrouchWalking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
-		float SpreadMultiplierFalling;
+	float SpreadMultiplierFalling;
 
 
 private:
 
 	UPROPERTY()
-		TObjectPtr<UOvrlCharacterMovementComponent> OwnerMovementComp;
+	TObjectPtr<UOvrlCharacterMovementComponent> OwnerMovementComp;
 
 	UPROPERTY()
-		TObjectPtr<UOvrlCameraModifier_FOV> CameraFOV;
+	TObjectPtr<UOvrlCameraModifier_FOV> CameraFOV;
 
 	// Spread
 	float SpreadMultiplier;

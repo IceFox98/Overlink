@@ -54,6 +54,8 @@ void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 
 void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
 {
+	// MeshToDisplay is not used here, look at PlayerCharacter
+
 	if (ensure(ObjectToEquip))
 	{
 		ObjectToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);

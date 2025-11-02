@@ -10,6 +10,7 @@
 #include "OvrlWeaponInstance.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnHitSomething, const FHitResult& HitData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFired, AOvrlWeaponInstance*, Weapon);
 
 class USphereComponent;
 class USoundBase;
@@ -98,6 +99,9 @@ public:
 	TSubclassOf<UGameplayEffect> GE_Damage;
 
 	FOnHitSomething OnHitSomething;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnFired OnFired;
 
 protected:
 

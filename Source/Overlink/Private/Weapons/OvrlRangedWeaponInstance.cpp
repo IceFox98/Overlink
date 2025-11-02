@@ -315,3 +315,33 @@ FTransform AOvrlRangedWeaponInstance::GetAimTransform() const
 
 	return FTransform::Identity;
 }
+
+int32 AOvrlRangedWeaponInstance::GetMagazineSize() const
+{
+	if (AssociatedItem)
+	{
+		return AssociatedItem->GetTagStackCount(OvrlWeaponTags::MagazineSize);
+	}
+
+	return 0.0f;
+}
+
+int32 AOvrlRangedWeaponInstance::GetMagazineAmmo() const
+{
+	if (AssociatedItem)
+	{
+		return AssociatedItem->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
+	}
+
+	return 0.0f;
+}
+
+int32 AOvrlRangedWeaponInstance::GetSpareAmmo() const
+{
+	if (AssociatedItem)
+	{
+		return AssociatedItem->GetTagStackCount(OvrlWeaponTags::SpareAmmo);
+	}
+
+	return 0.0f;
+}

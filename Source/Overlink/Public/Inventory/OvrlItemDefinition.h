@@ -43,7 +43,7 @@ public:
 
 	//Visual representation of the item
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-		UStaticMesh* DisplayMesh;
+		TObjectPtr<UStaticMesh> DisplayMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Display, Instanced)
 		TArray<TObjectPtr<UOvrlItemFragment>> Fragments;

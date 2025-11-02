@@ -32,7 +32,4 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
 		TObjectPtr<UAnimMontage> EquipMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TObjectPtr<UStaticMesh> DisplayMesh;
 };
