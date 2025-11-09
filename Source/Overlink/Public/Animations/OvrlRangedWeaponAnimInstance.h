@@ -81,7 +81,7 @@ protected:
 	FRotator WeaponAimRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-	FVector WeaponLeftHandIKLocation;
+	FTransform LeftHandIKTransform;
 
 protected:
 

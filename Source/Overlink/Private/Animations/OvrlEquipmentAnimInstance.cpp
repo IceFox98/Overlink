@@ -62,14 +62,11 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		UpdateMovementSway(DeltaTime);
 		UpdateWalkSway(DeltaTime);
 		UpdateJumpSway(DeltaTime);
+		UpdateLeftHandIKAplha(DeltaTime);
+		UpdateCrouchLeanAlpha(DeltaTime);
 
 		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
-
-		const bool bShouldLean = CheckCrouchLeaning();
-		const float TargetCrouchLeanAlpha = bShouldLean ? 1.f : 0.f;
-		const float CrouchLeanSpeed = CalculateCrouchLeanSpeed();
-		CrouchLeanAlpha = FMath::FInterpTo(CrouchLeanAlpha, TargetCrouchLeanAlpha, DeltaTime, CrouchLeanSpeed);
 	}
 }
 
@@ -156,6 +153,21 @@ void UOvrlEquipmentAnimInstance::UpdateJumpSway(float DeltaTime)
 	// Calculate the rotation to apply when player jumps sideway
 	const FVector JumpRotationVector = FVector(JumpSwayTranslation.Y, 0.f, JumpSwayTranslation.Y) * -JumpSwayRotationMultiplier;
 	JumpSwayRotation = FRotator(0.f, JumpRotationVector.Z, JumpRotationVector.X);
+}
+
+void UOvrlEquipmentAnimInstance::UpdateCrouchLeanAlpha(float DeltaTime)
+{
+	const bool bShouldLean = CheckCrouchLeaning(); // Call virtual function
+	const float TargetCrouchLeanAlpha = bShouldLean ? 1.f : 0.f;
+	const float CrouchLeanSpeed = CalculateCrouchLeanSpeed();
+	CrouchLeanAlpha = FMath::FInterpTo(CrouchLeanAlpha, TargetCrouchLeanAlpha, DeltaTime, CrouchLeanSpeed);
+}
+
+void UOvrlEquipmentAnimInstance::UpdateLeftHandIKAplha(float DeltaTime)
+{
+	const bool bIsPlayerWallrunning = CharacterMovementComponent->IsWallrunning();
+	const float TargetLeftHandIKAlpha = bIsPlayerWallrunning ? 0.f : 1.f;
+	LeftHandIKAlpha = FMath::FInterpTo(LeftHandIKAlpha, TargetLeftHandIKAlpha, DeltaTime, 15.f);
 }
 
 void UOvrlEquipmentAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)

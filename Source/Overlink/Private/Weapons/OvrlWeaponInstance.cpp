@@ -6,6 +6,7 @@
 
 #include "Components/SphereComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
+#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
 AOvrlWeaponInstance::AOvrlWeaponInstance()
@@ -30,6 +31,12 @@ void AOvrlWeaponInstance::OnEquipped()
 	Super::OnEquipped();
 
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+
+	if (ACharacter* OwningPawn = Cast<ACharacter>(GetOwner()))
+	{
+		// Get First Person skeletal mesh
+		OwningSkeletalMesh = OwningPawn->GetMesh();
+	}
 }
 
 void AOvrlWeaponInstance::OnUnequipped()
@@ -64,6 +71,21 @@ void AOvrlWeaponInstance::StartReloading()
 void AOvrlWeaponInstance::PerformReload()
 {
 	bIsReloading = false;
+}
+
+FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
+{
+	if (ensure(WeaponMesh))
+	{
+		const FTransform SocketTransform = WeaponMesh->GetSocketTransform("LeftHandIK");
+		FVector OutPosition;
+		FRotator OutRotation;
+		OwningSkeletalMesh->TransformToBoneSpace("hand_r", SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
+
+		return { OutRotation, OutPosition, FVector::OneVector };
+	}
+
+	return FTransform::Identity;
 }
 
 void AOvrlWeaponInstance::ToggleWeaponPhysics(bool bEnable)

@@ -69,6 +69,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Weapon Instance")
 	virtual bool IsReloading() const { return bIsReloading; }
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
+	FTransform GetLeftHandIKTransform() const;
+
 	void ToggleWeaponPhysics(bool bEnable);
 
 protected:
@@ -107,6 +110,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
 	TMap<TEnumAsByte<EPhysicalSurface>, FBulletImpactEffects> BulletImpactEffects;
+
+	// Should be the skeletal mesh of the character holding the weapon
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
 
 private:
 

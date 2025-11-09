@@ -54,9 +54,6 @@ public:
 	FTransform GetMuzzleTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-	FTransform GetLeftHandIKTransform() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	FTransform GetAimTransform() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")

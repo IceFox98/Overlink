@@ -46,6 +46,8 @@ private:
 	void UpdateMovementSway(float DeltaTime);
 	void UpdateJumpSway(float DeltaTime);
 	void UpdateWalkSway(float DeltaTime);
+	void UpdateCrouchLeanAlpha(float DeltaTime);
+	void UpdateLeftHandIKAplha(float DeltaTime);
 
 protected:
 
@@ -143,6 +145,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Camera", Transient)
 	FRotator WallrunCameraTiltRotation;
+
+	// Represents the alpha of the weapon crouch leaning
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	float LeftHandIKAlpha;
+
+protected:
 
 	UPROPERTY()
 	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;

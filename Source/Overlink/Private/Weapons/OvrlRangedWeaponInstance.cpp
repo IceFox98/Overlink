@@ -276,10 +276,6 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 
 void AOvrlRangedWeaponInstance::PlayFireAnimation()
 {
-	//ensureMsgf(FireAnimation, TEXT("A ranged weapon should have a MuzzleFlashVFX set!"));
-	//const FTransform MuzzleTransform = GetMuzzleTransform();
-	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, MuzzleFlashVFX, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator(), FVector::OneVector);
-
 	if (ensure(WeaponMesh && FireAnimation))
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
@@ -296,21 +292,16 @@ FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
 	return FTransform::Identity;
 }
 
-FTransform AOvrlRangedWeaponInstance::GetLeftHandIKTransform() const
-{
-	if (ensure(WeaponMesh))
-	{
-		return WeaponMesh->GetSocketTransform("LeftHandIK", ERelativeTransformSpace::RTS_Component);
-	}
-
-	return FTransform::Identity;
-}
-
 FTransform AOvrlRangedWeaponInstance::GetAimTransform() const
 {
 	if (ensure(WeaponMesh))
 	{
-		return WeaponMesh->GetSocketTransform("AimSocket", ERelativeTransformSpace::RTS_Component);
+		const FTransform SocketTransform = WeaponMesh->GetSocketTransform("AimSocket");
+		FVector OutPosition;
+		FRotator OutRotation;
+		OwningSkeletalMesh->TransformToBoneSpace("hand_r", SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
+
+		return { OutRotation, OutPosition, FVector::OneVector };
 	}
 
 	return FTransform::Identity;

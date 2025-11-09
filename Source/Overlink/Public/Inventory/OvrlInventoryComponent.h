@@ -34,10 +34,10 @@ public:
 		//UItem* AddItemFromPickup(UPuzzleGuyPickupDefinition* PickupDef);
 
 	UFUNCTION(BlueprintCallable)
-		void DropItem(UOvrlItemInstance* ItemToDrop);
+	void DropItem(UOvrlItemInstance* ItemToDrop);
 
 	UFUNCTION(BlueprintCallable)
-		void RemoveItem(UOvrlItemInstance* ItemToRemove);
+	void RemoveItem(UOvrlItemInstance* ItemToRemove);
 
 	//UFUNCTION(BlueprintCallable)
 	//	void RemoveCurrentItem();
@@ -49,16 +49,16 @@ public:
 	//	void PrevItem();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-		FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
+	FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
 
 	//UFUNCTION(BlueprintCallable)
 	//	AActor* DropSelectedItem();
 
 	UFUNCTION(BlueprintCallable)
-		UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount = 1);
+	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable)
-		void AddItem(UOvrlItemInstance* Item, int32 StackCount);
+	void AddItem(UOvrlItemInstance* Item, int32 StackCount);
 
 private:
 
@@ -68,7 +68,7 @@ private:
 	//void UnequipCurrentItem();
 
 	UFUNCTION(BlueprintCallable)
-		void SetActiveSlotIndex(int32 NewIndex);
+	void SetActiveSlotIndex(int32 NewIndex);
 
 	//USceneComponent* GetItemHoldingPoint() const;
 	//USceneComponent* GetItemAttachComp() const;
@@ -83,18 +83,18 @@ private:
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
-		FOnItemEquipped OnItemEquipped;
+	FOnItemEquipped OnItemEquipped;
 
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<TObjectPtr<UOvrlItemInstance>> Items;
+	TArray<TObjectPtr<UOvrlItemInstance>> Items;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<AOvrlEquipmentInstance*> EquippedItems;
+	TArray<AOvrlEquipmentInstance*> EquippedItems;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TObjectPtr<AOvrlEquipmentInstance> EquippedItem;
+	TObjectPtr<AOvrlEquipmentInstance> EquippedItem;
 
 	int32 SelectedIndex;
 
