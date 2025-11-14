@@ -10,7 +10,7 @@
 class AOvrlRangedWeaponInstance;
 
 /**
- * 
+ *
  */
 UCLASS()
 class OVERLINK_API UOvrlGameplayAbility_HitScanWeaponFire : public UOvrlGameplayAbility
@@ -20,11 +20,11 @@ class OVERLINK_API UOvrlGameplayAbility_HitScanWeaponFire : public UOvrlGameplay
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Hit-Scan Weapon Fire")
-		void StartRangedWeaponTargeting();
+	void StartRangedWeaponTargeting();
 
 	// Called when target data is ready
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Hit-Scan Weapon Fire", meta = (DisplayName = "On Ranged Weapon Target Data Ready"))
-		void K2_OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
+	void K2_OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
 	virtual void OnAbilityInputReleased() override;
 

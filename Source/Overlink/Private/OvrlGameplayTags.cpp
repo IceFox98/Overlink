@@ -94,3 +94,8 @@ namespace OvrlUILayerTags
 	UE_DEFINE_GAMEPLAY_TAG(LayerGame, "Ovrl.UI.Layer.Game");
 	UE_DEFINE_GAMEPLAY_TAG(LayerMenu, "Ovrl.UI.Layer.Menu");
 };
+
+namespace OvrlGameplayCueTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(WeaponFire, "Ovrl.GameplayCue.WeaponFire");
+};

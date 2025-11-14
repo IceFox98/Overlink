@@ -17,6 +17,8 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 
 	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
 	PickupSphere->SetupAttachment(WeaponMesh);
+
+	LeftHandIKSocketName = TEXT("LeftHandIK");
 }
 
 void AOvrlWeaponInstance::BeginPlay()
@@ -75,12 +77,12 @@ void AOvrlWeaponInstance::PerformReload()
 
 FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
 {
-	if (ensure(WeaponMesh))
+	if (ensure(WeaponMesh && OwningSkeletalMesh))
 	{
-		const FTransform SocketTransform = WeaponMesh->GetSocketTransform("LeftHandIK");
+		const FTransform SocketTransform = WeaponMesh->GetSocketTransform(LeftHandIKSocketName);
 		FVector OutPosition;
 		FRotator OutRotation;
-		OwningSkeletalMesh->TransformToBoneSpace("hand_r", SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
+		OwningSkeletalMesh->TransformToBoneSpace(OwnerAttachBoneName, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
 
 		return { OutRotation, OutPosition, FVector::OneVector };
 	}

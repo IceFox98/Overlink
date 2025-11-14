@@ -87,6 +87,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	FName MuzzleSocketName;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	FName AimSocketName;
+
 	// Number of bullets to fire in a single cartridge (typically 1, but may be more for shotguns)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	int32 BulletsPerCartridge;
@@ -95,15 +98,18 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ForceUnits = cm))
 	float MaxDamageRange;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	TSoftObjectPtr<UAnimMontage> ReloadMontage;
+
 	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
 	float FireRate;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-	TSoftObjectPtr<UAnimMontage> ReloadMontage;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
 	TObjectPtr<UAnimSequence> FireAnimation;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Instance")
+	TObjectPtr<UCameraShakeBase> FireCameraShake;
 
 	// How quickly the weapon enters to ADS
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f))
@@ -160,7 +166,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread|Multipliers")
 	float SpreadMultiplierFalling;
-
 
 private:
 

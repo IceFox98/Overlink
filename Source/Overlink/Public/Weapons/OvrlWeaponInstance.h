@@ -98,6 +98,14 @@ public:
 
 public:
 
+	// Used for weapon IK. It's the name of the skeletal mesh IK bone to which this weapon is attached.
+	// NOTE: Don't use the socket name used to attach the actor, since it has different transform than hand.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	FName OwnerAttachBoneName = "hand_r";
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	FName LeftHandIKSocketName;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 	TSubclassOf<UGameplayEffect> GE_Damage;
 
@@ -117,5 +125,5 @@ protected:
 
 private:
 
-	bool bIsReloading;
+	bool bIsReloading = false;
 };

@@ -24,7 +24,8 @@ bool UOvrlCameraModifier_FOV::ModifyCamera(float DeltaTime, FMinimalViewInfo& In
 
 	InOutPOV.FOV = CurrentFOV;
 
-	return true;
+	// Return false to allow other modifiers to play (camera shakes)
+	return false;
 }
 
 void UOvrlCameraModifier_FOV::DisableModifier(bool bImmediate)

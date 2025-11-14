@@ -39,6 +39,9 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	SpreadMultiplierCrouchStanding = .5f;
 	SpreadMultiplierCrouchWalking = .75f;
 	SpreadMultiplierFalling = 2.f;
+
+	MuzzleSocketName = TEXT("Muzzle");
+	AimSocketName = TEXT("Aim");
 }
 
 void AOvrlRangedWeaponInstance::Tick(float DeltaTime)
@@ -294,12 +297,12 @@ FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
 
 FTransform AOvrlRangedWeaponInstance::GetAimTransform() const
 {
-	if (ensure(WeaponMesh))
+	if (ensure(WeaponMesh && OwningSkeletalMesh))
 	{
-		const FTransform SocketTransform = WeaponMesh->GetSocketTransform("AimSocket");
+		const FTransform SocketTransform = WeaponMesh->GetSocketTransform(AimSocketName);
 		FVector OutPosition;
 		FRotator OutRotation;
-		OwningSkeletalMesh->TransformToBoneSpace("hand_r", SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
+		OwningSkeletalMesh->TransformToBoneSpace(OwnerAttachBoneName, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
 
 		return { OutRotation, OutPosition, FVector::OneVector };
 	}
