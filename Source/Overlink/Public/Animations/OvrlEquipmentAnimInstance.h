@@ -61,11 +61,30 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch")
 	FRotator CrouchRotation;
 
-	// The maximum sway looking rotation limit the equipped item can reach on both axis X and Y
+	// The maximum sway looking rotation limit the equipped item can reach on both axis X and Y.
+	// This is to avoid excessive translation with rapid mouse movements.
 	// X -> Yaw Sway
 	// Y -> Pitch Sway
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
 	FVector2D LookingSwayRotationLimit;
+
+	// X -> Manages the forward/backward movement when Yaw rotation is applied
+	// Y -> Manages the vertical movement when Pitch rotation is applied
+	// Z -> Manages the vertical horizontal when Yaw rotation is applied
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	FVector LookingSwayMovementMultiplier;
+
+	// X -> Roll
+	// Y -> Pitch
+	// Z -> Yaw
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	FVector LookingSwayRotationMultiplier;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	float LookingSwayStiffness;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	float LookingSwayCriticalDampingFactor;
 
 	// The speed of the sway movement interpolation
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
@@ -107,9 +126,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float LookingSwayAlpha;
 
-	// Sway applied when moving the camera around (mouse movement)
+	// Translation sway applied when moving the camera around (mouse movement)
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FVector LookingSwayTranslation;
+
+	// Rotation sway applied when moving the camera around (mouse movement)
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
+	FRotator LookingSwayRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float MovementSwayAlpha;
@@ -160,8 +183,12 @@ protected:
 
 private:
 
-	FRotator LookingSwayRotation;
+	FRotator LastLookingSwayRotation;
 	FRotator LastPlayerCameraRotation;
 	FQuaternionSpringState SpringStateRotation;
 	FVectorSpringState SpringStateJump;
+
+	FVector LastLookingSwayTranslation;
+	FVectorSpringState SprintStateLookingSway;
+
 };

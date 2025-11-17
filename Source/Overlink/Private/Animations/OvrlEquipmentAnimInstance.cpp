@@ -26,6 +26,11 @@ UOvrlEquipmentAnimInstance::UOvrlEquipmentAnimInstance()
 	MovementSwayAlpha = 1.f;
 	WalkSwayAlpha = 1.f;
 	JumpSwayAlpha = 1.f;
+
+	LookingSwayRotationLimit = FVector2D::One();
+	LookingSwayMovementMultiplier = FVector::One();
+	LookingSwayStiffness = .5f;
+	LookingSwayCriticalDampingFactor = .8f;
 }
 
 void UOvrlEquipmentAnimInstance::NativeInitializeAnimation()
@@ -41,6 +46,8 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 
 	check(PlayerCharacter);
 	PlayerCharacter->GetInventoryComponent()->OnItemEquipped.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnNewItemEquipped);
+
+	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 
 	ensureAlways(WalkSwayCurve);
 	ensureAlways(JumpSwayCurve);
@@ -79,10 +86,48 @@ void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -LookingSwayRotationLimit.X, LookingSwayRotationLimit.X);
 	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
 
-	LookingSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(LookingSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, .5f, .8f, DeltaTime, 0.006f).Rotator();
+
+	// TODO: Forse non va preso il delta rotator ma semplicemente la rotazione corrente? Siccome sto interpolando
+
+
+
+	//LastLookingSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(LastLookingSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, LookingSwayStiffness, LookingSwayCriticalDampingFactor, DeltaTime, .0006f, .3f).Rotator();
+
+	// Speed = 3.5
+	LastLookingSwayRotation = UKismetMathLibrary::RInterpTo(LastLookingSwayRotation, TargetSwayRotation, DeltaTime, 3.5f); 
 
 	// Apply weapon sway looking to Anim BP
-	LookingSwayTranslation = FVector(0.f, LookingSwayRotation.Yaw, LookingSwayRotation.Pitch);
+	LookingSwayTranslation = FVector(
+		LastLookingSwayRotation.Yaw * LookingSwayMovementMultiplier.X,
+		LastLookingSwayRotation.Yaw * LookingSwayMovementMultiplier.Z,
+		LastLookingSwayRotation.Pitch * LookingSwayMovementMultiplier.Y
+	);
+
+	LookingSwayRotation = FRotator(
+		LastLookingSwayRotation.Pitch * LookingSwayRotationMultiplier.Y,
+		LastLookingSwayRotation.Yaw * LookingSwayRotationMultiplier.Z,
+		LastLookingSwayRotation.Yaw * LookingSwayRotationMultiplier.X
+	);
+
+
+
+
+	//const FVector CameraDelta = FVector(SwayYaw, SwayPitch, 0.f);
+
+	//LastLookingSwayTranslation = UKismetMathLibrary::VectorSpringInterp(LastLookingSwayTranslation, CameraDelta, SprintStateLookingSway, LookingSwayStiffness, LookingSwayCriticalDampingFactor, DeltaTime, 1.f, 0.3f);
+
+	//// Apply weapon sway looking to Anim BP
+	//LookingSwayTranslation = FVector(
+	//	LastLookingSwayTranslation.X * LookingSwayMovementMultiplier.X,
+	//	LastLookingSwayTranslation.X * LookingSwayMovementMultiplier.Z,
+	//	LastLookingSwayTranslation.Y * LookingSwayMovementMultiplier.Y
+	//);
+
+	//LookingSwayRotation = FRotator(
+	//	LastLookingSwayTranslation.Y * LookingSwayRotationMultiplier.Y,
+	//	LastLookingSwayTranslation.X * LookingSwayRotationMultiplier.Z,
+	//	LastLookingSwayTranslation.X * LookingSwayRotationMultiplier.X
+	//);
 
 	// Save the last sway rotation
 	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
