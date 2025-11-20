@@ -21,6 +21,7 @@ UOvrlEquipmentAnimInstance::UOvrlEquipmentAnimInstance()
 	MovementSwayMultiplier = 1.f;
 	MovementSwayRollMultiplier = 2.f;
 	WalkSwaySpeed = 20.f;
+	WalkSwayFrequency = 3.f;
 
 	LookingSwayAlpha = 1.f;
 	MovementSwayAlpha = 1.f;
@@ -168,7 +169,7 @@ void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
 		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime);
 		const FVector RotationCurve = WalkSwayRotationCurve->GetVectorValue(WalkSwayTime);
 		TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
-		WalkSwayTime += DeltaTime;
+		WalkSwayTime += DeltaTime * WalkSwayFrequency;
 	}
 	else
 	{
@@ -178,6 +179,10 @@ void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
 	// Simulate a walk animation
 	WalkSwayTranslation = FMath::VInterpTo(WalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed);
 	WalkSwayRotation = FMath::RInterpTo(WalkSwayRotation, TargetWalkSwayRotation, DeltaTime, WalkSwaySpeed);
+
+	//// Simulate a walk animation
+	//WalkSwayTranslation = TargetWalkSwayTranslation;
+	//WalkSwayRotation = TargetWalkSwayRotation;
 
 	//// Calculate the rotation to apply when player walk
 	//const FVector WalkRotationVector = WalkSwayTranslation * WalkSwayRotationMultiplier;

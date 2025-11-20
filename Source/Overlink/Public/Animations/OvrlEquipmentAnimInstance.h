@@ -98,6 +98,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
 	float MovementSwayRollMultiplier;
 
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	float WalkSwayFrequency;
+
 	// This curve defines the movement of the equipped item while the player is walking
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
 	TObjectPtr<UCurveVector> WalkSwayTranslationCurve;
