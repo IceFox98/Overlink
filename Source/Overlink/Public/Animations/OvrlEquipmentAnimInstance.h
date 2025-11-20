@@ -100,7 +100,11 @@ protected:
 
 	// This curve defines the movement of the equipped item while the player is walking
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
-	TObjectPtr<UCurveVector> WalkSwayCurve;
+	TObjectPtr<UCurveVector> WalkSwayTranslationCurve;
+
+	// This curve defines the rotation of the equipped item while the player is walking
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	TObjectPtr<UCurveVector> WalkSwayRotationCurve;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
 	FVector WalkSwayRotationMultiplier;
@@ -191,4 +195,5 @@ private:
 	FVector LastLookingSwayTranslation;
 	FVectorSpringState SprintStateLookingSway;
 
+	float WalkSwayTime = 0.f;
 };

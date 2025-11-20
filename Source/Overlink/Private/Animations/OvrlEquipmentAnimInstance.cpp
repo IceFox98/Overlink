@@ -49,7 +49,8 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 
 	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 
-	ensureAlways(WalkSwayCurve);
+	ensureAlways(WalkSwayTranslationCurve);
+	ensureAlways(WalkSwayRotationCurve);
 	ensureAlways(JumpSwayCurve);
 }
 
@@ -85,11 +86,6 @@ void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -LookingSwayRotationLimit.Y, LookingSwayRotationLimit.Y);
 	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -LookingSwayRotationLimit.X, LookingSwayRotationLimit.X);
 	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
-
-
-	// TODO: Forse non va preso il delta rotator ma semplicemente la rotazione corrente? Siccome sto interpolando
-
-
 
 	//LastLookingSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(LastLookingSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, LookingSwayStiffness, LookingSwayCriticalDampingFactor, DeltaTime, .0006f, .3f).Rotator();
 
@@ -151,26 +147,41 @@ void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
 
 void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
 {
-	if (!WalkSwayCurve)
+	if (!WalkSwayTranslationCurve)
 	{
-		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayCurve is NULL!");
+		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
 		return;
 	}
 
-	FVector TargetSwayWalk = FVector::ZeroVector;
+	if (!WalkSwayRotationCurve)
+	{
+		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayRotationCurve is NULL!");
+		return;
+	}
+
+	FVector TargetWalkSwayTranslation = FVector::ZeroVector;
+	FRotator TargetWalkSwayRotation = FRotator::ZeroRotator;
 
 	// Read the value only when player moves
 	if (CharacterMovementComponent->GetLastInputVector().Length() > 0.f)
 	{
-		TargetSwayWalk = WalkSwayCurve->GetVectorValue(GetWorld()->GetTimeSeconds());
+		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime);
+		const FVector RotationCurve = WalkSwayRotationCurve->GetVectorValue(WalkSwayTime);
+		TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+		WalkSwayTime += DeltaTime;
+	}
+	else
+	{
+		WalkSwayTime = 0.f;
 	}
 
 	// Simulate a walk animation
-	WalkSwayTranslation = FMath::VInterpTo(WalkSwayTranslation, TargetSwayWalk, DeltaTime, WalkSwaySpeed);
+	WalkSwayTranslation = FMath::VInterpTo(WalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed);
+	WalkSwayRotation = FMath::RInterpTo(WalkSwayRotation, TargetWalkSwayRotation, DeltaTime, WalkSwaySpeed);
 
-	// Calculate the rotation to apply when player walk
-	const FVector WalkRotationVector = WalkSwayTranslation * WalkSwayRotationMultiplier;
-	WalkSwayRotation = FRotator(WalkRotationVector.Y, WalkRotationVector.Z, WalkRotationVector.X);
+	//// Calculate the rotation to apply when player walk
+	//const FVector WalkRotationVector = WalkSwayTranslation * WalkSwayRotationMultiplier;
+	//WalkSwayRotation = FRotator(WalkRotationVector.Y, WalkRotationVector.Z, WalkRotationVector.X);
 }
 
 void UOvrlEquipmentAnimInstance::UpdateJumpSway(float DeltaTime)
