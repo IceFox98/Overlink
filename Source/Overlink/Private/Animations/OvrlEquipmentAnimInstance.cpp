@@ -9,6 +9,7 @@
 #include "Inventory/OvrlInventoryComponent.h"
 #include "Weapons/OvrlRangedWeaponInstance.h"
 #include "Player/Components/OvrlCameraComponent.h"
+#include "Player/OvrlPlayerAnimInstance.h"
 #include "OvrlUtils.h"
 #include "Overlink.h"
 
@@ -62,6 +63,7 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 
+	//GetParent()->
 }
 
 void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
@@ -142,11 +144,11 @@ void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
 	const float ForwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorForwardVector()) / CharacterMovementComponent->MaxWalkSpeed;
 	const float RightwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorRightVector()) / CharacterMovementComponent->MaxWalkSpeed;
 
-	const FVector TargetMovementAmount = FVector(ForwardAmount, RightwardAmount, 0.f) * MovementSwayMultiplier;
+	const FVector TargetMovementAmount = FVector(RightwardAmount, -ForwardAmount, 0.f) * MovementSwayMultiplier;
 
 	MovementSwayTranslation = FMath::VInterpTo(MovementSwayTranslation, TargetMovementAmount, DeltaTime, MovementSwaySpeed);
 
-	MovementSwayRotation = FRotator(0.f, 0.f, FMath::Clamp(MovementSwayTranslation.Y, -1.f, 1.f) * -MovementSwayRollMultiplier);
+	MovementSwayRotation = FRotator(FMath::Clamp(MovementSwayTranslation.X, -1.f, 1.f) * -MovementSwayRollMultiplier, 0.f, 0.f);
 }
 
 void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
@@ -168,13 +170,13 @@ void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
 
 	const FVector LastInputVector = CharacterMovementComponent->GetLastInputVector();
 
-	const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
-	const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
-
 	// Read the value only when player moves
 	if (LastInputVector.Length() > 0.f)
 	{
-		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime) * WalkSwayTranslationMultiplier * FVector(ForwardAmount, 1.f, 1.f);
+		const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
+		const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
+
+		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime) * WalkSwayTranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
 
 		const FVector RotationCurve = WalkSwayRotationCurve->GetVectorValue(WalkSwayTime) * WalkSwayRotationMultiplier;
 		TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);

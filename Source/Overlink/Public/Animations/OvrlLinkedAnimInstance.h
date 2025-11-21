@@ -32,13 +32,13 @@ public:
 	// variables that change in other functions can be dangerous because they can be changed in the game thread
 	// at the same time as being read in the worker thread, which can lead to undefined behavior or even a crash.
 	UFUNCTION(BlueprintPure, Category = "ALS|Linked Animation Instance", Meta = (BlueprintThreadSafe, ReturnDisplayName = "Parent"))
-		UOvrlPlayerAnimInstance* GetParent() const;
+	UOvrlPlayerAnimInstance* GetParent() const;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "State", Transient)
-		TWeakObjectPtr<UOvrlPlayerAnimInstance> Parent;
+	TWeakObjectPtr<UOvrlPlayerAnimInstance> Parent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-		TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
+	TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
 
 };
