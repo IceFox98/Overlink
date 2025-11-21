@@ -25,6 +25,7 @@ namespace OvrlLocomotionModeTags
 
 namespace OvrlGaitTags
 {
+	UE_DEFINE_GAMEPLAY_TAG(Idle, "Ovrl.Gait.Idle");
 	UE_DEFINE_GAMEPLAY_TAG(Walking, "Ovrl.Gait.Walking");
 	UE_DEFINE_GAMEPLAY_TAG(Running, "Ovrl.Gait.Running");
 }

@@ -65,63 +65,69 @@ protected:
 	// This is to avoid excessive translation with rapid mouse movements.
 	// X -> Yaw Sway
 	// Y -> Pitch Sway
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
 	FVector2D LookingSwayRotationLimit;
 
 	// X -> Manages the forward/backward movement when Yaw rotation is applied
 	// Y -> Manages the vertical movement when Pitch rotation is applied
 	// Z -> Manages the vertical horizontal when Yaw rotation is applied
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
 	FVector LookingSwayMovementMultiplier;
 
 	// X -> Roll
 	// Y -> Pitch
 	// Z -> Yaw
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
 	FVector LookingSwayRotationMultiplier;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
 	float LookingSwayStiffness;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Looking")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
 	float LookingSwayCriticalDampingFactor;
 
 	// The speed of the sway movement interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Movement Sway")
 	float MovementSwaySpeed;
 
 	// How much the equipped item should move, when the player moves sideway
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Movement Sway")
 	float MovementSwayMultiplier;
 
 	// How much the equipped item should roll, when the player moves sideway
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Movement")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Movement Sway")
 	float MovementSwayRollMultiplier;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	float WalkSwayFrequency;
 
 	// This curve defines the movement of the equipped item while the player is walking
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	TObjectPtr<UCurveVector> WalkSwayTranslationCurve;
 
 	// This curve defines the rotation of the equipped item while the player is walking
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	TObjectPtr<UCurveVector> WalkSwayRotationCurve;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
+	FVector WalkSwayTranslationMultiplier;
+
+	// X -> Roll
+	// Y -> Pitch
+	// Z -> Yaw
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	FVector WalkSwayRotationMultiplier;
 
 	// The speed of the walk sway interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Walk")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	float WalkSwaySpeed;
 
 	// This curve defines the movement of this equipped item while the player is walking
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Jump")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Jump Sway")
 	TObjectPtr<UCurveVector> JumpSwayCurve;
 
 	// Multiplier applied when player jumps while moving right/left
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Sway Jump")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Jump Sway")
 	FVector JumpSwayRotationMultiplier;
 
 	// ------- RUNTIME VALUES -------

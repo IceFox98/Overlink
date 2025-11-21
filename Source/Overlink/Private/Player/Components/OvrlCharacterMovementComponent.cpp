@@ -100,6 +100,8 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	UpdateGaitStatus();
+
 	HandleWallrun(DeltaTime);
 
 	if (ShouldCancelSliding())
@@ -107,6 +109,28 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 		// TODO: Replace with Gameplay Ability
 		//Character->UnCrouch();
 		CancelSliding();
+	}
+}
+
+void UOvrlCharacterMovementComponent::UpdateGaitStatus()
+{
+	const float LastInputVectorLength = GetLastInputVector().Length();
+	if (LastInputVectorLength <= KINDA_SMALL_NUMBER)
+	{
+		if (Gait == OvrlGaitTags::Running)
+		{
+			StopRunning();
+		}
+
+		SetGait(OvrlGaitTags::Idle);
+	}
+	else if (MaxWalkSpeed <= DefaultMaxWalkSpeed)
+	{
+		SetGait(OvrlGaitTags::Walking);
+	}
+	else
+	{
+		SetGait(OvrlGaitTags::Running);
 	}
 }
 
@@ -421,20 +445,15 @@ void UOvrlCharacterMovementComponent::OnPlayerLanded()
 	}
 }
 
-void UOvrlCharacterMovementComponent::TryStartRunning()
+void UOvrlCharacterMovementComponent::StartRunning()
 {
-	if (GetLastUpdateVelocity().Length() > 0.f)
-	{
-		HandleCrouching(false);
-		MaxWalkSpeed = MaxRunSpeed;
-		SetGait(OvrlGaitTags::Running);
-	}
+	HandleCrouching(false);
+	MaxWalkSpeed = MaxRunSpeed;
 }
 
 void UOvrlCharacterMovementComponent::StopRunning()
 {
 	MaxWalkSpeed = DefaultMaxWalkSpeed;
-	SetGait(OvrlGaitTags::Walking);
 }
 
 void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)

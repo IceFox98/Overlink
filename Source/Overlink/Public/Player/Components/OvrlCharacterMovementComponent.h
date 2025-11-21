@@ -80,16 +80,17 @@ public:
 	// ------ TRAVERSALS ------
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-		void ResetTraversal();
+	void ResetTraversal();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-		void OnPlayerJumped();
+	void OnPlayerJumped();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-		void OnPlayerLanded();
+	void OnPlayerLanded();
 
-	void TryStartRunning();
+	void StartRunning();
 	void StopRunning();
+
 	void HandleCrouching(bool bInWantsToCrouch);
 
 	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
@@ -122,10 +123,11 @@ public:
 protected:
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
-
 	virtual void BeginPlay() override;
 
 private:
+
+	void UpdateGaitStatus();
 
 	// ------------------------
 	// ------ TRAVERSALS ------
@@ -168,7 +170,7 @@ private:
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
-		float MaxRunSpeed;
+	float MaxRunSpeed;
 
 	// -----------------------------
 	// ------ PARKOUR SECTION ------
@@ -179,114 +181,114 @@ public:
 	// The distance (forward and upward) to check if there are any traversals in front of us.
 	// The forward check starts from the center of the player, whereas the upward check starts from the top of the player capsule
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-		FVector2D TraversalCheckDistance;
+	FVector2D TraversalCheckDistance;
 
 	// The distance between the back edge traversal and where the player should land
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-		float TraversalLandingPointDistance;
+	float TraversalLandingPointDistance;
 
 	// The minimum distance the landing point should have, from back edge to floor level
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-		float MinLandingPointHeight;
+	float MinLandingPointHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-		float MaxLandingPointHeight;
+	float MaxLandingPointHeight;
 
 	// The offset between the front edge and the player right hand.
 	// The value will be mirrored for the left hand.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-		FVector2D TraversalHandOffset;
+	FVector2D TraversalHandOffset;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
-		FName StartTraversalWarpTargetName;
+	FName StartTraversalWarpTargetName;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
-		FName EndTraversalWarpTargetName;
+	FName EndTraversalWarpTargetName;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
-		float MaxVaultHeight;
+	float MaxVaultHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
-		TObjectPtr<UAnimMontage> VaultOverMontage;
+	TObjectPtr<UAnimMontage> VaultOverMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
-		TObjectPtr<UAnimMontage> VaultClimbUpMontage;
+	TObjectPtr<UAnimMontage> VaultClimbUpMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
-		float MaxMantleHeight;
+	float MaxMantleHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
-		float MaxMantleDistance;
+	float MaxMantleDistance;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
-		TObjectPtr<UAnimMontage> MantleMontage;
+	TObjectPtr<UAnimMontage> MantleMontage;
 
 	// ------ WALLRUN VARS ------
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float WallrunCheckDistance;
+	float WallrunCheckDistance;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float WallrunCheckAngle;
+	float WallrunCheckAngle;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float WallrunCameraTiltAngle;
+	float WallrunCameraTiltAngle;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float WallrunResetTime;
+	float WallrunResetTime;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		FVector WallrunJumpVelocity;
+	FVector WallrunJumpVelocity;
 
 	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float VerticalWallrunMaxVelocity;
+	float VerticalWallrunMaxVelocity;
 
 	// How fast the vertical velocity of the wallrun decrease.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		float VerticalWallrunVelocityFalloffSpeed;
+	float VerticalWallrunVelocityFalloffSpeed;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-		FVector VerticalWallrunJumpVelocity;
+	FVector VerticalWallrunJumpVelocity;
 
 	// ------ SLIDING VARS ------
 
 	// Vector that will be added to the player position, used to get the slope of the floor.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
-		float SlideDistanceCheck;
+	float SlideDistanceCheck;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
-		float SlideForce;
+	float SlideForce;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
-		float SlideGroundFriction;
+	float SlideGroundFriction;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
-		float SlideBraking;
+	float SlideBraking;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
-		float SlideMaxWalkSpeedCrouched;
+	float SlideMaxWalkSpeedCrouched;
 
 	// ------ LOCOMOTION ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
-		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
+	FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
-		FGameplayTag Stance = OvrlStanceTags::Standing;
+	FGameplayTag Stance = OvrlStanceTags::Standing;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States")
-		FGameplayTag Gait = OvrlGaitTags::Walking;
+	FGameplayTag Gait = OvrlGaitTags::Walking;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
-		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+	FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
 private:
 
 	// ------ DEFAULT VALUES ------
 
 	UPROPERTY()
-		TObjectPtr<AOvrlPlayerCharacter> Character;
+	TObjectPtr<AOvrlPlayerCharacter> Character;
 
 	float DefaultGravity;
 	float DefaultMaxWalkSpeed;
