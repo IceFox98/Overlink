@@ -35,43 +35,69 @@ public:
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
-		TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
+	TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
-		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
+	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
 	// ------ STATES ------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ovrl Player Anim Instance|States")
-		FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ovrl Player Anim Instance|States", Transient)
+	FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
-		FGameplayTag Stance = OvrlStanceTags::Standing;
+	FGameplayTag Stance = OvrlStanceTags::Standing;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
-		FGameplayTag Gait = OvrlGaitTags::Walking;
+	FGameplayTag Gait = OvrlGaitTags::Walking;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
-		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
+	FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
-		FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+	FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
 	// Gameplay tags that can be mapped to blueprint variables. The variables will automatically update as the tags are added or removed.
 	// These should be used instead of manually querying for the gameplay tags.
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Player Anim Instance|GameplayTags")
-		FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
+	FGameplayTagBlueprintPropertyMap GameplayTagPropertyMap;
+
+	// ------ MOVEMENT DATA ------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	FRotator SpineRotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	float PitchAngle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsFalling;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsCrouching;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsMoving;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsRunning;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsSliding;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsWallrunning;
 
 	// ------ IK ------
 
 	// The location of where the right should be placed (World space).
 	// Useful for mantling animation or similar.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|IK", Transient)
-		FVector RightHandIKLocation;
+	FVector RightHandIKLocation;
 
 	// The location of where the left should be placed (World space)
 	// Useful for mantling animation or similar.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|IK", Transient)
-		FVector LeftHandIKLocation;
+	FVector LeftHandIKLocation;
 
 };
