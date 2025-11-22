@@ -63,7 +63,7 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 
-	//GetParent()->
+	SpineRotation = GetParent()->GetSpineRotation();
 }
 
 void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
@@ -146,9 +146,13 @@ void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
 
 	const FVector TargetMovementAmount = FVector(RightwardAmount, -ForwardAmount, 0.f) * MovementSwayMultiplier;
 
-	MovementSwayTranslation = FMath::VInterpTo(MovementSwayTranslation, TargetMovementAmount, DeltaTime, MovementSwaySpeed);
+	LastMovementSwayTranslation = FMath::VInterpTo(LastMovementSwayTranslation, TargetMovementAmount, DeltaTime, MovementSwaySpeed);
 
-	MovementSwayRotation = FRotator(FMath::Clamp(MovementSwayTranslation.X, -1.f, 1.f) * -MovementSwayRollMultiplier, 0.f, 0.f);
+	MovementSwayRotation = FRotator(FMath::Clamp(LastMovementSwayTranslation.X, -1.f, 1.f) * -MovementSwayRollMultiplier, 0.f, 0.f);
+
+	// Since its in component space, I have to rotate the vector in order to follow the player aim.
+	// I do this just for the anim BP, that's why I use 2 different variables.
+	MovementSwayTranslation = SpineRotation.RotateVector(LastMovementSwayTranslation);
 }
 
 void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
@@ -188,8 +192,12 @@ void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
 		WalkSwayTime = 0.f;
 	}
 
-	// Simulate a walk animation
-	WalkSwayTranslation = FMath::VInterpTo(WalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed);
+	LastWalkSwayTranslation = FMath::VInterpTo(LastWalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed);
+
+	// Since its in component space, we have to rotate the vector in order to follow the player aim
+	// I do this just for the anim BP, that's why I use 2 different variables.
+	WalkSwayTranslation = SpineRotation.RotateVector(LastWalkSwayTranslation);
+
 	WalkSwayRotation = FMath::RInterpTo(WalkSwayRotation, TargetWalkSwayRotation, DeltaTime, WalkSwaySpeed);
 }
 

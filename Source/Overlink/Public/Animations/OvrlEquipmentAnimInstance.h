@@ -53,6 +53,12 @@ protected:
 
 	// ------- CONFIG VARIABLES -------
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
+	FVector RightHandInitialLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
+	FRotator RightHandInitialRotation;
+
 	// Translation applied to the weapon when player is crouching
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch")
 	FVector CrouchTranslation;
@@ -132,8 +138,11 @@ protected:
 
 	// ------- RUNTIME VALUES -------
 
-	// Represents the alpha of the weapon crouch leaning
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	float InitialTransformAlpha;
+
+	// Represents the alpha of the weapon crouch leaning
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch", Transient)
 	float CrouchLeanAlpha;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
@@ -150,21 +159,22 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float MovementSwayAlpha;
 
-	// Sway that follows the player movement
+	// Sway that follows the player movement (component space).
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FVector MovementSwayTranslation;
 
-	// Sway rotation applied when player moves
+	// Sway rotation applied when player moves (component space).
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FRotator MovementSwayRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float WalkSwayAlpha;
 
-	// Sway applied when player is moving, it simulates a walking animation
+	// Sway applied when player is moving, it simulates a walking animation (component space).
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FVector WalkSwayTranslation;
 
+	// Sway rotation applied when player is moving, it simulates a walking animation (component space).
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FRotator WalkSwayRotation;
 
@@ -195,11 +205,15 @@ protected:
 	AOvrlEquipmentInstance* EquippedItem = nullptr;
 
 private:
+	FRotator SpineRotation;
 
 	FRotator LastLookingSwayRotation;
 	FRotator LastPlayerCameraRotation;
 	FQuaternionSpringState SpringStateRotation;
 	FVectorSpringState SpringStateJump;
+
+	FVector LastMovementSwayTranslation;
+	FVector LastWalkSwayTranslation;
 
 	FVector LastLookingSwayTranslation;
 	FVectorSpringState SprintStateLookingSway;

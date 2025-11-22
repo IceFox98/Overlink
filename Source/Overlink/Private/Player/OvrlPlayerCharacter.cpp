@@ -130,6 +130,7 @@ void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshT
 	if (EquippedObjectMesh)
 	{
 		EquippedObjectMesh->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
+		EquippedObjectMesh->GetStaticMeshComponent()->SetVisibility(false, true);
 
 		// Setup invisible mesh, able to cast shadows
 		EquippedObjectMesh->GetStaticMeshComponent()->CastShadow = true;

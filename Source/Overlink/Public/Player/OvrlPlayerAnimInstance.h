@@ -32,6 +32,10 @@ public:
 
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 
+public:
+
+	FORCEINLINE FRotator GetSpineRotation() const { return SpineRotation; };
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)

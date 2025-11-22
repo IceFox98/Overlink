@@ -43,7 +43,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
-		UOvrlCharacterMovementComponent* GetCharacterMovement() const;
+	UOvrlCharacterMovementComponent* GetCharacterMovement() const;
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
@@ -82,7 +82,7 @@ public:
 	void Interact();
 
 	UFUNCTION(BlueprintCallable)
-		void ThrowEquippedObject();
+	void ThrowEquippedObject();
 
 private:
 
@@ -95,26 +95,26 @@ protected:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USkeletalMeshComponent> FullBodyMesh;
+	TObjectPtr<USkeletalMeshComponent> FullBodyMesh;
 
 	/** FPS camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOvrlCameraComponent> CameraComp;
+	TObjectPtr<UOvrlCameraComponent> CameraComp;
 
 	/** Components that manages the interaction with usable actors */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOvrlInteractionComponent> InteractionComponent;
+	TObjectPtr<UOvrlInteractionComponent> InteractionComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
+	TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UMotionWarpingComponent> MotionWarping;
+	TObjectPtr<UMotionWarpingComponent> MotionWarping;
 
 	// ------ LOCOMOTION ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
-		FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
+	FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
 public:
 
@@ -122,23 +122,23 @@ public:
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
-		TObjectPtr<UInputMappingContext> DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
-		TObjectPtr<UOvrlInputConfig> InputConfig;
+	TObjectPtr<UOvrlInputConfig> InputConfig;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
-		float ThrowForce;
+	float ThrowForce;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character")
-		TObjectPtr<UPlayerSFXConfig> SFXConfig;
+	TObjectPtr<UPlayerSFXConfig> SFXConfig;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character")
-		TObjectPtr<UPlayerCameraFXConfig> CameraFXConfig;
+	TObjectPtr<UPlayerCameraFXConfig> CameraFXConfig;
 
 private:
 
 	UPROPERTY()
-		TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
+	TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
 };

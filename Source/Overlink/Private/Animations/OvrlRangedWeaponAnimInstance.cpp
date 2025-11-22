@@ -29,6 +29,8 @@ void UOvrlRangedWeaponAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaT
 		LeftHandIKTransform = EquippedWeapon->GetLeftHandIKTransform();
 
 		UpdateAim(DeltaTime);
+
+		InitialTransformAlpha = 1.f - AimAlpha;
 	}
 }
 
