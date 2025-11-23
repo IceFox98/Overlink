@@ -78,6 +78,7 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		UpdateJumpSway(DeltaTime);
 		UpdateLeftHandIKAplha(DeltaTime);
 		UpdateCrouchLeanAlpha(DeltaTime);
+		UpdateRunPositionAlpha(DeltaTime);
 
 		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
@@ -234,6 +235,13 @@ void UOvrlEquipmentAnimInstance::UpdateCrouchLeanAlpha(float DeltaTime)
 	const float TargetCrouchLeanAlpha = bShouldLean ? 1.f : 0.f;
 	const float CrouchLeanSpeed = CalculateCrouchLeanSpeed();
 	CrouchLeanAlpha = FMath::FInterpTo(CrouchLeanAlpha, TargetCrouchLeanAlpha, DeltaTime, CrouchLeanSpeed);
+}
+
+void UOvrlEquipmentAnimInstance::UpdateRunPositionAlpha(float DeltaTime)
+{
+	const bool bIsPlayerRunning = CharacterMovementComponent->IsRunning();
+	const float TargetRunPositionAlpha = bIsPlayerRunning ? 0.f : 1.f;
+	RunPositionAlpha = FMath::FInterpTo(RunPositionAlpha, TargetRunPositionAlpha, DeltaTime, 15.f);
 }
 
 void UOvrlEquipmentAnimInstance::UpdateLeftHandIKAplha(float DeltaTime)
