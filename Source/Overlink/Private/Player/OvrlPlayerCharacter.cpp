@@ -241,15 +241,19 @@ void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHal
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
 	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
-	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
+	MeshRelativeLocation.Z = MeshRelativeLocation.Z + HalfHeightAdjust;
 }
 
 void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 
-	FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
-	MeshRelativeLocation.Z = BaseTranslationOffset.Z;
+	const AOvrlPlayerCharacter* DefaultChar = GetDefault<AOvrlPlayerCharacter>(GetClass());
+	if (FullBodyMesh && DefaultChar->FullBodyMesh)
+	{
+		FVector& MeshRelativeLocation = FullBodyMesh->GetRelativeLocation_DirectMutable();
+		MeshRelativeLocation.Z = DefaultChar->FullBodyMesh->GetRelativeLocation().Z;
+	}
 }
 
 void AOvrlPlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
