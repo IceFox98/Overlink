@@ -54,9 +54,9 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 
 	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 
-	ensureAlways(WalkSwayTranslationCurve);
-	ensureAlways(WalkSwayRotationCurve);
-	ensureAlways(JumpSwayCurve);
+	ensure(WalkSwayTranslationCurve);
+	ensure(WalkSwayRotationCurve);
+	ensure(JumpSwayCurve);
 }
 
 void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)

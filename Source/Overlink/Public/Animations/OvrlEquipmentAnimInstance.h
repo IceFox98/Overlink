@@ -115,6 +115,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	TObjectPtr<UCurveVector> WalkSwayRotationCurve;
 
+	// X -> Left/Right
+	// Y -> Forward/Backward
+	// Z -> Up/Down
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
 	FVector WalkSwayTranslationMultiplier;
 
