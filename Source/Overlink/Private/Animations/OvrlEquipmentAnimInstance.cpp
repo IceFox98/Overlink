@@ -82,6 +82,55 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 
 		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
+
+
+		// for(comp : components)
+		//	if(comp.IsEnabled())
+		//		comp.UpdateValues(&OutTranslation, &OutRotation);
+
+
+		// OnMovementModeChanged(OldMode, NewMode)
+		//		components[OldMode].Disable()
+		//		component[NewMode].Enable()
+
+
+		// Component class
+		// Enable()
+		//	- Set
+
+
+
+
+
+
+		// TMap<StanceTag, FMovementModes>
+		// struct FMovementModes
+		// - MovementMode
+		// - TArray<Component>
+		
+
+		// <Standing, 
+		//	struct
+		//		Walk, { Components }
+		//		Run, { Components }
+		//		Idle { Components }
+		// ,
+		// Crouch
+		// struct
+		//		Walk, { Components }
+		//		Idle, { Components }
+		// >
+
+
+		// for(comp : components)
+		//		comp.UpdateValues(&OutTranslation, &OutRotation);
+
+
+		// Component class
+		// CheckStart()
+		//	- Controlla se deve o no eseguire la curva iniziale (nel component di Idle, ci potrebbe essere la curva di "stop" del walk/run)
+		// UpdateValues() - Viene eseguita solo quando la curva iniziale ha finito
+
 	}
 }
 
