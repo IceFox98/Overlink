@@ -102,6 +102,12 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 
 
 
+		
+		
+		// All'inizio
+		// OutTranslation = 0
+		// OutRotation = 0
+
 
 		// TMap<StanceTag, FMovementModes>
 		// struct FMovementModes
@@ -131,6 +137,63 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		//	- Controlla se deve o no eseguire la curva iniziale (nel component di Idle, ci potrebbe essere la curva di "stop" del walk/run)
 		// UpdateValues() - Viene eseguita solo quando la curva iniziale ha finito
 
+
+
+
+
+
+
+
+
+
+
+		// Instanced, EditInline
+		// TArray<UStanceStatesAnimManagerBase> Managers;
+
+		
+		// UStanceStatesAnimManagerBase abstract
+		// - Ha una referenza al movement component
+		// - Gli verrà passato il puntatore all'OutTranslation/OutRotation
+		// - Si registra ai cambi di stance
+		// - Si disattiva da solo l'array di component (in modo smooth) in base al cambio di stance
+		// - Ha una funzione Start(), dove setta la posizione di default per la mano o altro
+		// - Nella tick esegue la Update di ogni component, a prescindere dallo stato (idle, walk, ecc..)
+
+
+		// UStandingStatesAnimManager
+		// OnStanceChanged(OldStance, NewStance)
+		// - Se la NewStance è quella del manager (Standing)
+		//		- Chiama la Enable() su tutti i component
+		// - Altrimenti
+		//		- Chiama la Disable() in tutti i componenti
+
+
+		// UCrouchingStatesAnimManager
+		// 
+
+
+
+		// UStanceAnimComponentBase abstract
+		// - virtual Enable()/Disable() - Attiva/Disattiva una variabile bool, che impedisce l'aggiornamento dell'alpha controllata in Update()
+		// - virtual Update() - Di base servirà a controllare l'alpha del component ed eseguire i calcoli per la translation/rotation.
+		// Esegue in loop la CheckStart()
+		// Viene eseguita solo quando la curva iniziale ha finito (e se è partita)
+		// - virtual CheckStart() Controlla se deve o no eseguire la curva iniziale (nel component di Idle, ci potrebbe essere la curva di "stop" del walk/run).
+		// Se l'alpha passa da 0 ad un altro valore, fa partire la curva iniziale.
+
+		// ?? Creare due classi base UStandingAnimComponent e UCrouchingAnimComponent da usare come classi per l'array nel manager ??
+
+		// UStandingIdleAnimComponent
+		// - Update(): Controlla se il Gait == Idle && bEnabled. In caso esegue le curve
+
+		// UStandingMoveAnimComponent
+		// - Update(): Controlla se il Gait == Walk && bEnabled. In caso esegue le curve
+
+		// UMoveAnimComponent
+		// - Ha una variabile FGameplayTag "GaitToCheck" che viene usata nell'update
+		// - Update(): Controlla se il CurrentGait == GaitToCheck && bEnabled. In caso esegue le curve
+
+		// Questa anim instance ciclerà tutti i Manager a prescindere
 	}
 }
 
