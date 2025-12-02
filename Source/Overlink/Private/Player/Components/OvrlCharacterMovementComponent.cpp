@@ -1109,7 +1109,10 @@ void UOvrlCharacterMovementComponent::SetStance(const FGameplayTag& NewStance)
 	if (Stance == NewStance)
 		return;
 
+	const FGameplayTag OldStance = Stance;
 	Stance = NewStance;
+
+	OnStanceChanged.Broadcast(OldStance, NewStance);
 }
 
 void UOvrlCharacterMovementComponent::SetGait(const FGameplayTag& NewGait)
@@ -1117,5 +1120,8 @@ void UOvrlCharacterMovementComponent::SetGait(const FGameplayTag& NewGait)
 	if (Gait == NewGait)
 		return;
 
+	const FGameplayTag OldGait = Gait;
 	Gait = NewGait;
+
+	OnGaitChanged.Broadcast(OldGait, NewGait);
 }

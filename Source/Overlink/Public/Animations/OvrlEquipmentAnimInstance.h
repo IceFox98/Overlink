@@ -12,6 +12,7 @@ class UOvrlCharacterMovementComponent;
 class AOvrlRangedWeaponInstance;
 class AOvrlEquipmentInstance;
 class UCurveVector;
+class UOvrlStanceStatesAnimManagerBase;
 
 /**
  *
@@ -211,6 +212,20 @@ protected:
 	// Represents the alpha of the weapon crouch leaning
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	float LeftHandIKAlpha;
+
+
+
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)
+	TArray<TObjectPtr<UOvrlStanceStatesAnimManagerBase>> Managers;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	FVector OutMoveTranslation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	FRotator OutMoveRotation;
+
 
 protected:
 

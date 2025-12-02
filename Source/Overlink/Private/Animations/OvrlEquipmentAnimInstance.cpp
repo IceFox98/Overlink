@@ -12,6 +12,7 @@
 #include "Player/OvrlPlayerAnimInstance.h"
 #include "OvrlUtils.h"
 #include "Overlink.h"
+#include "Animations/Procedural/OvrlStanceStatesAnimManagerBase.h"
 
 // Engine
 #include "Curves/CurveVector.h"
@@ -57,13 +58,35 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 	ensure(WalkSwayTranslationCurve);
 	ensure(WalkSwayRotationCurve);
 	ensure(JumpSwayCurve);
+
+	for (UOvrlStanceStatesAnimManagerBase* Manager : Managers)
+	{
+		if (Manager)
+		{
+			Manager->Initialize(PlayerCharacter, &OutMoveTranslation, &OutMoveRotation);
+		}
+	}
 }
 
 void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 {
 	Super::NativeUpdateAnimation(DeltaTime);
 
-	SpineRotation = GetParent()->GetSpineRotation();
+	if (GetParent())
+	{
+		SpineRotation = GetParent()->GetSpineRotation();
+	}
+
+	//OutMoveTranslation = FVector::ZeroVector;
+	//OutMoveRotation = FRotator::ZeroRotator;
+
+	for (UOvrlStanceStatesAnimManagerBase* Manager : Managers)
+	{
+		if (Manager)
+		{
+			Manager->Update(DeltaTime);
+		}
+	}
 }
 
 void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
@@ -102,8 +125,9 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 
 
 
-		
-		
+
+
+
 		// All'inizio
 		// OutTranslation = 0
 		// OutRotation = 0
@@ -113,7 +137,7 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		// struct FMovementModes
 		// - MovementMode
 		// - TArray<Component>
-		
+
 
 		// <Standing, 
 		//	struct
@@ -150,7 +174,7 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		// Instanced, EditInline
 		// TArray<UStanceStatesAnimManagerBase> Managers;
 
-		
+
 		// UStanceStatesAnimManagerBase abstract
 		// - Ha una referenza al movement component
 		// - Gli verrà passato il puntatore all'OutTranslation/OutRotation
@@ -162,7 +186,7 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 
 		// UStandingStatesAnimManager
 		// OnStanceChanged(OldStance, NewStance)
-		// - Se la NewStance è quella del manager (Standing)
+		// - Se la NewStance è quella del manager (Standing, hardcodata?)
 		//		- Chiama la Enable() su tutti i component
 		// - Altrimenti
 		//		- Chiama la Disable() in tutti i componenti
@@ -209,7 +233,7 @@ void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 	//LastLookingSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(LastLookingSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, LookingSwayStiffness, LookingSwayCriticalDampingFactor, DeltaTime, .0006f, .3f).Rotator();
 
 	// Speed = 3.5
-	LastLookingSwayRotation = UKismetMathLibrary::RInterpTo(LastLookingSwayRotation, TargetSwayRotation, DeltaTime, 3.5f); 
+	LastLookingSwayRotation = UKismetMathLibrary::RInterpTo(LastLookingSwayRotation, TargetSwayRotation, DeltaTime, 3.5f);
 
 	// Apply weapon sway looking to Anim BP
 	LookingSwayTranslation = FVector(

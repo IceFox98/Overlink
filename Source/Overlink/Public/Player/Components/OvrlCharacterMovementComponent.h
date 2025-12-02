@@ -55,6 +55,9 @@ struct FTraversalResult
 	ETraversalType Type = ETraversalType::None;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStanceChanged, const FGameplayTag&, OldStance, const FGameplayTag&, NewStance);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGaitChanged, const FGameplayTag&, OldGait, const FGameplayTag&, NewGait);
+
 /**
  *
  */
@@ -168,6 +171,9 @@ private:
 	void CancelSliding();
 
 public:
+
+	FOnStanceChanged OnStanceChanged;
+	FOnGaitChanged OnGaitChanged;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
 	float MaxRunSpeed;
