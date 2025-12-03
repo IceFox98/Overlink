@@ -25,6 +25,9 @@ public:
 
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 
+	AOvrlRangedWeaponInstance* GetEquippedWeapon() const { return EquippedWeapon; };
+	float GetWalkSwayAlphaADS() const { return WalkSwayAlphaADS; };
+
 protected:
 
 	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem) override;

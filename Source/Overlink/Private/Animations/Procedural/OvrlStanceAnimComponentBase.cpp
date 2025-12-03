@@ -26,9 +26,11 @@
 
 
 #include "Animations/Procedural/OvrlStanceAnimComponentBase.h"
+#include "Animations/OvrlRangedWeaponAnimInstance.h"
 
 #include "Player/OvrlPlayerCharacter.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "Weapons/OvrlRangedWeaponInstance.h"
 
 #include "OvrlUtils.h"
 #include "Overlink.h"
@@ -55,57 +57,31 @@ void UOvrlStanceAnimComponentBase::Toggle(bool bEnable)
 	bShouldUpdateAlpha = bEnable;
 }
 
-void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
+void UOvrlStanceAnimComponentBase::ComputeAlpha(float DeltaTime)
 {
-	//if (!bShouldUpdateAlpha)
-	//{
-	//	return;
-	//}
-
-	//USwayCurveData* TargetCurveData = LoopCurveData;
-
-	//if (!WalkSwayTranslationCurve)
-	//{
-	//	OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
-	//	return;
-	//}
-
-	//if (!WalkSwayRotationCurve)
-	//{
-	//	OVRL_LOG_ERR(LogOverlink, false, "WalkSwayRotationCurve is NULL!");
-	//	return;
-	//}
-
-	if (CurrentGait == GaitToCheck)
+	if (CurrentGait == GaitToCheck && bShouldUpdateAlpha)
 	{
-		//if (Alpha <= 0.2f) // TODO: Replace with threshold variable
-		//{
-		//	//TargetCurveData = StartCurveData;
-		//	TargetResetTime = 1.f;
-		//}
-
-		// We want fully alpha to be applied
-		Alpha = 1.f;
-
-		// TODO: Mettere qui la logica di curva di start
+		Alpha = 1.f; // We want fully alpha to be applied
 	}
 	else if (Alpha <= KINDA_SMALL_NUMBER)
 	{
-		// Just ignore calculations if Alpha is almost 0
 		Alpha = 0.f;
-		return;
 	}
 	else
 	{
 		// Smoothly decrease alpha, to avoid jerky movements
 		Alpha = FMath::FInterpTo(Alpha, 0.f, DeltaTime, RecoverySpeed);
 	}
+}
 
-	//if (!TargetCurveData)
-	//{
-	//	OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
-	//	return;
-	//}
+void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
+{
+	ComputeAlpha(DeltaTime);
+
+	if (Alpha <= 0.f)
+	{
+		return; // Just ignore calculations if Alpha is almost 0
+	}
 
 	FVector TargetWalkSwayTranslation = FVector::ZeroVector;
 	FRotator TargetWalkSwayRotation = FRotator::ZeroRotator;
@@ -118,32 +94,35 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 		const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
 		const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
 
-		for (USwayCurveData* CurveData : CurvesData)
+		for (FCurveData& CurveData : CurvesData)
 		{
-			if (!CurveData)
+			if (!CurveData.SwayCurve)
 			{
 				continue;
 			}
 
-			TargetWalkSwayTranslation = CurveData->TranslationCurve->GetVectorValue(CurveData->Time) * CurveData->TranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
+			TargetWalkSwayTranslation += CurveData.SwayCurve->TranslationCurve->GetVectorValue(CurveData.Time) * CurveData.SwayCurve->TranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
 
-			const FVector RotationCurve = CurveData->RotationCurve->GetVectorValue(CurveData->Time) * CurveData->RotationMultiplier;
-			TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+			const FVector RotationCurve = CurveData.SwayCurve->RotationCurve->GetVectorValue(CurveData.Time) * CurveData.SwayCurve->RotationMultiplier;
+			TargetWalkSwayRotation += FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
 
-			CurveData->Time += DeltaTime * CurveData->Frequency;
-
+			CurveData.Time += DeltaTime * CurveData.SwayCurve->Frequency;
 		}
 	}
 	else
 	{
-		//WalkSwayTime = 0.f;
-
-		for (USwayCurveData* CurveData : CurvesData)
+		for (FCurveData& CurveData : CurvesData)
 		{
-			if (CurveData)
-			{
-				CurveData->Time = Alpha * CurveData->Frequency;
-			}
+			CurveData.Time = 0.f;
+
+			//if (CurveData.SwayCurve)
+			//{
+			//	CurveData.Time = Alpha * CurveData.SwayCurve->Frequency;
+			//	if (CurveData.Time < 0.1f)
+			//	{
+			//		CurveData.Time = 0.f;
+			//	}
+			//}
 		}
 	}
 
@@ -154,4 +133,27 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 	OutTranslation = SpineRotation.RotateVector(LastWalkSwayTranslation);
 
 	OutRotation = FMath::RInterpTo(OutRotation, TargetWalkSwayRotation, DeltaTime, SwaySpeed) * Alpha;
+}
+
+void UOvrlRangedWeaponMoveAnimComponent::Initialize(AOvrlPlayerCharacter* InPlayerCharacter)
+{
+	Super::Initialize(InPlayerCharacter);
+
+	RangedWeaponAnimInstance = Cast<UOvrlRangedWeaponAnimInstance>(GetOuter());
+}
+
+void UOvrlRangedWeaponMoveAnimComponent::ComputeAlpha(float DeltaTime)
+{
+	Super::ComputeAlpha(DeltaTime);
+
+	if (RangedWeaponAnimInstance.IsValid())
+	{
+		if (AOvrlRangedWeaponInstance* RangedWeapon = RangedWeaponAnimInstance->GetEquippedWeapon())
+		{
+			if (RangedWeapon->IsADS())
+			{
+				Alpha *= RangedWeaponAnimInstance->GetWalkSwayAlphaADS();
+			}
+		}
+	}
 }

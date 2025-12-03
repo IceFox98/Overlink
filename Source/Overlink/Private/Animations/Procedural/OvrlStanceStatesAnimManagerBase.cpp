@@ -50,7 +50,7 @@ void UOvrlStanceStatesAnimManagerBase::Initialize(AOvrlPlayerCharacter* PlayerCh
 
 	for (TSubclassOf<UOvrlStanceAnimComponentBase> ComponentClass : ComponentClasses)
 	{
-		UOvrlStanceAnimComponentBase* Component = NewObject<UOvrlStanceAnimComponentBase>(this, ComponentClass);
+		UOvrlStanceAnimComponentBase* Component = NewObject<UOvrlStanceAnimComponentBase>(GetOuter(), ComponentClass);
 		if (Component)
 		{
 			Component->Initialize(PlayerCharacter);

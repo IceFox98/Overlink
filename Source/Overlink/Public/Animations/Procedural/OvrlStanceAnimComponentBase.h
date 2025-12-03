@@ -7,9 +7,11 @@
 #include "Engine/DataAsset.h"
 #include "OvrlStanceAnimComponentBase.generated.h"
 
+class UOvrlRangedWeaponAnimInstance;
 class UOvrlCharacterMovementComponent;
 class AOvrlPlayerCharacter;
 class UCurveVector;
+
 
 UCLASS()
 class USwayCurveData : public UDataAsset
@@ -40,6 +42,17 @@ public:
 	// Z -> Yaw
 	UPROPERTY(EditAnywhere)
 	FVector RotationMultiplier;
+};
+
+USTRUCT()
+struct FCurveData
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USwayCurveData> SwayCurve;
 
 	float Time = 0.f;
 };
@@ -59,6 +72,8 @@ public:
 	virtual void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
 
 	virtual void Toggle(bool bEnable);
+
+	virtual void ComputeAlpha(float DeltaTime);
 
 public:
 
@@ -97,10 +112,7 @@ public:
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Move Anim Component")
-	TArray<TObjectPtr<USwayCurveData>> CurvesData;
-
-	//UPROPERTY(EditAnywhere, Category = "Ovrl Move Anim Component")
-	//TObjectPtr<USwayCurveData> LoopCurveData;
+	TArray<FCurveData> CurvesData;
 
 	// The speed of the walk sway interpolation
 	UPROPERTY(EditAnywhere)
@@ -112,5 +124,23 @@ private:
 	FVector LastWalkSwayTranslation;
 
 	float TargetResetTime = 0.f;
+
+};
+
+UCLASS()
+class OVERLINK_API UOvrlRangedWeaponMoveAnimComponent : public UOvrlMoveAnimComponent
+{
+	GENERATED_BODY()
+
+public:
+
+	virtual void Initialize(AOvrlPlayerCharacter* InPlayerCharacter) override;
+
+	virtual void ComputeAlpha(float DeltaTime) override;
+
+protected:
+
+	UPROPERTY()
+	TWeakObjectPtr<UOvrlRangedWeaponAnimInstance> RangedWeaponAnimInstance;
 
 };
