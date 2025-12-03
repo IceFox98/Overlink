@@ -62,20 +62,28 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 	//	return;
 	//}
 
-	if (!WalkSwayTranslationCurve)
-	{
-		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
-		return;
-	}
+	//USwayCurveData* TargetCurveData = LoopCurveData;
 
-	if (!WalkSwayRotationCurve)
-	{
-		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayRotationCurve is NULL!");
-		return;
-	}
+	//if (!WalkSwayTranslationCurve)
+	//{
+	//	OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
+	//	return;
+	//}
+
+	//if (!WalkSwayRotationCurve)
+	//{
+	//	OVRL_LOG_ERR(LogOverlink, false, "WalkSwayRotationCurve is NULL!");
+	//	return;
+	//}
 
 	if (CurrentGait == GaitToCheck)
 	{
+		//if (Alpha <= 0.2f) // TODO: Replace with threshold variable
+		//{
+		//	//TargetCurveData = StartCurveData;
+		//	TargetResetTime = 1.f;
+		//}
+
 		// We want fully alpha to be applied
 		Alpha = 1.f;
 
@@ -83,7 +91,8 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 	}
 	else if (Alpha <= KINDA_SMALL_NUMBER)
 	{
-		// Just ignore calculation if Alpha is almost 0
+		// Just ignore calculations if Alpha is almost 0
+		Alpha = 0.f;
 		return;
 	}
 	else
@@ -91,6 +100,12 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 		// Smoothly decrease alpha, to avoid jerky movements
 		Alpha = FMath::FInterpTo(Alpha, 0.f, DeltaTime, RecoverySpeed);
 	}
+
+	//if (!TargetCurveData)
+	//{
+	//	OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
+	//	return;
+	//}
 
 	FVector TargetWalkSwayTranslation = FVector::ZeroVector;
 	FRotator TargetWalkSwayRotation = FRotator::ZeroRotator;
@@ -103,33 +118,40 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 		const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
 		const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
 
-		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime) * WalkSwayTranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
+		for (USwayCurveData* CurveData : CurvesData)
+		{
+			if (!CurveData)
+			{
+				continue;
+			}
 
-		const FVector RotationCurve = WalkSwayRotationCurve->GetVectorValue(WalkSwayTime) * WalkSwayRotationMultiplier;
-		TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+			TargetWalkSwayTranslation = CurveData->TranslationCurve->GetVectorValue(CurveData->Time) * CurveData->TranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
 
-		WalkSwayTime += DeltaTime * WalkSwayFrequency;
+			const FVector RotationCurve = CurveData->RotationCurve->GetVectorValue(CurveData->Time) * CurveData->RotationMultiplier;
+			TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+
+			CurveData->Time += DeltaTime * CurveData->Frequency;
+
+		}
 	}
 	else
 	{
-		WalkSwayTime = 0.f;
+		//WalkSwayTime = 0.f;
+
+		for (USwayCurveData* CurveData : CurvesData)
+		{
+			if (CurveData)
+			{
+				CurveData->Time = Alpha * CurveData->Frequency;
+			}
+		}
 	}
 
-	LastWalkSwayTranslation = FMath::VInterpTo(LastWalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed) * Alpha;
+	LastWalkSwayTranslation = FMath::VInterpTo(LastWalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, SwaySpeed) * Alpha;
 
 	// Since its in component space, we have to rotate the vector in order to follow the player aim
 	// I do this just for the anim BP, that's why I use 2 different variables.
 	OutTranslation = SpineRotation.RotateVector(LastWalkSwayTranslation);
 
-	OutRotation = FMath::RInterpTo(OutRotation, TargetWalkSwayRotation, DeltaTime, WalkSwaySpeed) * Alpha;
-}
-
-void UOvrlMoveAnimComponent::Toggle(bool bEnable)
-{
-	Super::Toggle(bEnable);
-
-	if (!bEnable)
-	{
-		WalkSwayTime = 0.f;
-	}
+	OutRotation = FMath::RInterpTo(OutRotation, TargetWalkSwayRotation, DeltaTime, SwaySpeed) * Alpha;
 }
