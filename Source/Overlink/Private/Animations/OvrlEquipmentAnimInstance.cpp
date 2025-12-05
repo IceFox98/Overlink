@@ -77,8 +77,9 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 		SpineRotation = GetParent()->GetSpineRotation();
 	}
 
-	//OutMoveTranslation = FVector::ZeroVector;
-	//OutMoveRotation = FRotator::ZeroRotator;
+	// Reset every frame
+	OutMoveTranslation = FVector::ZeroVector;
+	OutMoveRotation = FRotator::ZeroRotator;
 
 	for (UOvrlStanceStatesAnimManagerBase* Manager : Managers)
 	{
@@ -87,6 +88,9 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 			Manager->Update(DeltaTime);
 		}
 	}
+
+	// Since we're in Component space, I have to rotate the vector in order to follow the player aim.
+	OutMoveTranslation = SpineRotation.RotateVector(OutMoveTranslation);
 }
 
 void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)

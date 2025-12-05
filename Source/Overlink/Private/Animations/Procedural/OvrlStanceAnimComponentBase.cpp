@@ -1,30 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
-
-
-		// UStanceAnimComponentBase abstract
-		// - virtual Enable()/Disable() - Attiva/Disattiva una variabile bool, che impedisce l'aggiornamento dell'alpha controllata in Update()
-		// - virtual Update() - Di base servirà a controllare l'alpha del component ed eseguire i calcoli per la translation/rotation.
-		// Esegue in loop la CheckStart()
-		// Viene eseguita solo quando la curva iniziale ha finito (e se è partita)
-		// - virtual CheckStart() Controlla se deve o no eseguire la curva iniziale (nel component di Idle, ci potrebbe essere la curva di "stop" del walk/run).
-		// Se l'alpha passa da 0 ad un altro valore, fa partire la curva iniziale.
-
-		// ?? Creare due classi base UStandingAnimComponent e UCrouchingAnimComponent da usare come classi per l'array nel manager ??
-
-		// UStandingIdleAnimComponent
-		// - Update(): Controlla se il Gait == Idle && bEnabled. In caso esegue le curve
-
-		// UStandingMoveAnimComponent
-		// - Update(): Controlla se il Gait == Walk && bEnabled. In caso esegue le curve
-
-		// UMoveAnimComponent
-		// - Ha una variabile FGameplayTag "GaitToCheck" che viene usata nell'update
-		// - Update(): Controlla se il CurrentGait == GaitToCheck && bEnabled. In caso esegue le curve
-
-
-
 #include "Animations/Procedural/OvrlStanceAnimComponentBase.h"
 #include "Animations/OvrlRangedWeaponAnimInstance.h"
 
@@ -37,29 +12,41 @@
 
 // Engine
 #include "Curves/CurveVector.h"
-#include "Kismet/KismetMathLibrary.h"
 
-void UOvrlStanceAnimComponentBase::Initialize(AOvrlPlayerCharacter* InPlayerCharacter)
+void UOvrlAnimModifierBase::Initialize(AOvrlPlayerCharacter* InPlayerCharacter)
 {
 	PlayerCharacter = InPlayerCharacter;
-
 	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());
+
+	for (UOvrlAnimAlphaModifierBase* AlphaModifier : AlphaModifiers)
+	{
+		if (AlphaModifier)
+		{
+			AlphaModifier->Initialize();
+		}
+	}
 }
 
-void UOvrlStanceAnimComponentBase::Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
-{
-	const FRotator ComposedRotator = UKismetMathLibrary::ComposeRotators(PlayerCharacter->GetControlRotation(), FRotator(180.f, 0.f, 0.f));
-	SpineRotation = FRotator(0.f, 0.f, ComposedRotator.Pitch);
-}
-
-void UOvrlStanceAnimComponentBase::Toggle(bool bEnable)
+void UOvrlAnimModifierBase::Toggle(bool bEnable)
 {
 	bShouldUpdateAlpha = bEnable;
+
+	// TODO: Create a second varible for the Recovery speed? To have different values during "disabling event"
 }
 
-void UOvrlStanceAnimComponentBase::ComputeAlpha(float DeltaTime)
+void UOvrlAnimModifierBase::Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
 {
-	if (CurrentGait == GaitToCheck && bShouldUpdateAlpha)
+	ComputeAlpha(DeltaTime);
+
+	if (Alpha > 0.f && bEnabled)
+	{
+		UpdateImpl(DeltaTime, OutTranslation, OutRotation);
+	}
+}
+
+void UOvrlAnimModifierBase::ComputeAlpha(float DeltaTime)
+{
+	if (CurrentTag == TagToCheck && bShouldUpdateAlpha)
 	{
 		Alpha = 1.f; // We want fully alpha to be applied
 	}
@@ -74,17 +61,25 @@ void UOvrlStanceAnimComponentBase::ComputeAlpha(float DeltaTime)
 	}
 }
 
-void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
+float UOvrlAnimModifierBase::GetAlpha()
 {
-	ComputeAlpha(DeltaTime);
+	float TargetAlpha = Alpha;
 
-	if (Alpha <= 0.f)
+	for (UOvrlAnimAlphaModifierBase* AlphaModifier : AlphaModifiers)
 	{
-		return; // Just ignore calculations if Alpha is almost 0
+		if (AlphaModifier)
+		{
+			AlphaModifier->ModifyAlpha(TargetAlpha);
+		}
 	}
 
-	FVector TargetWalkSwayTranslation = FVector::ZeroVector;
-	FRotator TargetWalkSwayRotation = FRotator::ZeroRotator;
+	return TargetAlpha;
+}
+
+void UOvrlLocomotionActionsAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
+{
+	FVector TargetTranslation = FVector::ZeroVector;
+	FRotator TargetRotation = FRotator::ZeroRotator;
 
 	const FVector LastInputVector = CharacterMovementComponent->GetLastInputVector();
 
@@ -94,65 +89,86 @@ void UOvrlMoveAnimComponent::Update(float DeltaTime, FVector& OutTranslation, FR
 		const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
 		const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
 
-		for (FCurveData& CurveData : CurvesData)
+		// Apply a list of transformation in order to handle behaviors like starting movement
+		for (FModifierData& Data : DataList)
 		{
-			if (!CurveData.SwayCurve)
+			if (!Data.TranslationCurve || !Data.RotationCurve)
 			{
 				continue;
 			}
 
-			TargetWalkSwayTranslation += CurveData.SwayCurve->TranslationCurve->GetVectorValue(CurveData.Time) * CurveData.SwayCurve->TranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
+			// Apply translation curve, modified by the movement amount
+			TargetTranslation += Data.TranslationCurve->GetVectorValue(Data.Time) * Data.TranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
 
-			const FVector RotationCurve = CurveData.SwayCurve->RotationCurve->GetVectorValue(CurveData.Time) * CurveData.SwayCurve->RotationMultiplier;
-			TargetWalkSwayRotation += FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+			// Apply rotation curve
+			const FVector RotationCurve = Data.RotationCurve->GetVectorValue(Data.Time) * Data.RotationMultiplier;
+			TargetRotation += FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
 
-			CurveData.Time += DeltaTime * CurveData.SwayCurve->Frequency;
+			// Increase time of this modifier data
+			Data.Time += DeltaTime * Data.Frequency;
 		}
 	}
 	else
 	{
-		for (FCurveData& CurveData : CurvesData)
+		for (FModifierData& Data : DataList)
 		{
-			CurveData.Time = 0.f;
-
-			//if (CurveData.SwayCurve)
-			//{
-			//	CurveData.Time = Alpha * CurveData.SwayCurve->Frequency;
-			//	if (CurveData.Time < 0.1f)
-			//	{
-			//		CurveData.Time = 0.f;
-			//	}
-			//}
+			Data.Time = 0.f;
 		}
 	}
 
-	LastWalkSwayTranslation = FMath::VInterpTo(LastWalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, SwaySpeed) * Alpha;
+	const float TargetAlpha = GetAlpha();
 
-	// Since its in component space, we have to rotate the vector in order to follow the player aim
-	// I do this just for the anim BP, that's why I use 2 different variables.
-	OutTranslation = SpineRotation.RotateVector(LastWalkSwayTranslation);
+	// Since OutTranslation and OutRotation is reset every frame, we save LastTranslation and LastRotation locally to be able to smooth correctly
+	LastTranslation = FMath::VInterpTo(LastTranslation, TargetTranslation, DeltaTime, InterpSpeed) * TargetAlpha;
+	OutTranslation += LastTranslation;
 
-	OutRotation = FMath::RInterpTo(OutRotation, TargetWalkSwayRotation, DeltaTime, SwaySpeed) * Alpha;
+	LastRotation = FMath::RInterpTo(LastRotation, TargetRotation, DeltaTime, InterpSpeed) * TargetAlpha;
+	OutRotation += LastRotation;
 }
 
-void UOvrlRangedWeaponMoveAnimComponent::Initialize(AOvrlPlayerCharacter* InPlayerCharacter)
+void UOvrlMovementAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
 {
-	Super::Initialize(InPlayerCharacter);
+	const FVector PlayerVelocity = CharacterMovementComponent->GetLastUpdateVelocity();
 
-	RangedWeaponAnimInstance = Cast<UOvrlRangedWeaponAnimInstance>(GetOuter());
+	// Calculate "how much" the player is moving in any directions
+	// If it's moving fully forward, the Dot result will be equals to the MaxWalkSpeed, so the division will return 1.
+	const float ForwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorForwardVector()) / CharacterMovementComponent->MaxWalkSpeed;
+	const float RightwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorRightVector()) / CharacterMovementComponent->MaxWalkSpeed;
+
+	const float TargetAlpha = GetAlpha();
+	FVector TargetMovementAmount = FVector::ZeroVector;
+	FRotator TargetRotation = FRotator::ZeroRotator;
+
+	for (FModifierData& Data : DataList)
+	{
+		TargetMovementAmount += FVector(RightwardAmount, -ForwardAmount, 0.f) * Data.TranslationMultiplier;
+	}
+
+	LastTranslation = FMath::VInterpTo(LastTranslation, TargetMovementAmount, DeltaTime, InterpSpeed) * TargetAlpha;
+
+	for (FModifierData& Data : DataList)
+	{
+		OutRotation += FRotator(FMath::Clamp(LastTranslation.X, -1.f, 1.f) * -Data.RotationMultiplier.X, 0.f, 0.f);
+	}
+
+	// Since OutTranslation and OutRotation is reset every frame, we save LastTranslation and LastRotation locally to be able to smooth correctly
+	OutTranslation += LastTranslation;
 }
 
-void UOvrlRangedWeaponMoveAnimComponent::ComputeAlpha(float DeltaTime)
+void UOvrlWeaponAimingAnimAlphaModifier::Initialize()
 {
-	Super::ComputeAlpha(DeltaTime);
+	RangedWeaponAnimInstance = GetTypedOuter<UOvrlRangedWeaponAnimInstance>();
+}
 
+void UOvrlWeaponAimingAnimAlphaModifier::ModifyAlpha(float& OutAlpha)
+{
 	if (RangedWeaponAnimInstance.IsValid())
 	{
 		if (AOvrlRangedWeaponInstance* RangedWeapon = RangedWeaponAnimInstance->GetEquippedWeapon())
 		{
 			if (RangedWeapon->IsADS())
 			{
-				Alpha *= RangedWeaponAnimInstance->GetWalkSwayAlphaADS();
+				OutAlpha *= AlphaMultiplier;
 			}
 		}
 	}

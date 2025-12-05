@@ -4,30 +4,35 @@
 
 #include "CoreMinimal.h"
 #include "OvrlGameplayTags.h"
-#include "Engine/DataAsset.h"
 #include "OvrlStanceAnimComponentBase.generated.h"
 
 class UOvrlRangedWeaponAnimInstance;
 class UOvrlCharacterMovementComponent;
 class AOvrlPlayerCharacter;
 class UCurveVector;
+class UOvrlAnimAlphaModifierBase;
 
-
-UCLASS()
-class USwayCurveData : public UDataAsset
+USTRUCT()
+struct FModifierData
 {
 	GENERATED_BODY()
 
 public:
 
 	UPROPERTY(EditAnywhere)
-	float Frequency;
+	float Frequency = 1.f;
 
-	// This curve defines the movement of the equipped item while the player is walking
+	// Translation curve that the modifier will apply
+	// X -> Left/Right
+	// Y -> Forward/Backward
+	// Z -> Up/Down 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCurveVector> TranslationCurve;
-
-	// This curve defines the rotation of the equipped item while the player is walking
+	
+	// Translation curve that the modifier will apply
+	// X -> Roll
+	// Y -> Pitch
+	// Z -> Yaw
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCurveVector> RotationCurve;
 
@@ -42,105 +47,132 @@ public:
 	// Z -> Yaw
 	UPROPERTY(EditAnywhere)
 	FVector RotationMultiplier;
-};
-
-USTRUCT()
-struct FCurveData
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<USwayCurveData> SwayCurve;
 
 	float Time = 0.f;
 };
 
-
 /**
- *
+ * Simple common behaviors shared between modifiers.
+ * Should NOT be used as instanced modifier.
  */
 UCLASS(NotBlueprintable, Abstract)
-class OVERLINK_API UOvrlStanceAnimComponentBase : public UObject
+class OVERLINK_API UOvrlAnimModifierBase : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	virtual void Initialize(AOvrlPlayerCharacter* InPlayerCharacter);
+	
+	void Initialize(AOvrlPlayerCharacter* InPlayerCharacter);
+	void Toggle(bool bEnable);
 
-	virtual void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
+	void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
 
-	virtual void Toggle(bool bEnable);
-
-	virtual void ComputeAlpha(float DeltaTime);
-
-public:
-
-	UPROPERTY(EditAnywhere, meta = (Categories = "Ovrl.Gait"))
-	FGameplayTag GaitToCheck;
-
-	UPROPERTY(EditAnywhere)
-	float RecoverySpeed = 2.f;
-
-	FGameplayTag CurrentGait;
+	FORCEINLINE void SetTag(const FGameplayTag& NewGait) { CurrentTag = NewGait; };
 
 protected:
 
+	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) {};
+
+	void ComputeAlpha(float DeltaTime);
+	float GetAlpha();
+
+protected:
+
+	// Used just for debugging purposes
+	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base")
+	bool bEnabled = true;
+
+	// Represents the list of transformation that the modifier will apply
+	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base")
+	TArray<FModifierData> DataList;
+
+	// Gameplay Tag that the player must have to enable this modifier
+	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base", meta = (Categories = "Ovrl.Gait,Ovrl.LocomotionAction"))
+	FGameplayTag TagToCheck;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base")
+	float RecoverySpeed = 1.f;
+
+	UPROPERTY(EditAnywhere, Instanced, Category = "Ovrl Gait Anim Modifier Base")
+	TArray<TObjectPtr<UOvrlAnimAlphaModifierBase>> AlphaModifiers;
+
+protected:
+
+	// Don't use this directly, use GetAlpha() instead.
+	float Alpha = 0.f;
 	bool bShouldUpdateAlpha = false;
 
-	FRotator SpineRotation;
+	FGameplayTag CurrentTag;
 
 	UPROPERTY()
 	TWeakObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
 
 	UPROPERTY()
 	TWeakObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
+};
 
-	float Alpha = 0.f;
+/**
+ * Anim modifiers that is applied during a locomotion action, like walking or running
+ */
+UCLASS(Blueprintable, BlueprintType)
+class OVERLINK_API UOvrlLocomotionActionsAnimModifier : public UOvrlAnimModifierBase
+{
+	GENERATED_BODY()
+
+public:
+
+	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
+
+public:
+
+	// The speed of the walk sway interpolation
+	UPROPERTY(EditAnywhere, Category = "Ovrl Locomotion Actions Anim Modifier")
+	float InterpSpeed;
+
+protected:
+
+	FVector LastTranslation;
+	FRotator LastRotation;
 };
 
 UCLASS(Blueprintable, BlueprintType)
-class OVERLINK_API UOvrlMoveAnimComponent : public UOvrlStanceAnimComponentBase
+class OVERLINK_API UOvrlMovementAnimModifier : public UOvrlLocomotionActionsAnimModifier
 {
 	GENERATED_BODY()
 
 public:
 
-	virtual void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
+	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
+};
+
+UCLASS(NotBlueprintable, Abstract, EditInlineNew, DefaultToInstanced)
+class OVERLINK_API UOvrlAnimAlphaModifierBase : public UObject
+{
+	GENERATED_BODY()
 
 public:
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Move Anim Component")
-	TArray<FCurveData> CurvesData;
-
-	// The speed of the walk sway interpolation
-	UPROPERTY(EditAnywhere)
-	float SwaySpeed;
-
-private:
-
-	float WalkSwayTime = 0.f;
-	FVector LastWalkSwayTranslation;
-
-	float TargetResetTime = 0.f;
-
+	virtual void Initialize() {};
+	virtual void ModifyAlpha(float& OutAlpha) {};
 };
 
 UCLASS()
-class OVERLINK_API UOvrlRangedWeaponMoveAnimComponent : public UOvrlMoveAnimComponent
+class OVERLINK_API UOvrlWeaponAimingAnimAlphaModifier : public UOvrlAnimAlphaModifierBase
 {
 	GENERATED_BODY()
 
 public:
 
-	virtual void Initialize(AOvrlPlayerCharacter* InPlayerCharacter) override;
+	virtual void Initialize();
+	virtual void ModifyAlpha(float& OutAlpha);
 
-	virtual void ComputeAlpha(float DeltaTime) override;
+public:
+
+	UPROPERTY(EditAnywhere)
+	float AlphaMultiplier = 1.f;
 
 protected:
 
 	UPROPERTY()
 	TWeakObjectPtr<UOvrlRangedWeaponAnimInstance> RangedWeaponAnimInstance;
-
 };

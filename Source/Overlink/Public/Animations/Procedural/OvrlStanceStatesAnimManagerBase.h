@@ -6,7 +6,7 @@
 #include "OvrlGameplayTags.h"
 #include "OvrlStanceStatesAnimManagerBase.generated.h"
 
-class UOvrlStanceAnimComponentBase;
+class UOvrlAnimModifierBase;
 class AOvrlPlayerCharacter;
 
 /**
@@ -42,10 +42,10 @@ public:
 protected:
 
 	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<UOvrlStanceAnimComponentBase>> ComponentClasses;
+	TArray<TSubclassOf<UOvrlAnimModifierBase>> ComponentClasses;
 
 	UPROPERTY()
-	TArray<TObjectPtr<UOvrlStanceAnimComponentBase>> Components;
+	TArray<TObjectPtr<UOvrlAnimModifierBase>> Components;
 
 	FVector* OutTranslation;
 	FRotator* OutRotation;
