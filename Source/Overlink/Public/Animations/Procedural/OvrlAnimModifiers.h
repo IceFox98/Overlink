@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "OvrlGameplayTags.h"
-#include "OvrlStanceAnimComponentBase.generated.h"
+#include "OvrlAnimModifiers.generated.h"
 
-class UOvrlRangedWeaponAnimInstance;
 class UOvrlCharacterMovementComponent;
 class AOvrlPlayerCharacter;
 class UCurveVector;
@@ -143,36 +142,4 @@ class OVERLINK_API UOvrlMovementAnimModifier : public UOvrlLocomotionActionsAnim
 public:
 
 	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
-};
-
-UCLASS(NotBlueprintable, Abstract, EditInlineNew, DefaultToInstanced)
-class OVERLINK_API UOvrlAnimAlphaModifierBase : public UObject
-{
-	GENERATED_BODY()
-
-public:
-
-	virtual void Initialize() {};
-	virtual void ModifyAlpha(float& OutAlpha) {};
-};
-
-UCLASS()
-class OVERLINK_API UOvrlWeaponAimingAnimAlphaModifier : public UOvrlAnimAlphaModifierBase
-{
-	GENERATED_BODY()
-
-public:
-
-	virtual void Initialize();
-	virtual void ModifyAlpha(float& OutAlpha);
-
-public:
-
-	UPROPERTY(EditAnywhere)
-	float AlphaMultiplier = 1.f;
-
-protected:
-
-	UPROPERTY()
-	TWeakObjectPtr<UOvrlRangedWeaponAnimInstance> RangedWeaponAnimInstance;
 };

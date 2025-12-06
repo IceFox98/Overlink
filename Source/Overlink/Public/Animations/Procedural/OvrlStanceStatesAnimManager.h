@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "OvrlGameplayTags.h"
-#include "OvrlStanceStatesAnimManagerBase.generated.h"
+#include "OvrlStanceStatesAnimManager.generated.h"
 
 class UOvrlAnimModifierBase;
 class AOvrlPlayerCharacter;
@@ -13,15 +13,15 @@ class AOvrlPlayerCharacter;
  *
  */
 UCLASS(EditInlineNew, DefaultToInstanced)
-class OVERLINK_API UOvrlStanceStatesAnimManagerBase : public UObject
+class OVERLINK_API UOvrlStanceStatesAnimManager : public UObject
 {
 	GENERATED_BODY()
 
 public:
 
-	void Initialize(AOvrlPlayerCharacter* PlayerCharacter, FVector* OutTranslationPtr, FRotator* OutRotationPtr);
+	void Initialize(AOvrlPlayerCharacter* PlayerCharacter);
 
-	void Update(float DeltaTime);
+	void Update(float DeltaTime, FVector& OutStartTranslation, FRotator& OutStartRotation, FVector& OutTranslation, FRotator& OutRotation);
 
 protected:
 
@@ -31,7 +31,10 @@ protected:
 	UFUNCTION()
 	void OnGaitChanged(const FGameplayTag& OldGait, const FGameplayTag& NewGait);
 
-public:
+protected:
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag StanceToCheck = OvrlStanceTags::Standing;
 
 	UPROPERTY(EditAnywhere)
 	FVector StartTranslation;
@@ -39,16 +42,15 @@ public:
 	UPROPERTY(EditAnywhere)
 	FRotator StartRotation;
 
-protected:
-
 	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<UOvrlAnimModifierBase>> ComponentClasses;
+	TArray<TSubclassOf<UOvrlAnimModifierBase>> ModifierClasses;
+
+private:
 
 	UPROPERTY()
-	TArray<TObjectPtr<UOvrlAnimModifierBase>> Components;
+	TArray<TObjectPtr<UOvrlAnimModifierBase>> Modifiers;
 
-	FVector* OutTranslation;
-	FRotator* OutRotation;
+	bool bShouldUpdateStartPosition = false;
 
-	FGameplayTag StanceToCheck = OvrlStanceTags::Standing;
+	float Alpha = 1.f;
 };

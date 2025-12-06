@@ -1,14 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Animations/Procedural/OvrlStanceAnimComponentBase.h"
-#include "Animations/OvrlRangedWeaponAnimInstance.h"
+#include "Animations/Procedural/OvrlAnimModifiers.h"
+#include "Animations/Procedural/OvrlAnimAlphaModifiers.h"
 
 #include "Player/OvrlPlayerCharacter.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-#include "Weapons/OvrlRangedWeaponInstance.h"
-
-#include "OvrlUtils.h"
-#include "Overlink.h"
 
 // Engine
 #include "Curves/CurveVector.h"
@@ -153,23 +149,4 @@ void UOvrlMovementAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslat
 
 	// Since OutTranslation and OutRotation is reset every frame, we save LastTranslation and LastRotation locally to be able to smooth correctly
 	OutTranslation += LastTranslation;
-}
-
-void UOvrlWeaponAimingAnimAlphaModifier::Initialize()
-{
-	RangedWeaponAnimInstance = GetTypedOuter<UOvrlRangedWeaponAnimInstance>();
-}
-
-void UOvrlWeaponAimingAnimAlphaModifier::ModifyAlpha(float& OutAlpha)
-{
-	if (RangedWeaponAnimInstance.IsValid())
-	{
-		if (AOvrlRangedWeaponInstance* RangedWeapon = RangedWeaponAnimInstance->GetEquippedWeapon())
-		{
-			if (RangedWeapon->IsADS())
-			{
-				OutAlpha *= AlphaMultiplier;
-			}
-		}
-	}
 }

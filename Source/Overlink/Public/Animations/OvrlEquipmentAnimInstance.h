@@ -12,7 +12,7 @@ class UOvrlCharacterMovementComponent;
 class AOvrlRangedWeaponInstance;
 class AOvrlEquipmentInstance;
 class UCurveVector;
-class UOvrlStanceStatesAnimManagerBase;
+class UOvrlStanceStatesAnimManager;
 
 /**
  *
@@ -218,7 +218,7 @@ protected:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)
-	TArray<TObjectPtr<UOvrlStanceStatesAnimManagerBase>> Managers;
+	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	FVector OutMoveTranslation;
