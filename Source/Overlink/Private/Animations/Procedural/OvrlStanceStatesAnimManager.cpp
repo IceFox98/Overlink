@@ -25,10 +25,14 @@ void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharac
 			Modifiers.Add(Modifier);
 		}
 	}
+
+	OnStanceChanged(FGameplayTag::EmptyTag, CharacterMovementComponent->GetStance());
+	OnGaitChanged(FGameplayTag::EmptyTag, CharacterMovementComponent->GetGait());
 }
 
 void UOvrlStanceStatesAnimManager::Update(float DeltaTime, FVector& OutStartTranslation, FRotator& OutStartRotation, FVector& OutTranslation, FRotator& OutRotation)
 {
+	// Smooth start position to avoid jerky movements when switch stance
 	const float TargetAlpha = bShouldUpdateStartPosition ? 1.f : 0.f;
 	Alpha = FMath::FInterpTo(Alpha, TargetAlpha, DeltaTime, 20.f);
 

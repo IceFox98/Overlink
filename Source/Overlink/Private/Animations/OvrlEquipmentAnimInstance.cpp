@@ -78,8 +78,8 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	}
 
 	// Reset every frame
-	OutMoveTranslation = FVector::ZeroVector;
-	OutMoveRotation = FRotator::ZeroRotator;
+	ModifiersTranslation = FVector::ZeroVector;
+	ModifiersRotation = FRotator::ZeroRotator;
 	RightHandInitialLocation = FVector::ZeroVector;
 	RightHandInitialRotation = FRotator::ZeroRotator;
 
@@ -87,12 +87,12 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	{
 		if (Manager)
 		{
-			Manager->Update(DeltaTime, RightHandInitialLocation, RightHandInitialRotation, OutMoveTranslation, OutMoveRotation);
+			Manager->Update(DeltaTime, RightHandInitialLocation, RightHandInitialRotation, ModifiersTranslation, ModifiersRotation);
 		}
 	}
 
 	// Since we're in Component space, I have to rotate the vector in order to follow the player aim.
-	OutMoveTranslation = SpineRotation.RotateVector(OutMoveTranslation);
+	ModifiersTranslation = SpineRotation.RotateVector(ModifiersTranslation);
 }
 
 void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
@@ -102,12 +102,12 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 	if (IsValid(PlayerCharacter))
 	{
 		UpdateLookingSway(DeltaTime);
-		UpdateMovementSway(DeltaTime);
-		UpdateWalkSway(DeltaTime);
+		//UpdateMovementSway(DeltaTime);
+		//UpdateWalkSway(DeltaTime);
 		UpdateJumpSway(DeltaTime);
 		UpdateLeftHandIKAplha(DeltaTime);
 		UpdateCrouchLeanAlpha(DeltaTime);
-		UpdateRunPositionAlpha(DeltaTime);
+		//UpdateRunPositionAlpha(DeltaTime);
 
 		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
@@ -165,71 +165,71 @@ void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
 }
 
-void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
-{
-	const FVector PlayerVelocity = CharacterMovementComponent->GetLastUpdateVelocity();
-
-	// Calculate "how much" the player is moving in any directions
-	// If it's moving fully forward, the Dot result will be equals to the MaxWalkSpeed, so the division will return 1.
-	const float ForwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorForwardVector()) / CharacterMovementComponent->MaxWalkSpeed;
-	const float RightwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorRightVector()) / CharacterMovementComponent->MaxWalkSpeed;
-
-	const FVector TargetMovementAmount = FVector(RightwardAmount, -ForwardAmount, 0.f) * MovementSwayMultiplier;
-
-	LastMovementSwayTranslation = FMath::VInterpTo(LastMovementSwayTranslation, TargetMovementAmount, DeltaTime, MovementSwaySpeed);
-
-	MovementSwayRotation = FRotator(FMath::Clamp(LastMovementSwayTranslation.X, -1.f, 1.f) * -MovementSwayRollMultiplier, 0.f, 0.f);
-
-	// Since its in component space, I have to rotate the vector in order to follow the player aim.
-	// I do this just for the anim BP, that's why I use 2 different variables.
-	MovementSwayTranslation = SpineRotation.RotateVector(LastMovementSwayTranslation);
-}
-
-void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
-{
-	if (!WalkSwayTranslationCurve)
-	{
-		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
-		return;
-	}
-
-	if (!WalkSwayRotationCurve)
-	{
-		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayRotationCurve is NULL!");
-		return;
-	}
-
-	FVector TargetWalkSwayTranslation = FVector::ZeroVector;
-	FRotator TargetWalkSwayRotation = FRotator::ZeroRotator;
-
-	const FVector LastInputVector = CharacterMovementComponent->GetLastInputVector();
-
-	// Read the value only when player moves
-	if (LastInputVector.Length() > 0.f)
-	{
-		const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
-		const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
-
-		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime) * WalkSwayTranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
-
-		const FVector RotationCurve = WalkSwayRotationCurve->GetVectorValue(WalkSwayTime) * WalkSwayRotationMultiplier;
-		TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
-
-		WalkSwayTime += DeltaTime * WalkSwayFrequency;
-	}
-	else
-	{
-		WalkSwayTime = 0.f;
-	}
-
-	LastWalkSwayTranslation = FMath::VInterpTo(LastWalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed);
-
-	// Since its in component space, we have to rotate the vector in order to follow the player aim
-	// I do this just for the anim BP, that's why I use 2 different variables.
-	WalkSwayTranslation = SpineRotation.RotateVector(LastWalkSwayTranslation);
-
-	WalkSwayRotation = FMath::RInterpTo(WalkSwayRotation, TargetWalkSwayRotation, DeltaTime, WalkSwaySpeed);
-}
+//void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
+//{
+//	const FVector PlayerVelocity = CharacterMovementComponent->GetLastUpdateVelocity();
+//
+//	// Calculate "how much" the player is moving in any directions
+//	// If it's moving fully forward, the Dot result will be equals to the MaxWalkSpeed, so the division will return 1.
+//	const float ForwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorForwardVector()) / CharacterMovementComponent->MaxWalkSpeed;
+//	const float RightwardAmount = FVector::DotProduct(PlayerVelocity, PlayerCharacter->GetActorRightVector()) / CharacterMovementComponent->MaxWalkSpeed;
+//
+//	const FVector TargetMovementAmount = FVector(RightwardAmount, -ForwardAmount, 0.f) * MovementSwayMultiplier;
+//
+//	LastMovementSwayTranslation = FMath::VInterpTo(LastMovementSwayTranslation, TargetMovementAmount, DeltaTime, MovementSwaySpeed);
+//
+//	MovementSwayRotation = FRotator(FMath::Clamp(LastMovementSwayTranslation.X, -1.f, 1.f) * -MovementSwayRollMultiplier, 0.f, 0.f);
+//
+//	// Since its in component space, I have to rotate the vector in order to follow the player aim.
+//	// I do this just for the anim BP, that's why I use 2 different variables.
+//	MovementSwayTranslation = SpineRotation.RotateVector(LastMovementSwayTranslation);
+//}
+//
+//void UOvrlEquipmentAnimInstance::UpdateWalkSway(float DeltaTime)
+//{
+//	if (!WalkSwayTranslationCurve)
+//	{
+//		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayTraslationCurve is NULL!");
+//		return;
+//	}
+//
+//	if (!WalkSwayRotationCurve)
+//	{
+//		OVRL_LOG_ERR(LogOverlink, false, "WalkSwayRotationCurve is NULL!");
+//		return;
+//	}
+//
+//	FVector TargetWalkSwayTranslation = FVector::ZeroVector;
+//	FRotator TargetWalkSwayRotation = FRotator::ZeroRotator;
+//
+//	const FVector LastInputVector = CharacterMovementComponent->GetLastInputVector();
+//
+//	// Read the value only when player moves
+//	if (LastInputVector.Length() > 0.f)
+//	{
+//		const float ForwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorForwardVector());
+//		const float RightwardAmount = FVector::DotProduct(LastInputVector, PlayerCharacter->GetActorRightVector());
+//
+//		TargetWalkSwayTranslation = WalkSwayTranslationCurve->GetVectorValue(WalkSwayTime) * WalkSwayTranslationMultiplier * FVector(1.f, ForwardAmount, 1.f);
+//
+//		const FVector RotationCurve = WalkSwayRotationCurve->GetVectorValue(WalkSwayTime) * WalkSwayRotationMultiplier;
+//		TargetWalkSwayRotation = FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+//
+//		WalkSwayTime += DeltaTime * WalkSwayFrequency;
+//	}
+//	else
+//	{
+//		WalkSwayTime = 0.f;
+//	}
+//
+//	LastWalkSwayTranslation = FMath::VInterpTo(LastWalkSwayTranslation, TargetWalkSwayTranslation, DeltaTime, WalkSwaySpeed);
+//
+//	// Since its in component space, we have to rotate the vector in order to follow the player aim
+//	// I do this just for the anim BP, that's why I use 2 different variables.
+//	WalkSwayTranslation = SpineRotation.RotateVector(LastWalkSwayTranslation);
+//
+//	WalkSwayRotation = FMath::RInterpTo(WalkSwayRotation, TargetWalkSwayRotation, DeltaTime, WalkSwaySpeed);
+//}
 
 void UOvrlEquipmentAnimInstance::UpdateJumpSway(float DeltaTime)
 {
@@ -266,12 +266,12 @@ void UOvrlEquipmentAnimInstance::UpdateCrouchLeanAlpha(float DeltaTime)
 	CrouchLeanAlpha = FMath::FInterpTo(CrouchLeanAlpha, TargetCrouchLeanAlpha, DeltaTime, CrouchLeanSpeed);
 }
 
-void UOvrlEquipmentAnimInstance::UpdateRunPositionAlpha(float DeltaTime)
-{
-	const bool bIsPlayerRunning = CharacterMovementComponent->IsRunning();
-	const float TargetRunPositionAlpha = bIsPlayerRunning ? 0.f : 1.f;
-	RunPositionAlpha = FMath::FInterpTo(RunPositionAlpha, TargetRunPositionAlpha, DeltaTime, 15.f);
-}
+//void UOvrlEquipmentAnimInstance::UpdateRunPositionAlpha(float DeltaTime)
+//{
+//	const bool bIsPlayerRunning = CharacterMovementComponent->IsRunning();
+//	const float TargetRunPositionAlpha = bIsPlayerRunning ? 0.f : 1.f;
+//	RunPositionAlpha = FMath::FInterpTo(RunPositionAlpha, TargetRunPositionAlpha, DeltaTime, 15.f);
+//}
 
 void UOvrlEquipmentAnimInstance::UpdateLeftHandIKAplha(float DeltaTime)
 {

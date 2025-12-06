@@ -21,16 +21,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	float Frequency = 1.f;
 
-	// Translation curve that the modifier will apply
+	// Translation curve that the modifier will apply (component space)
 	// X -> Left/Right
 	// Y -> Forward/Backward
 	// Z -> Up/Down 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCurveVector> TranslationCurve;
 	
-	// Translation curve that the modifier will apply
-	// X -> Roll
-	// Y -> Pitch
+	// Translation curve that the modifier will apply (component space)
+	// X -> Pitch
+	// Y -> Roll
 	// Z -> Yaw
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCurveVector> RotationCurve;
@@ -41,8 +41,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	FVector TranslationMultiplier;
 
-	// X -> Roll
-	// Y -> Pitch
+	// X -> Pitch
+	// Y -> Roll
 	// Z -> Yaw
 	UPROPERTY(EditAnywhere)
 	FVector RotationMultiplier;
@@ -113,7 +113,7 @@ protected:
 /**
  * Anim modifiers that is applied during a locomotion action, like walking or running
  */
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(Blueprintable, Abstract)
 class OVERLINK_API UOvrlLocomotionActionsAnimModifier : public UOvrlAnimModifierBase
 {
 	GENERATED_BODY()
@@ -134,7 +134,7 @@ protected:
 	FRotator LastRotation;
 };
 
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(Blueprintable, Abstract)
 class OVERLINK_API UOvrlMovementAnimModifier : public UOvrlLocomotionActionsAnimModifier
 {
 	GENERATED_BODY()

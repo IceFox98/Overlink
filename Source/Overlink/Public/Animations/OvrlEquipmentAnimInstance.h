@@ -44,11 +44,11 @@ protected:
 private:
 
 	void UpdateLookingSway(float DeltaTime);
-	void UpdateMovementSway(float DeltaTime);
+	//void UpdateMovementSway(float DeltaTime);
 	void UpdateJumpSway(float DeltaTime);
-	void UpdateWalkSway(float DeltaTime);
+	//void UpdateWalkSway(float DeltaTime);
 	void UpdateCrouchLeanAlpha(float DeltaTime);
-	void UpdateRunPositionAlpha(float DeltaTime);
+	//void UpdateRunPositionAlpha(float DeltaTime);
 	void UpdateLeftHandIKAplha(float DeltaTime);
 
 protected:
@@ -69,9 +69,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch")
 	FRotator CrouchRotation;
 
-	// Translation applied to the weapon when player is crouching
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Run")
-	FVector RunTranslation;
+	//// Translation applied to the weapon when player is crouching
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Run")
+	//FVector RunTranslation;
 
 	// Rotation applied to the weapon when player is crouching
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Run")
@@ -154,9 +154,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	float InitialTransformAlpha;
 
-	// Represents the alpha of the weapon position while running
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch", Transient)
-	float RunPositionAlpha;
+	//// Represents the alpha of the weapon position while running
+	//UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch", Transient)
+	//float RunPositionAlpha;
 
 	// Represents the alpha of the weapon crouch leaning
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch", Transient)
@@ -221,10 +221,10 @@ protected:
 	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
-	FVector OutMoveTranslation;
+	FVector ModifiersTranslation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
-	FRotator OutMoveRotation;
+	FRotator ModifiersRotation;
 
 
 protected:
