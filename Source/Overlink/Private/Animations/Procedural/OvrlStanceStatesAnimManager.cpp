@@ -34,7 +34,7 @@ void UOvrlStanceStatesAnimManager::Update(float DeltaTime, FVector& OutStartTran
 {
 	// Smooth start position to avoid jerky movements when switch stance
 	const float TargetAlpha = bShouldUpdateStartPosition ? 1.f : 0.f;
-	Alpha = FMath::FInterpTo(Alpha, TargetAlpha, DeltaTime, 20.f);
+	Alpha = FMath::FInterpTo(Alpha, TargetAlpha, DeltaTime, 10.f);
 
 	OutStartTranslation += StartTranslation * Alpha;
 	OutStartRotation += StartRotation * Alpha;
