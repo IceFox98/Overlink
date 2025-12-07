@@ -40,6 +40,19 @@ void UOvrlAnimModifierBase::Update(float DeltaTime, FVector& OutTranslation, FRo
 	}
 }
 
+void UOvrlAnimModifierBase::SetTag(const FGameplayTag& NewTag)
+{
+	if (CurrentTag != NewTag)
+	{
+		for (FModifierData& Data : DataList)
+		{
+			Data.Time = 0.f;
+		}
+	}
+
+	CurrentTag = NewTag;
+}
+
 void UOvrlAnimModifierBase::ComputeAlpha(float DeltaTime)
 {
 	if (CurrentTag == TagToCheck && bShouldUpdateAlpha)

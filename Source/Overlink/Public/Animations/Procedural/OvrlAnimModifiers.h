@@ -66,7 +66,7 @@ public:
 
 	void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
 
-	FORCEINLINE void SetTag(const FGameplayTag& NewTag) { CurrentTag = NewTag; };
+	void SetTag(const FGameplayTag& NewTag);
 
 protected:
 
