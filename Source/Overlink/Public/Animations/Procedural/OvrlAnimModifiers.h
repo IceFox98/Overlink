@@ -66,7 +66,7 @@ public:
 
 	void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
 
-	FORCEINLINE void SetTag(const FGameplayTag& NewGait) { CurrentTag = NewGait; };
+	FORCEINLINE void SetTag(const FGameplayTag& NewTag) { CurrentTag = NewTag; };
 
 protected:
 
@@ -78,21 +78,21 @@ protected:
 protected:
 
 	// Used just for debugging purposes
-	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base")
 	bool bEnabled = true;
 
 	// Represents the list of transformation that the modifier will apply
-	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base")
 	TArray<FModifierData> DataList;
 
 	// Gameplay Tag that the player must have to enable this modifier
-	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base", meta = (Categories = "Ovrl.Gait,Ovrl.LocomotionAction"))
+	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base", meta = (Categories = "Ovrl.Gait,Ovrl.LocomotionAction"))
 	FGameplayTag TagToCheck;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Gait Anim Modifier Base")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base")
 	float RecoverySpeed = 1.f;
 
-	UPROPERTY(EditAnywhere, Instanced, Category = "Ovrl Gait Anim Modifier Base")
+	UPROPERTY(EditAnywhere, Instanced, Category = "Ovrl Anim Modifier Base")
 	TArray<TObjectPtr<UOvrlAnimAlphaModifierBase>> AlphaModifiers;
 
 protected:
