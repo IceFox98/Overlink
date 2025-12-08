@@ -1049,6 +1049,7 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 			const FVector FloorSlopeDirection = FVector::CrossProduct(Character->GetActorRightVector(), OutHit.Normal);
 			AddImpulse(FloorSlopeDirection * SlideForce, true);
 
+			StopRunning();
 			SetLocomotionAction(OvrlLocomotionActionTags::Sliding);
 		}
 	}
