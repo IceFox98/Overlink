@@ -114,6 +114,20 @@ protected:
  * Anim modifiers that is applied during a locomotion action, like walking or running
  */
 UCLASS(Blueprintable, Abstract)
+class OVERLINK_API UOvrlSimpleAnimModifier : public UOvrlAnimModifierBase
+{
+	GENERATED_BODY()
+
+public:
+
+	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
+
+};
+
+/**
+ * Anim modifiers that is applied during a locomotion action, like walking or running
+ */
+UCLASS(Blueprintable, Abstract)
 class OVERLINK_API UOvrlLocomotionActionsAnimModifier : public UOvrlAnimModifierBase
 {
 	GENERATED_BODY()

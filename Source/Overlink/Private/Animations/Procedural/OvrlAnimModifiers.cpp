@@ -85,6 +85,27 @@ float UOvrlAnimModifierBase::GetAlpha()
 	return TargetAlpha;
 }
 
+void UOvrlSimpleAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
+{
+	for (FModifierData& Data : DataList)
+	{
+		if (!Data.TranslationCurve || !Data.RotationCurve)
+		{
+			continue;
+		}
+
+		// Apply translation curve, modified by the movement amount
+		OutTranslation += Data.TranslationCurve->GetVectorValue(Data.Time) * Data.TranslationMultiplier;
+
+		// Apply rotation curve
+		const FVector RotationCurve = Data.RotationCurve->GetVectorValue(Data.Time) * Data.RotationMultiplier;
+		OutRotation += FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
+
+		// Increase time of this modifier data
+		Data.Time += DeltaTime * Data.Frequency;
+	}
+}
+
 void UOvrlLocomotionActionsAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
 {
 	FVector TargetTranslation = FVector::ZeroVector;
