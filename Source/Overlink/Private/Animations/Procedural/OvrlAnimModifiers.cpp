@@ -87,6 +87,8 @@ float UOvrlAnimModifierBase::GetAlpha()
 
 void UOvrlSimpleAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
 {
+	const float TargetAlpha = GetAlpha();
+
 	for (FModifierData& Data : DataList)
 	{
 		if (!Data.TranslationCurve || !Data.RotationCurve)
@@ -95,10 +97,10 @@ void UOvrlSimpleAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslatio
 		}
 
 		// Apply translation curve, modified by the movement amount
-		OutTranslation += Data.TranslationCurve->GetVectorValue(Data.Time) * Data.TranslationMultiplier;
+		OutTranslation += Data.TranslationCurve->GetVectorValue(Data.Time) * Data.TranslationMultiplier * TargetAlpha;
 
 		// Apply rotation curve
-		const FVector RotationCurve = Data.RotationCurve->GetVectorValue(Data.Time) * Data.RotationMultiplier;
+		const FVector RotationCurve = Data.RotationCurve->GetVectorValue(Data.Time) * Data.RotationMultiplier * TargetAlpha;
 		OutRotation += FRotator(RotationCurve.Y, RotationCurve.Z, RotationCurve.X);
 
 		// Increase time of this modifier data
