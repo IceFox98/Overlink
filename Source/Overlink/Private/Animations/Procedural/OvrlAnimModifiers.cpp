@@ -55,7 +55,7 @@ void UOvrlAnimModifierBase::SetTag(const FGameplayTag& NewTag)
 
 void UOvrlAnimModifierBase::ComputeAlpha(float DeltaTime)
 {
-	if (CurrentTag == TagToCheck && bShouldUpdateAlpha)
+	if (TagsToCheck.HasTagExact(CurrentTag) && bShouldUpdateAlpha)
 	{
 		Alpha = 1.f; // We want fully alpha to be applied
 	}

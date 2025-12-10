@@ -209,6 +209,9 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(RecoilStep.Yaw);
 		CurrentCameraRecoil -= RecoilStep;
 
+		OVRL_LOG("%s", *RecoilStep.ToString());
+
+
 		LastControllerRotation = PlayerController->GetControlRotation();
 	}
 	else if (bCanRecoverFromRecoil)
@@ -222,6 +225,8 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 		OwnerMovementComp->GetPawnOwner()->AddControllerPitchInput(-RecoilRecoveryStep.Pitch);
 		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(-RecoilRecoveryStep.Yaw);
 		DeltaRotation -= RecoilRecoveryStep;
+
+		//OVRL_LOG("%s", *RecoilRecoveryStep.ToString());
 
 		// Update last controller rotation to avoid bugs when new recoil is applied meanwhile the recovery is ongoing
 		LastControllerRotation = PlayerController->GetControlRotation();

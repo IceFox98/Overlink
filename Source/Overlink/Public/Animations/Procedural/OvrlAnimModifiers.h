@@ -87,7 +87,7 @@ protected:
 
 	// Gameplay Tag that the player must have to enable this modifier
 	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base", meta = (Categories = "Ovrl.Gait,Ovrl.LocomotionAction"))
-	FGameplayTag TagToCheck;
+	FGameplayTagContainer TagsToCheck;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base")
 	float RecoverySpeed = 1.f;
