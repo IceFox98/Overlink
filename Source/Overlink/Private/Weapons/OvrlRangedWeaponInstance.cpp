@@ -209,7 +209,7 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(RecoilStep.Yaw);
 		CurrentCameraRecoil -= RecoilStep;
 
-		OVRL_LOG("%s", *RecoilStep.ToString());
+		//OVRL_LOG("%s", *RecoilStep.ToString());
 
 
 		LastControllerRotation = PlayerController->GetControlRotation();
