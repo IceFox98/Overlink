@@ -100,3 +100,17 @@ namespace OvrlGameplayCueTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(WeaponFire, "Ovrl.GameplayCue.WeaponFire");
 };
+
+namespace OvrlFoleyEvents
+{
+	UE_DEFINE_GAMEPLAY_TAG(Walk, "Ovrl.FoleyEvent.Walk");
+	UE_DEFINE_GAMEPLAY_TAG(WalkBackwards, "Ovrl.FoleyEvent.WalkBackwards");
+	UE_DEFINE_GAMEPLAY_TAG(WalkStrafe, "Ovrl.FoleyEvent.WalkStrafe");
+	UE_DEFINE_GAMEPLAY_TAG(Run, "Ovrl.FoleyEvent.Run");
+	UE_DEFINE_GAMEPLAY_TAG(RunBackwards, "Ovrl.FoleyEvent.RunBackwards");
+	UE_DEFINE_GAMEPLAY_TAG(RunStrafe, "Ovrl.FoleyEvent.RunStrafe");
+	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.FoleyEvent.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(Scuff, "Ovrl.FoleyEvent.Scuff");
+	UE_DEFINE_GAMEPLAY_TAG(ScuffWall, "Ovrl.FoleyEvent.ScuffWall");
+	UE_DEFINE_GAMEPLAY_TAG(Handplant, "Ovrl.FoleyEvent.Handplant");
+};
