@@ -42,6 +42,7 @@ namespace OvrlLocomotionActionTags
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(WallrunningVertical);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(WallrunningLeft);
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(WallrunningRight);
+	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(WallClinging); // Wallrun "idle", when character is clinging to a wall after a vertical wallrun
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(GettingUp);
 };
 

@@ -76,10 +76,6 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	bIsMoving = CharacterMovementComponent->Velocity.Length() > 0.f;
 	bIsRunning = (Gait == OvrlGaitTags::Running);
 	bIsSliding = (LocomotionAction == OvrlLocomotionActionTags::Sliding);
-	bIsWallrunning = (
-		LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ||
-		LocomotionAction == OvrlLocomotionActionTags::WallrunningRight ||
-		LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical
-		);
-
+	bIsWallrunning = CharacterMovementComponent->IsWallrunning();
+	bIsWallClinging = CharacterMovementComponent->IsWallClinging();
 }

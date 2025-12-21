@@ -415,7 +415,7 @@ void UOvrlCharacterMovementComponent::OnPlayerJumped()
 		{
 			HandleLateralWallrunJump();
 		}
-		else if (IsVerticalWallrunning())
+		else if (IsVerticalWallrunning() || IsWallClinging())
 		{
 			HandleVerticalWallrunJump();
 		}
@@ -820,20 +820,31 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 	if (OutHit.bBlockingHit)
 	{
-		const bool bShouldStartWallrun = FVector::DotProduct(Character->GetActorForwardVector(), -OutHit.ImpactNormal) > .85f;
+		const bool bShouldPerformWallrun = FVector::DotProduct(Character->GetActorForwardVector(), -OutHit.ImpactNormal) > .85f;
 
-		if (bShouldStartWallrun)
+		if (bShouldPerformWallrun)
 		{
 			WallrunNormal = OutHit.ImpactNormal;
-			SetLocomotionAction(OvrlLocomotionActionTags::WallrunningVertical);
+
+			if (!IsWallClinging())
+			{
+				SetLocomotionAction(OvrlLocomotionActionTags::WallrunningVertical);
+			}
 		}
 	}
 
-	if (IsVerticalWallrunning())
+	if (IsVerticalWallrunning() || IsWallClinging())
 	{
+		// Push the player up along the wall, easing out the vertical velocity
 		float VelocityZ = FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, VerticalWallrunAlpha, 3.f);
 		VerticalWallrunAlpha = FMath::Clamp(VerticalWallrunAlpha - VerticalWallrunVelocityFalloffSpeed * DeltaTime, 0.f, 1.f);
 
+		if (VelocityZ <= 0.f)
+		{
+			SetLocomotionAction(OvrlLocomotionActionTags::WallClinging);
+		}
+
+		// The force used to keep the player sticked to the wall
 		const FVector StickVelocity = -WallrunNormal * 100.f;
 
 		const FVector LaunchVelocity = -GetGravityDirection() * VelocityZ;
@@ -910,21 +921,21 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 
 void UOvrlCharacterMovementComponent::HandleWallrunCameraTilt(float DeltaTime)
 {
-	FRotator TargetRotation = Character->GetControlRotation();
+	//FRotator TargetRotation = Character->GetControlRotation();
 
-	if (IsWallrunning())
-	{
-		// Tilt camera depending on which wall the player is on.
-		TargetRotation.Roll = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? WallrunCameraTiltAngle : -WallrunCameraTiltAngle;
-	}
-	else
-	{
-		TargetRotation.Roll = 0.f;
-	}
+	//if (IsWallrunning())
+	//{
+	//	// Tilt camera depending on which wall the player is on.
+	//	TargetRotation.Roll = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? WallrunCameraTiltAngle : -WallrunCameraTiltAngle;
+	//}
+	//else
+	//{
+	//	TargetRotation.Roll = 0.f;
+	//}
 
-	// Lerp and apply rotation
-	const FRotator FinalRotation = UKismetMathLibrary::RInterpTo(Character->GetControlRotation(), TargetRotation, DeltaTime, 10.f);
-	Character->GetController()->SetControlRotation(FinalRotation);
+	//// Lerp and apply rotation
+	//const FRotator FinalRotation = UKismetMathLibrary::RInterpTo(Character->GetControlRotation(), TargetRotation, DeltaTime, 10.f);
+	//Character->GetController()->SetControlRotation(FinalRotation);
 }
 
 void UOvrlCharacterMovementComponent::HandleLateralWallrunJump()
@@ -1001,7 +1012,7 @@ void UOvrlCharacterMovementComponent::ResetWallrun()
 
 void UOvrlCharacterMovementComponent::EndWallrun()
 {
-	if (IsWallrunning())
+	if (IsWallrunning() || IsWallClinging())
 	{
 		bCanCheckWallrun = false;
 		SetLocomotionAction(FGameplayTag::EmptyTag);
@@ -1064,7 +1075,8 @@ bool UOvrlCharacterMovementComponent::ShouldCancelSliding()
 
 	//OvrlLOG("%f", GetLastUpdateVelocity().Length());
 
-	return GetLastUpdateVelocity().Length() <= 575.f;
+	//return GetLastUpdateVelocity().Length() <= 575.f;
+	return false;
 }
 
 void UOvrlCharacterMovementComponent::CancelSliding()

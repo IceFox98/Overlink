@@ -90,7 +90,10 @@ protected:
 	bool bIsSliding;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
-	bool bIsWallrunning;
+	bool bIsWallrunning;	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Movement Data", Transient)
+	bool bIsWallClinging;
 
 	// ------ IK ------
 
