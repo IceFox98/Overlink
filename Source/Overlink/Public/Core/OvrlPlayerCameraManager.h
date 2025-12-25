@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Camera/PlayerCameraManager.h"
+#include "Core/OvrlCameraEventsDefinition.h"
 #include "OvrlPlayerCameraManager.generated.h"
+
+class UOvrlCameraModifierBase;
 
 /**
  * 
@@ -30,5 +33,19 @@ public:
 			return Cast<T>(AddNewCameraModifier(ModifierClass));
 		}
 	};
+
+public:
+
+	void HandleCameraEvent(ECameraFeedbackEvent Event, float Strength);
+
+public:
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Camera Event Definition")
+	TObjectPtr<UOvrlCameraEventsDefinition> CameraEventsDefinition;
+
+private:
+
+	UPROPERTY()
+	TObjectPtr<UOvrlCameraModifierBase> CameraModifier;
 
 };

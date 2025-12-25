@@ -8,6 +8,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MotionWarpingComponent.h"
+#include "Core/OvrlCameraEventsDefinition.h"
 
 #if ENABLE_DRAW_DEBUG
 #include "KismetTraceUtils.h"
@@ -128,9 +129,11 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 	{
 		SetGait(OvrlGaitTags::Walking);
 	}
-	else
+	else if(Gait != OvrlGaitTags::Running)
 	{
 		SetGait(OvrlGaitTags::Running);
+
+		UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StartRun);
 	}
 }
 
@@ -454,6 +457,8 @@ void UOvrlCharacterMovementComponent::StartRunning()
 void UOvrlCharacterMovementComponent::StopRunning()
 {
 	MaxWalkSpeed = DefaultMaxWalkSpeed;
+
+	UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StopRun);
 }
 
 void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)

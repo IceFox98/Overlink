@@ -53,6 +53,8 @@
 // Warning log
 #define OVRL_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OVRL_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, ##__VA_ARGS__)
 
+enum class ECameraFeedbackEvent : uint8;
+
 /**
  *
  */
@@ -83,4 +85,6 @@ public:
 	static FTransform ExtractRootTransformFromMontage(const UAnimMontage* Montage, float Time);
 
 	static bool ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName);
+
+	static void TriggerCameraEvent(UObject* WorldObjectContext, ECameraFeedbackEvent CameraEvent);
 };

@@ -131,12 +131,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 	float ThrowForce;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character")
-	TObjectPtr<UPlayerSFXConfig> SFXConfig;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character")
-	TObjectPtr<UPlayerCameraFXConfig> CameraFXConfig;
-
 private:
 
 	UPROPERTY()

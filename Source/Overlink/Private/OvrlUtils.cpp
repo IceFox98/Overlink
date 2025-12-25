@@ -3,6 +3,7 @@
 
 #include "OvrlUtils.h"
 #include "GameFramework/HUD.h"
+#include "Core/OvrlPlayerCameraManager.h"
 
 FRotator UOvrlUtils::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
 {
@@ -60,4 +61,12 @@ bool UOvrlUtils::ShouldDisplayDebugForActor(const AActor* Actor, const FName& Di
 	AHUD* Hud = IsValid(PC) ? PC->GetHUD() : nullptr;
 
 	return IsValid(Hud) && Hud->ShouldDisplayDebug(DisplayName) && Hud->GetCurrentDebugTargetActor() == Actor;
+}
+
+void UOvrlUtils::TriggerCameraEvent(UObject* WorldObjectContext, ECameraFeedbackEvent CameraEvent)
+{
+	if (AOvrlPlayerCameraManager* PCM = AOvrlPlayerCameraManager::Get(WorldObjectContext))
+	{
+		PCM->HandleCameraEvent(CameraEvent, 1.f);
+	}
 }
