@@ -21,6 +21,10 @@
 
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
+	MagazineAmmoCountDisplay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineAmmoCountDisplay"));
+	MagazineAmmoCountDisplay->SetupAttachment(WeaponMesh);
+	MagazineAmmoCountDisplay->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	BulletsPerCartridge = 1;
 	MaxDamageRange = 25000.0f;
 	FireRate = 400.f;
@@ -70,6 +74,8 @@ void AOvrlRangedWeaponInstance::OnEquipped()
 	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(0.f);
 
 	OwnerMovementComp = GetOwner()->GetComponentByClass<UOvrlCharacterMovementComponent>();
+
+	UpdateMagazineAmmoCountDisplay();
 }
 
 void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
@@ -85,6 +91,8 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 
 	PlayFireAnimation();
 	SpawnImpactVFX(HitData);
+
+	UpdateMagazineAmmoCountDisplay();
 }
 
 void AOvrlRangedWeaponInstance::StopFire()
@@ -122,8 +130,10 @@ void AOvrlRangedWeaponInstance::PerformReload()
 		const int32 MagazineSize = Item->GetTagStackCount(OvrlWeaponTags::MagazineSize);
 		const int32 ShotsFired = MagazineSize - CurrentMagazineAmmo;
 
-		Item->RemoveStack(OvrlWeaponTags::SpareAmmo, ShotsFired); // Decrease total ammo 
+		Item->RemoveStack(OvrlWeaponTags::SpareAmmo, ShotsFired); // Decrease total ammo
 		Item->AddStack(OvrlWeaponTags::MagazineAmmo, ShotsFired); // Reset magazine ammo
+
+		UpdateMagazineAmmoCountDisplay();
 	}
 }
 
@@ -287,6 +297,28 @@ void AOvrlRangedWeaponInstance::PlayFireAnimation()
 	if (ensure(WeaponMesh && FireAnimation))
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
+}
+
+UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMaterial()
+{
+	if (MagazineAmmoCountDisplay)
+	{
+		return MagazineAmmoCountDisplay->CreateDynamicMaterialInstance(0, MagazineAmmoCountDisplay->GetMaterial(0));
+	}
+
+	return nullptr;
+}
+
+void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay()
+{
+	if (UMaterialInstanceDynamic* Material = GetMagazineAmmoCountMaterial())
+	{
+		if (UOvrlItemInstance* Item = GetAssociatedItem())
+		{
+			const int32 CurrentMagazineAmmo = Item->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
+			Material->SetScalarParameterValue(TEXT("Value"), CurrentMagazineAmmo);
+		}
 	}
 }
 

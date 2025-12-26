@@ -30,5 +30,5 @@ protected:
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Hit-Scan Weapon Instance", meta = (AllowPrivateAccess = true))
-		UNiagaraSystem* BulletTrailVFX;
+	UNiagaraSystem* BulletTrailVFX;
 };

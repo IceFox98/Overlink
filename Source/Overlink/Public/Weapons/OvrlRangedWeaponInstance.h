@@ -82,6 +82,16 @@ protected:
 
 	virtual void PlayFireAnimation();
 
+	UMaterialInstanceDynamic* GetMagazineAmmoCountMaterial();
+	void UpdateMagazineAmmoCountDisplay();
+
+protected:
+
+	// Components
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl anged Weapon Instance|Components")
+	TObjectPtr<UStaticMeshComponent> MagazineAmmoCountDisplay;
+
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
