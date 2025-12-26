@@ -114,4 +114,5 @@ namespace OvrlFoleyEvents
 	UE_DEFINE_GAMEPLAY_TAG(Scuff, "Ovrl.FoleyEvent.Scuff");
 	UE_DEFINE_GAMEPLAY_TAG(ScuffWall, "Ovrl.FoleyEvent.ScuffWall");
 	UE_DEFINE_GAMEPLAY_TAG(Handplant, "Ovrl.FoleyEvent.Handplant");
+	UE_DEFINE_GAMEPLAY_TAG(Land, "Ovrl.FoleyEvent.Land");
 };
