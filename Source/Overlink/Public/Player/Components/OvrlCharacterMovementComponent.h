@@ -285,7 +285,7 @@ public:
 	FGameplayTag Stance = OvrlStanceTags::Standing;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
-	FGameplayTag Gait = OvrlGaitTags::Walking;
+	FGameplayTag Gait = OvrlGaitTags::Idle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
 	FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;

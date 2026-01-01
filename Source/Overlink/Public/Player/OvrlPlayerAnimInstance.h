@@ -53,7 +53,7 @@ protected:
 	FGameplayTag Stance = OvrlStanceTags::Standing;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
-	FGameplayTag Gait = OvrlGaitTags::Walking;
+	FGameplayTag Gait = OvrlGaitTags::Idle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
 	FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
