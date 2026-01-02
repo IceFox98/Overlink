@@ -20,13 +20,13 @@ class OVERLINK_API UOvrlReticleWidgetBase : public UUserWidget
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Reticle Widget Base")
-		virtual void InitializeFromWeapon(AOvrlRangedWeaponInstance* Weapon);
+	virtual void InitializeFromWeapon(AOvrlRangedWeaponInstance* Weapon);
 
 protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Reticle Widget Base", meta = (AllowPrivateAccess = true))
-		TObjectPtr<AOvrlRangedWeaponInstance> WeaponInstance;
+	TObjectPtr<AOvrlRangedWeaponInstance> WeaponInstance;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Reticle Widget Baset", meta = (BindWidget))
-		TObjectPtr<UImage> HitMarkerImage;
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Reticle Widget Baset", meta = (BindWidget))
+	TObjectPtr<UImage> HitMarkerImage;
 };

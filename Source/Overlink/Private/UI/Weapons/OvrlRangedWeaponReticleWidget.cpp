@@ -13,6 +13,8 @@ void UOvrlRangedWeaponReticleWidget::InitializeFromWeapon(AOvrlRangedWeaponInsta
 
 	Weapon->OnHitSomething.BindUObject(this, &UOvrlRangedWeaponReticleWidget::OnWeaponHitSomething);
 	Weapon->OnDestroyed.AddUniqueDynamic(this, &UOvrlRangedWeaponReticleWidget::OnWeaponDestroyed);
+
+	FadeOutSpeed = Weapon->GetAimSpeed();
 }
 
 void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -29,13 +31,19 @@ void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, flo
 		// We have to calculate the shortest side of the triangle, that will represent the radius of the crosshair.
 		// We can find it using the Tan function on the spread angle
 		const float SpreadRadius = FixedWeaponDistance * FMath::Tan(WeaponSpreadAngleRad);
-
 		CrosshairReticle->SetRadius(SpreadRadius);
-		CrosshairReticle->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
+
+		// Fade out/in the reticle
+		const float TargetRenderOpacity = FMath::InterpEaseOut(0.f, 1.f, CurrentAlpha, 1.f);
+		const float AlphaDirection = WeaponInstance->IsADS() ? -1.f : 1.f;
+		const float TargetFadeSpeedMultiplier = WeaponInstance->IsADS() ? FadeOutSpeedMultiplier : FadeInSpeedMultiplier;
+		CurrentAlpha = FMath::Clamp(CurrentAlpha + FadeOutSpeed * TargetFadeSpeedMultiplier * AlphaDirection * InDeltaTime, 0.f, 1.f);
+
+		CrosshairReticle->SetOpacity(TargetRenderOpacity);
 
 		if (CenterDot)
 		{
-			CenterDot->SetVisibility(WeaponInstance->IsADS() ? ESlateVisibility::Hidden : ESlateVisibility::HitTestInvisible);
+			CenterDot->SetRenderOpacity(TargetRenderOpacity);
 		}
 	}
 }

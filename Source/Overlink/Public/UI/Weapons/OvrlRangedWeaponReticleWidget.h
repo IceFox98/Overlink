@@ -37,9 +37,22 @@ private:
 
 protected:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidget))
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidget))
 	TObjectPtr<UOvrlCircularReticleWidget> CrosshairReticle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidgetOptional))
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidgetOptional))
 	TObjectPtr<UImage> CenterDot;
+
+	// Multiplier applied to the widget fading speed when weapon switches from no-ADS to ADS.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Reticle Widget")
+	float FadeOutSpeedMultiplier = .4f;
+
+	// Multiplier applied to the widget fading speed when weapon switches from ADS to no-ADS.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Reticle Widget")
+	float FadeInSpeedMultiplier = .2f;
+
+private:
+
+	float FadeOutSpeed = 0.f;
+	float CurrentAlpha = 1.f;
 };

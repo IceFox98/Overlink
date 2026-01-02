@@ -27,6 +27,7 @@ public:
 public:
 
 	void SetRadius(float NewRadius);
+	void SetOpacity(float NewOpacity);
 
 protected:
 	virtual TSharedRef<SWidget> RebuildWidget() override;
@@ -34,13 +35,13 @@ protected:
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Circular Reticle Widget")
-		TArray<FCircularReticleSpokeData> ReticleSpokes;
+	TArray<FCircularReticleSpokeData> ReticleSpokes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Circular Reticle Widget")
-		FSlateBrush ReticleSpokeImage;
+	FSlateBrush ReticleSpokeImage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Circular Reticle Widget", meta = (ClampMin = 0.0))
-		float Radius;
+	float Radius;
 
 private:
 	// Internal Slate widget representing the actual reticle visuals

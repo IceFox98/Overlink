@@ -39,3 +39,8 @@ void UOvrlCircularReticleWidget::SetRadius(float NewRadius)
 {
 	SlateReticleWidget->SetRadius(NewRadius);
 }
+
+void UOvrlCircularReticleWidget::SetOpacity(float NewOpacity)
+{
+	SlateReticleWidget->SetRenderOpacity(NewOpacity);
+}
