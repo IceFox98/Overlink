@@ -82,11 +82,10 @@ public:
 
 	// ------ TRAVERSALS ------
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-	void ResetTraversal();
+	void OnPlayerJumped();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-	void OnPlayerJumped();
+	void ResetTraversal();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void OnPlayerLanded();
@@ -98,7 +97,10 @@ public:
 
 	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
 	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
-	FORCEINLINE bool IsLateralWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+	FORCEINLINE bool IsLateralWallrunning() const { return 
+		LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || 
+		LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+
 	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
 	FORCEINLINE bool IsWallClinging() const { return LocomotionAction == OvrlLocomotionActionTags::WallClinging; };
 
@@ -153,6 +155,8 @@ private:
 	void HandleMantle(const FTraversalResult& TraversalResult);
 
 	// ------ WALLRUN ------
+
+	bool ShouldHandleWallrun();
 
 	void HandleWallrun(float DeltaTime);
 
@@ -232,30 +236,48 @@ public:
 
 	// ------ WALLRUN VARS ------
 
+	// The forward distance, from the player center, from where the wallrun check will end
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunCheckDistance;
+	float WallrunForwardCheckDistance;
 
+	// The lateral distance, from the player center, from where the wallrun check will end
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunCheckAngle;
+	float WallrunStrafeCheckDistance;
+
+	// The minimum angle (in degrees) between the wall forward vector and the player forward vector
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	float WallrunMinCheckAngle;
+
+	// The maximum angle (in degrees) between the wall forward vector and the player forward vector
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	float WallrunMaxCheckAngle;
+
+	// The minimum Z velocity the player must have to start lateral wallrun
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	float WallrunMinCheckVelocityZ;
+
+	// The force applied to keep the player sticked to the wall during wallrun
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	float WallrunStickForce;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 	float WallrunCameraTiltAngle;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunResetTime;
+	float WallrunCooldown;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 	FVector WallrunJumpVelocity;
 
 	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
 	float VerticalWallrunMaxVelocity;
 
 	// How fast the vertical velocity of the wallrun decrease.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
 	float VerticalWallrunVelocityFalloffSpeed;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
 	FVector VerticalWallrunJumpVelocity;
 
 	// ------ SLIDING VARS ------
@@ -309,7 +331,8 @@ private:
 
 	// ------ WALLRUN VARS ------
 
-	bool bCanCheckWallrun;
+	bool bHasPlayerJumped;
+	bool bIsWallrunInCooldown;
 	FVector WallrunNormal;
 
 	float VerticalWallrunAlpha;

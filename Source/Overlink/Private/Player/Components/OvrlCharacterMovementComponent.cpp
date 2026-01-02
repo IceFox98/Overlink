@@ -30,11 +30,14 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	MaxRunSpeed = 800.f;
 
 	// Parkour variables
-	bCanCheckWallrun = true;
-	WallrunCheckDistance = 75.f;
-	WallrunCheckAngle = 35.f;
+	WallrunForwardCheckDistance = 75.f;
+	WallrunStrafeCheckDistance = 75.f;
+	WallrunMinCheckAngle = 0.f;
+	WallrunMaxCheckAngle = 57.f;
+	WallrunMinCheckVelocityZ = -500.f;
+	WallrunStickForce = 100.f;
 	WallrunCameraTiltAngle = 15.f;
-	WallrunResetTime = .35f;
+	WallrunCooldown = .35f;
 	WallrunJumpVelocity = FVector(1000.f, 500.f, 800.f);
 	VerticalWallrunJumpVelocity = FVector(1000.f, 1500.f, 800.f);
 	VerticalWallrunMaxVelocity = 600.f;
@@ -129,7 +132,7 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 	{
 		SetGait(OvrlGaitTags::Walking);
 	}
-	else if(Gait != OvrlGaitTags::Running)
+	else if (Gait != OvrlGaitTags::Running)
 	{
 		SetGait(OvrlGaitTags::Running);
 
@@ -393,35 +396,18 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 	return Super::DoJump(bReplayingMoves, DeltaTime);
 }
 
-void UOvrlCharacterMovementComponent::ResetTraversal()
-{
-	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	SetMovementMode(EMovementMode::MOVE_Falling);
-	SetLocomotionAction(FGameplayTag::EmptyTag);
-}
-
 void UOvrlCharacterMovementComponent::OnPlayerJumped()
 {
 	bShouldSlideOnLanded = false;
+	bHasPlayerJumped = true;
 
-	if (LocomotionAction == FGameplayTag::EmptyTag)
+	if (IsLateralWallrunning())
 	{
-		// The player will still be on the ground (not falling) when the Jump function is called
-		if (!IsFalling())
-		{
-			bCanCheckWallrun = true;
-		}
+		HandleLateralWallrunJump();
 	}
-	else
+	else if (IsVerticalWallrunning() || IsWallClinging())
 	{
-		if (IsLateralWallrunning())
-		{
-			HandleLateralWallrunJump();
-		}
-		else if (IsVerticalWallrunning() || IsWallClinging())
-		{
-			HandleVerticalWallrunJump();
-		}
+		HandleVerticalWallrunJump();
 	}
 
 	if (LocomotionAction == OvrlLocomotionActionTags::Sliding)
@@ -433,6 +419,7 @@ void UOvrlCharacterMovementComponent::OnPlayerJumped()
 void UOvrlCharacterMovementComponent::OnPlayerLanded()
 {
 	EndWallrun();
+	bHasPlayerJumped = false;
 
 	if (bShouldSlideOnLanded)
 	{
@@ -482,6 +469,12 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 	}
 }
 
+void UOvrlCharacterMovementComponent::ResetTraversal()
+{
+	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	SetMovementMode(EMovementMode::MOVE_Falling);
+	SetLocomotionAction(FGameplayTag::EmptyTag);
+}
 
 bool UOvrlCharacterMovementComponent::HandleTraversals()
 {
@@ -773,17 +766,32 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
 }
 
+bool UOvrlCharacterMovementComponent::ShouldHandleWallrun()
+{
+	const float VelocityZ = GetLastUpdateVelocity().Z;
+	return IsFalling() && bHasPlayerJumped && !bIsWallrunInCooldown && VelocityZ > WallrunMinCheckVelocityZ;
+}
+
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 {
-	if (bCanCheckWallrun)
+	if (ShouldHandleWallrun())
 	{
-		const bool bIsPlayerNotGrounded = IsFalling();
+		if (IsWallrunning())
+		{
+			if (HandleTraversals()) // Any traversal while wallrunning?
+			{
+				// Reset wallrun and perform the traversal
+				ResetWallrun();
+				return;
+			}
+		}
+
 		const bool bIsPlayerMoving = GetLastInputVector().Length() > 0.f;
 
-		if (bIsPlayerNotGrounded/* && bIsPlayerMovingForward*/)
+		//if (bIsPlayerNotGrounded/* && bIsPlayerMovingForward*/)
 		{
 			bool bHandled = HandleVerticalWallrun(DeltaTime);
-			if (!bHandled && bIsPlayerMoving)
+			if (!bHandled /*&& bIsPlayerMoving*/)
 			{
 				bHandled = HandleLateralWallrun(DeltaTime, true);
 				if (!bHandled)
@@ -800,16 +808,12 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 
 bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 {
-	if (IsWallrunning())
+	if (IsLateralWallrunning())
 	{
-		if (HandleTraversals())
-		{
-			ResetWallrun();
-			return true;
-		}
+		return false;
 	}
 
-	const FVector ForwardVector = Character->GetActorForwardVector() * WallrunCheckDistance;
+	const FVector ForwardVector = Character->GetActorForwardVector() * WallrunForwardCheckDistance;
 
 	const FVector StartTrace = Character->GetActorLocation();
 	const FVector EndTrace = Character->GetActorLocation() + ForwardVector;
@@ -817,11 +821,11 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 #if ENABLE_DRAW_DEBUG
 	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Wallrun"))
-		DebugType = EDrawDebugTrace::ForDuration;
+		DebugType = EDrawDebugTrace::ForOneFrame;
 #endif
 
 	FHitResult OutHit;
-	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true, FLinearColor::Blue);
 
 	if (OutHit.bBlockingHit)
 	{
@@ -850,7 +854,7 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 		}
 
 		// The force used to keep the player sticked to the wall
-		const FVector StickVelocity = -WallrunNormal * 100.f;
+		const FVector StickVelocity = -WallrunNormal * WallrunStickForce;
 
 		const FVector LaunchVelocity = -GetGravityDirection() * VelocityZ;
 		Character->LaunchCharacter(LaunchVelocity + StickVelocity, true, true);
@@ -866,15 +870,16 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 	const FGameplayTag WallrunTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
 
-	const FVector BackwardVector = (Character->GetActorRightVector() * WallrunCheckDistance * WallDirection) + Character->GetActorForwardVector() * -WallrunCheckAngle;
+	const FVector WallrunCheckVector = (Character->GetActorRightVector() * WallrunStrafeCheckDistance * WallDirection) +
+		Character->GetActorForwardVector() * WallrunForwardCheckDistance;
 
 	const FVector StartTrace = Character->GetActorLocation();
-	const FVector EndTrace = Character->GetActorLocation() + BackwardVector;
+	const FVector EndTrace = Character->GetActorLocation() + WallrunCheckVector;
 	EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
 #if ENABLE_DRAW_DEBUG
 	if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Wallrun"))
-		DebugType = EDrawDebugTrace::ForDuration;
+		DebugType = EDrawDebugTrace::ForOneFrame;
 #endif
 
 	FHitResult OutHit;
@@ -885,32 +890,48 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	{
 		WallrunNormal = OutHit.Normal;
 
+		if (!IsLateralWallrunning())
+		{
+			const float MinCheckAngle = FMath::Cos(FMath::DegreesToRadians(90.f - WallrunMinCheckAngle));
+			const float MaxCheckAngle = FMath::Cos(FMath::DegreesToRadians(90.f - WallrunMaxCheckAngle));
+
+			const double CheckAngle = FVector::DotProduct(-WallrunNormal, Character->GetActorForwardVector());
+
+			if (CheckAngle < MinCheckAngle || CheckAngle > MaxCheckAngle)
+			{
+				EndWallrun();
+				return false;
+			}
+		}
+
 		const FGameplayTag TargetGameplayTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
 		SetLocomotionAction(TargetGameplayTag);
+	}
+
+	// Let's do another trace directly towards the wall, to check if the player is still sticked to the wall.
+	// Using the first trace is unsafe, since it's handled by the player forward vector.
+	const FVector ValidationStartTrace = Character->GetActorLocation();
+	const FVector ValidationEndTrace = Character->GetActorLocation() - WallrunNormal * 100.f;
+
+	FHitResult ValidationHit;
+	UKismetSystemLibrary::LineTraceSingle(this, ValidationStartTrace, ValidationEndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, ValidationHit, true);
+
+	if (!ValidationHit.bBlockingHit)
+	{
+		EndWallrun();
+		return false;
 	}
 
 	// Execute only the wallrun we're actually performing
 	if (LocomotionAction == WallrunTag)
 	{
-		//OVRL_LOG("%s", *Velocity.ToString());
-		//DrawDebugDirectionalArrow(GetWorld(), OutHit.ImpactPoint, OutHit.ImpactPoint + OutHit.ImpactNormal * 100.f, 2.f, FColor::Blue, false, 3.f);
-
-		// Check if the player is looking too far away from the wall
-		bool bShouldEndWallrun = FMath::IsNearlyEqual(FVector::DotProduct(GetLastInputVector().GetSafeNormal(), WallrunNormal), 1.f, 0.1f);
-
-		if (bShouldEndWallrun)
-		{
-			EndWallrun();
-			return false;
-		}
-
 		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
 		const float CurveExponent = .5f; // How fast the velocity should decrease at the end
 		const FVector UpVelocity = FVector::UpVector * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
 		LateralWallrunAlpha = FMath::Clamp(LateralWallrunAlpha - DeltaTime, 0.f, 1.f);
 
-		// Forcethe player to stick to the wall
-		const FVector LateralVelocity = -WallrunNormal * 600.f;
+		// Force the player to stick to the wall
+		const FVector LateralVelocity = -WallrunNormal * WallrunStickForce;
 
 		// Returns the direction of where the player should be launched. It follows the wall surface.
 		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection());
@@ -1009,7 +1030,7 @@ void UOvrlCharacterMovementComponent::ResetWallrun()
 {
 	//if (LocomotionAction == FGameplayTag::EmptyTag)
 	{
-		bCanCheckWallrun = true;
+		bIsWallrunInCooldown = false;
 		VerticalWallrunAlpha = 1.f;
 		LateralWallrunAlpha = 1.f;
 	}
@@ -1019,12 +1040,12 @@ void UOvrlCharacterMovementComponent::EndWallrun()
 {
 	if (IsWallrunning() || IsWallClinging())
 	{
-		bCanCheckWallrun = false;
+		bIsWallrunInCooldown = true;
 		SetLocomotionAction(FGameplayTag::EmptyTag);
 
 		// Allow player to wallrun again, only after a specific amount of time
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UOvrlCharacterMovementComponent::ResetWallrun, WallrunResetTime, false);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UOvrlCharacterMovementComponent::ResetWallrun, WallrunCooldown, false);
 	}
 }
 
@@ -1098,12 +1119,13 @@ FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
 	return Character ? Character->GetActorTransform().InverseTransformVector(GetLastUpdateVelocity()) : FVector::ZeroVector;
 }
 
+// Returns true if the angle between forward vector and input vector is between an imaginary cone, with AngleFromForwardVector as angle.
 bool UOvrlCharacterMovementComponent::IsMovingForward(float AngleFromForwardVector/* = 90.f*/)
 {
 	// Normalize between 0-1. 90° -> 0 (perpendicular). 0° -> 1 (perfectly aligned)
-	const float NormalizedAngle = 1.f - (FMath::Clamp(AngleFromForwardVector, 0.f, 90.f) / 90.f);
+	const float NormalizedAngle = FMath::Cos(FMath::DegreesToRadians(AngleFromForwardVector));
 	// Since the input vector is not relative to the player, we can easily check if the we're going forward using dot product
-	return FVector::DotProduct(GetLastInputVector(), Character->GetActorForwardVector()) > NormalizedAngle;
+	return FVector::DotProduct(GetLastInputVector(), Character->GetActorForwardVector()) >= NormalizedAngle;
 }
 
 void UOvrlCharacterMovementComponent::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
