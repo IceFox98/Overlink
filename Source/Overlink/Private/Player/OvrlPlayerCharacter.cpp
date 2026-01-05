@@ -22,6 +22,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameplayEffectTypes.h"
 #include "Engine/StaticMeshActor.h"
+#include "Components/CapsuleComponent.h"
+#include "KismetTraceUtils.h"
 
 
 AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer)
@@ -187,7 +189,11 @@ void AOvrlPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 		}
 
 		const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
-		AddMovementInput(MovementDirection, Value.X);
+
+		//if (!CheckWallCollisions(MovementDirection * Value.X))
+		{
+			AddMovementInput(MovementDirection, Value.X);
+		}
 	}
 
 	if (Value.Y != 0.0f)
@@ -202,7 +208,11 @@ void AOvrlPlayerCharacter::Input_Move(const FInputActionValue& InputActionValue)
 		}
 
 		const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
-		AddMovementInput(MovementDirection, Value.Y);
+
+		//if (!CheckWallCollisions(MovementDirection * Value.Y))
+		{
+			AddMovementInput(MovementDirection, Value.Y);
+		}
 	}
 }
 
@@ -228,12 +238,12 @@ void AOvrlPlayerCharacter::Input_Crouch(const FInputActionValue& InputActionValu
 
 void AOvrlPlayerCharacter::Input_StartRun(const FInputActionValue& InputActionValue)
 {
-	GetCharacterMovement()->StartRunning();
+	GetCharacterMovement()->InputStartRun();
 }
 
 void AOvrlPlayerCharacter::Input_EndRun(const FInputActionValue& InputActionValue)
 {
-	GetCharacterMovement()->StopRunning();
+	GetCharacterMovement()->InputStopRun();
 }
 
 void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -301,4 +311,33 @@ void AOvrlPlayerCharacter::ThrowEquippedObject()
 
 	//	}
 	//}
+}
+
+bool AOvrlPlayerCharacter::CheckWallCollisions(const FVector& Direction)
+{
+	//const float TraceLength = GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const float TraceLength = 50.f;
+	const FVector TraceStart = GetCharacterMovement()->GetActorFeetLocation() - GetGravityDirection() * 40.f;
+	const FVector TraceEnd = TraceStart + Direction * TraceLength;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	QueryParams.bFindInitialOverlaps = false;
+
+	FHitResult OutHit;
+	GetWorld()->LineTraceSingleByChannel(OutHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+
+	DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForOneFrame, OutHit.bBlockingHit, OutHit, FLinearColor::Red, FLinearColor::Green, -1.f);
+
+	const float WallAngle = 10.f;
+
+	if (OutHit.bBlockingHit)
+	{
+		const float WallAngleDot = FMath::Cos(FMath::DegreesToRadians(WallAngle));
+		const float Dot = FVector::DotProduct(Direction, -OutHit.ImpactNormal);
+
+		return Dot > WallAngleDot;
+	}
+
+	return false;
 }

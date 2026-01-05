@@ -26,6 +26,9 @@ void AOvrlPlayerController::BeginPlay()
 
 	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
 	ensure(CharacterMovementComponent);
+
+	OvrlPlayerCameraManager = Cast<AOvrlPlayerCameraManager>(PlayerCameraManager);
+	ensure(OvrlPlayerCameraManager);
 }
 
 void AOvrlPlayerController::UpdateRotation(float DeltaTime)
@@ -37,6 +40,8 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	{
 		return;
 	}
+
+	// @TODO: Call ProcessViewRotation() of camera manager modifiers, since we skip the Super call
 
 	FVector GravityDirection = CharacterMovementComponent->GetGravityDirection();
 
@@ -52,22 +57,24 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	// Calculate Delta to be applied on ViewRotation
 	FRotator DeltaRot(RotationInput);
 
-	if (PlayerCameraManager)
+	if (OvrlPlayerCameraManager)
 	{
-		double TargetRoll = 0;
-
-		if (CharacterMovementComponent->IsLateralWallrunning())
-		{
-			TargetRoll = CharacterMovementComponent->LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? CharacterMovementComponent->WallrunCameraTiltAngle : -CharacterMovementComponent->WallrunCameraTiltAngle;
-		}
-
 		// Add Delta Rotation
 		ViewRotation += DeltaRot;
 
-		// Limit Player View Axes (skip Roll to avoid rotation optimizations)
-		PlayerCameraManager->LimitViewPitch(ViewRotation, PlayerCameraManager->ViewPitchMin, PlayerCameraManager->ViewPitchMax);
-		PlayerCameraManager->LimitViewYaw(ViewRotation, PlayerCameraManager->ViewYawMin, PlayerCameraManager->ViewYawMax);
+		float ViewPitchMin = OvrlPlayerCameraManager->ViewPitchMin;
+		float ViewPitchMax = OvrlPlayerCameraManager->ViewPitchMax;
+		//CharacterMovementComponent->ApplyCameraPitchLimits(ViewPitchMin, ViewPitchMax);
 
+		float ViewYawMin = OvrlPlayerCameraManager->ViewYawMin;
+		float ViewYawMax = OvrlPlayerCameraManager->ViewYawMax;
+		//CharacterMovementComponent->ApplyCameraYawLimits(ViewYawMin, ViewYawMax);
+
+		// Limit Player View Axes (skip Roll to avoid rotation optimizations) 
+		OvrlPlayerCameraManager->LimitViewPitch(ViewRotation, ViewPitchMin, ViewPitchMax);
+		OvrlPlayerCameraManager->LimitViewYaw(ViewRotation, ViewYawMin, ViewYawMax);
+
+		const double TargetRoll = CharacterMovementComponent->GetDesiredCameraRoll();
 		ViewRotation.Roll = UKismetMathLibrary::FInterpTo(ViewRotation.Roll, TargetRoll, DeltaTime, 10.f);
 
 		// Convert the rotation back to world space, and set it as the current control rotation.

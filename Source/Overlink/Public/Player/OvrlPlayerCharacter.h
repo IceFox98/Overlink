@@ -84,6 +84,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ThrowEquippedObject();
 
+protected:
+
+	bool CheckWallCollisions(const FVector& Direction);
+
 private:
 
 	void OnAbilityInputPressed(FGameplayTag InputTag);

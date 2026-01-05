@@ -8,6 +8,7 @@
 
 class UOvrlCharacterMovementComponent;
 class AOvrlCharacterBase;
+class AOvrlPlayerCameraManager;
 
 /**
  *
@@ -34,10 +35,13 @@ protected:
 private:
 
 	UPROPERTY()
-		TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
+	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
 	UPROPERTY()
-		TObjectPtr<AOvrlCharacterBase> OwningCharacter;
+	TObjectPtr<AOvrlCharacterBase> OwningCharacter;
+
+	UPROPERTY()
+	TObjectPtr<APlayerCameraManager> OvrlPlayerCameraManager;
 
 	FVector LastFrameGravity = FVector::ZeroVector;
 

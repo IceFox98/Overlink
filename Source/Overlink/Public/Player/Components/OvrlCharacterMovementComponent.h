@@ -55,6 +55,25 @@ struct FTraversalResult
 	ETraversalType Type = ETraversalType::None;
 };
 
+USTRUCT()
+struct FCameraLimits
+{
+	GENERATED_BODY()
+public:
+
+	UPROPERTY(EditAnywhere)
+	float ViewPitchMin = -89.9f;
+
+	UPROPERTY(EditAnywhere)
+	float ViewPitchMax = 89.9f;
+
+	UPROPERTY(EditAnywhere)
+	float ViewYawMin = 0.f;
+
+	UPROPERTY(EditAnywhere)
+	float ViewYawMax = 90.f;
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStanceChanged, const FGameplayTag&, OldStance, const FGameplayTag&, NewStance);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGaitChanged, const FGameplayTag&, OldGait, const FGameplayTag&, NewGait);
 
@@ -87,22 +106,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void ResetTraversal();
 
+	FORCEINLINE bool IsTraversing() const {
+		return LocomotionAction == OvrlLocomotionActionTags::Mantling || LocomotionAction == OvrlLocomotionActionTags::Vaulting;
+	};
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void OnPlayerLanded();
 
-	void StartRunning();
-	void StopRunning();
+	void InputStartRun();
+	void InputStopRun();
 
 	void HandleCrouching(bool bInWantsToCrouch);
 
 	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
 	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
-	FORCEINLINE bool IsLateralWallrunning() const { return 
-		LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || 
-		LocomotionAction == OvrlLocomotionActionTags::WallrunningRight; };
+	FORCEINLINE bool IsLateralWallrunning() const {
+		return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight;
+	};
 
 	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
 	FORCEINLINE bool IsWallClinging() const { return LocomotionAction == OvrlLocomotionActionTags::WallClinging; };
+
+	double GetDesiredCameraRoll();
+	void ApplyCameraPitchLimits(float& ViewPitchMin, float& ViewPitchMax);
+	void ApplyCameraYawLimits(float& ViewYawMin, float& ViewYawMax);
 
 	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
 
@@ -130,6 +157,9 @@ protected:
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 	virtual void BeginPlay() override;
+
+	void StartRunning();
+	void StopRunning();
 
 private:
 
@@ -194,17 +224,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
 	FVector2D TraversalCheckDistance;
 
-	// The distance between the back edge traversal and where the player should land
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-	float TraversalLandingPointDistance;
-
-	// The minimum distance the landing point should have, from back edge to floor level
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-	float MinLandingPointHeight;
-
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
-	float MaxLandingPointHeight;
-
 	// The offset between the front edge and the player right hand.
 	// The value will be mirrored for the left hand.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
@@ -216,8 +235,25 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
 	FName EndTraversalWarpTargetName;
 
+	// The maximum height of the wall for which vault can be performed
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
 	float MaxVaultHeight;
+
+	// The maximum traversal length for which a vault over animation can be performed
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	float MaxVaultOverLength;
+
+	// The distance between the back edge traversal and where the player should land
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	float TraversalLandingPointDistance;
+
+	// The minimum distance from back edge to floor level, for the landing point to be considered valid
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	float MinLandingPointHeight;
+
+	// The maximum distance from back edge to floor level, for the landing point to be considered valid
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	float MaxLandingPointHeight;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
 	TObjectPtr<UAnimMontage> VaultOverMontage;
@@ -225,11 +261,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
 	TObjectPtr<UAnimMontage> VaultClimbUpMontage;
 
+	// The minimum distance between the player and the front traversal, for the mantle to be performed
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
-	float MaxMantleHeight;
-
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
-	float MaxMantleDistance;
+	float MinMantleDistance;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
 	TObjectPtr<UAnimMontage> MantleMontage;
@@ -261,6 +295,9 @@ public:
 	float WallrunStickForce;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	FCameraLimits WallrunCameraLimits;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 	float WallrunCameraTiltAngle;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
@@ -268,6 +305,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 	FVector WallrunJumpVelocity;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	FCameraLimits VerticalWallrunCameraLimits;
 
 	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
@@ -324,6 +364,8 @@ private:
 	float DefaultMaxWalkSpeedCrouched;
 	float DefaultGroundFriction;
 	float DefaultBrakingDecelerationWalking;
+
+	bool bShouldRun;
 
 	// ------ HAND IK ------
 	FVector RightHandIKLocation;

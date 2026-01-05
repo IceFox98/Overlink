@@ -53,11 +53,11 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	TraversalLandingPointDistance = 100.f;
 	TraversalHandOffset = { 17.f, 5.f };
 	MaxVaultHeight = 120.f;
+	MaxVaultOverLength = 200.f;
 	MaxLandingPointHeight = MaxVaultHeight + 30.f;
 	MinLandingPointHeight = MaxVaultHeight * .5f;
 
-	MaxMantleHeight = 220.f;
-	MaxMantleDistance = 90.f;
+	MinMantleDistance = 90.f;
 }
 
 void UOvrlCharacterMovementComponent::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -106,6 +106,11 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 
 	UpdateGaitStatus();
 
+	if (bHasPlayerJumped)
+	{
+		HandleTraversals();
+	}
+
 	HandleWallrun(DeltaTime);
 
 	if (ShouldCancelSliding())
@@ -118,6 +123,11 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 
 void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 {
+	if (IsSliding() || IsTraversing())
+	{
+		return;
+	}
+
 	const float LastInputVectorLength = GetLastInputVector().Length();
 	if (LastInputVectorLength <= KINDA_SMALL_NUMBER)
 	{
@@ -128,15 +138,14 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 
 		SetGait(OvrlGaitTags::Idle);
 	}
-	else if (MaxWalkSpeed <= DefaultMaxWalkSpeed)
+	else if (bShouldRun)
 	{
-		SetGait(OvrlGaitTags::Walking);
+		StartRunning();
 	}
-	else if (Gait != OvrlGaitTags::Running)
+	else if (Gait != OvrlGaitTags::Walking)
 	{
-		SetGait(OvrlGaitTags::Running);
-
-		UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StartRun);
+		StopRunning();
+		SetGait(OvrlGaitTags::Walking);
 	}
 }
 
@@ -435,17 +444,34 @@ void UOvrlCharacterMovementComponent::OnPlayerLanded()
 	}
 }
 
+void UOvrlCharacterMovementComponent::InputStartRun()
+{
+	//MaxWalkSpeed = MaxRunSpeed;
+	bShouldRun = true;
+}
+
+void UOvrlCharacterMovementComponent::InputStopRun()
+{
+	bShouldRun = false;
+}
+
 void UOvrlCharacterMovementComponent::StartRunning()
 {
+	if (Gait != OvrlGaitTags::Running)
+	{
+		UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StartRun);
+	}
+
 	HandleCrouching(false);
 	MaxWalkSpeed = MaxRunSpeed;
+	SetGait(OvrlGaitTags::Running);
 }
 
 void UOvrlCharacterMovementComponent::StopRunning()
 {
 	MaxWalkSpeed = DefaultMaxWalkSpeed;
-
 	UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StopRun);
+	SetGait(OvrlGaitTags::Idle);
 }
 
 void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
@@ -471,6 +497,7 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 
 void UOvrlCharacterMovementComponent::ResetTraversal()
 {
+	//Character->UnCrouch();
 	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	SetMovementMode(EMovementMode::MOVE_Falling);
 	SetLocomotionAction(FGameplayTag::EmptyTag);
@@ -478,16 +505,18 @@ void UOvrlCharacterMovementComponent::ResetTraversal()
 
 bool UOvrlCharacterMovementComponent::HandleTraversals()
 {
+	if (IsTraversing())
+	{
+		return false;
+	}
+
 	const FTraversalResult TraversalResult = CheckForTraversal();
 
+	//if (false) // Let's overcome the traversal
 	if (TraversalResult.bFound) // Let's overcome the traversal
 	{
 		// Allow the animation's root motion to ignore the gravity.
 		SetMovementMode(EMovementMode::MOVE_Flying);
-
-		// @TODO: Valutare se � meglio lasciare questo oppure no, o farlo in base all'animazione.
-		// Perch� per un ostacolo corto, rende la scavalcata pi� smooth, ma per uno pi� lungo sembra che faccia uno "scattino" in su quando finisce l'animazione.
-		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		UpdateHandsIKTransform(TraversalResult);
 
@@ -505,6 +534,10 @@ bool UOvrlCharacterMovementComponent::HandleTraversals()
 			break;
 		}
 
+		bHasPlayerJumped = false;
+		//StopRunning();
+		UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StopRun);
+		SetGait(OvrlGaitTags::Idle);
 		return true;
 	}
 
@@ -536,7 +569,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
 
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 5.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 1.f);
 #endif
 
 	if (!ForwardTraversalHit.bBlockingHit) // No traversals found
@@ -560,12 +593,8 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 1.f);
 #endif
-
-	//// Will always hit?
-	//if (!TraversalHit.bBlockingHit) // No traversals found
-	//	return TraversalResult;
 
 	const FVector DownwardImpactPoint = DownwardTraversalHit.ImpactPoint;
 
@@ -585,7 +614,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 		TraversalResult.Type = ETraversalType::Vault;
 		FindLandingPoint(TraversalResult);
 	}
-	else if (TraversalHeight <= MaxMantleHeight && TraversalDistance <= MaxMantleDistance) // Mantle
+	else if (!DownwardTraversalHit.bStartPenetrating && TraversalDistance <= MinMantleDistance) // Mantle
 	{
 		TraversalResult.bFound = true;
 		TraversalResult.UpperImpactPoint = DownwardImpactPoint;
@@ -600,39 +629,41 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTraversalResult)
 {
 	const FVector DownwardOffset = GetGravityDirection() * 10.f; // Used to don't trace along the upper side of the traversal
-	const float MaxTraversalLength = 250.f; // Basically, the max "vault over" distance
 
 	// Perform backward trace to find the back edge of the traversal
-	FVector TraceStart = OutTraversalResult.FrontEdgeLocation + DownwardOffset - OutTraversalResult.FrontEdgeNormal * MaxTraversalLength;
+	FVector TraceStart = OutTraversalResult.FrontEdgeLocation + DownwardOffset - OutTraversalResult.FrontEdgeNormal * MaxVaultOverLength;
 	FVector TraceEnd = OutTraversalResult.FrontEdgeLocation + DownwardOffset;
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Character);
 	QueryParams.bFindInitialOverlaps = false;
 
-	FHitResult LandingPointHit;
-	GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+	FHitResult BackEdgeHit;
+	GetWorld()->LineTraceSingleByChannel(BackEdgeHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
 
 	if (bDebugEnabled)
-		DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, LandingPointHit.bBlockingHit, LandingPointHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+		DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, BackEdgeHit.bBlockingHit, BackEdgeHit, FLinearColor::Red, FLinearColor::Green, 1.f);
 #endif
 
-	if (LandingPointHit.bBlockingHit && !LandingPointHit.bStartPenetrating)
+	// Proceed only if the back edge is found and trace didn't start in penetration
+	if (BackEdgeHit.bBlockingHit && !BackEdgeHit.bStartPenetrating)
 	{
-		OutTraversalResult.BackEdgeLocation = FVector(LandingPointHit.ImpactPoint.X, LandingPointHit.ImpactPoint.Y, OutTraversalResult.UpperImpactPoint.Z);
+		// Cache back edge location
+		OutTraversalResult.BackEdgeLocation = FVector(BackEdgeHit.ImpactPoint.X, BackEdgeHit.ImpactPoint.Y, OutTraversalResult.UpperImpactPoint.Z);
 
 		// Perform downward trace to find the exact landing point
 		TraceStart = OutTraversalResult.BackEdgeLocation - OutTraversalResult.FrontEdgeNormal * TraversalLandingPointDistance;
 		TraceEnd = TraceStart + GetGravityDirection() * MaxLandingPointHeight;
 
+		FHitResult LandingPointHit;
 		GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 		if (bDebugEnabled)
-			DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, LandingPointHit.bBlockingHit, LandingPointHit, FLinearColor::Red, FLinearColor::Green, 5.f);
+			DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, LandingPointHit.bBlockingHit, LandingPointHit, FLinearColor::Red, FLinearColor::Green, 1.f);
 #endif
 
 		if (LandingPointHit.bBlockingHit && LandingPointHit.Distance >= MinLandingPointHeight && LandingPointHit.Distance <= MaxLandingPointHeight)
@@ -643,7 +674,7 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 
 #if ENABLE_DRAW_DEBUG
 			if (bDebugEnabled)
-				DrawDebugPoint(GetWorld(), OutTraversalResult.LandingPoint, 10.f, FColor::Green, false, 5.f);
+				DrawDebugPoint(GetWorld(), OutTraversalResult.LandingPoint, 10.f, FColor::Green, false, 1.f);
 #endif
 		}
 	}
@@ -660,11 +691,27 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 	{
 		const FRotator WarpRotation = Character->GetActorRotation();
 
-		const FVector TraversalMidPoint = (TraversalResult.FrontEdgeLocation + TraversalResult.BackEdgeLocation) * .5f;
+		FVector WarpLocation = FVector::ZeroVector;
+		if (TraversalResult.bHasLandingPoint)
+		{
+			// Find mid point of the traversal
+			WarpLocation = (TraversalResult.FrontEdgeLocation + TraversalResult.BackEdgeLocation) * .5f;
+		}
+		else
+		{
+			WarpLocation = TraversalResult.FrontEdgeLocation + WarpRotation.Vector() * 150.f;
+		}
+
+#if ENABLE_DRAW_DEBUG
+		const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
+
+		if (bDebugEnabled)
+			DrawDebugPoint(GetWorld(), WarpLocation, 10.f, FColor::Green, false, 1.f);
+#endif
 
 		FMotionWarpingTarget StartWarpTarget;
 		StartWarpTarget.Name = StartTraversalWarpTargetName;
-		StartWarpTarget.Location = TraversalMidPoint;
+		StartWarpTarget.Location = WarpLocation;
 		StartWarpTarget.Rotation = WarpRotation;
 		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
 
@@ -743,6 +790,8 @@ void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& Traver
 
 	if (TraversalResult.bHasLandingPoint)
 	{
+		// Disable collision just in this case, to avoid jerky movements
+		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Character->PlayAnimMontage(VaultOverMontage);
 	}
 	else
@@ -750,6 +799,7 @@ void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& Traver
 		Character->PlayAnimMontage(VaultClimbUpMontage);
 	}
 
+	//Character->Crouch();
 	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
 }
 
@@ -867,9 +917,15 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool bIsLeftSide)
 {
-	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 	const FGameplayTag WallrunTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
 
+	// Avoid trace for a wall that we're not wallrunning
+	if (IsLateralWallrunning() && LocomotionAction != WallrunTag)
+	{
+		return false;
+	}
+
+	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 	const FVector WallrunCheckVector = (Character->GetActorRightVector() * WallrunStrafeCheckDistance * WallDirection) +
 		Character->GetActorForwardVector() * WallrunForwardCheckDistance;
 
@@ -899,7 +955,7 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 
 			if (CheckAngle < MinCheckAngle || CheckAngle > MaxCheckAngle)
 			{
-				EndWallrun();
+				//EndWallrun();
 				return false;
 			}
 		}
@@ -907,23 +963,25 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 		const FGameplayTag TargetGameplayTag = bIsLeftSide ? OvrlLocomotionActionTags::WallrunningLeft : OvrlLocomotionActionTags::WallrunningRight;
 		SetLocomotionAction(TargetGameplayTag);
 	}
-
-	// Let's do another trace directly towards the wall, to check if the player is still sticked to the wall.
-	// Using the first trace is unsafe, since it's handled by the player forward vector.
-	const FVector ValidationStartTrace = Character->GetActorLocation();
-	const FVector ValidationEndTrace = Character->GetActorLocation() - WallrunNormal * 100.f;
-
-	FHitResult ValidationHit;
-	UKismetSystemLibrary::LineTraceSingle(this, ValidationStartTrace, ValidationEndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, ValidationHit, true);
-
-	if (!ValidationHit.bBlockingHit)
+	else if (IsLateralWallrunning()) // Perform validation trace only if we're actually wallrunning and we're not hitting any walls
 	{
-		EndWallrun();
-		return false;
+		// Let's do another trace directly towards the wall, to check if the player is still sticked to the wall.
+		// Using the first trace is unsafe, since it's handled by the player forward vector.
+		const FVector ValidationStartTrace = Character->GetActorLocation();
+		const FVector ValidationEndTrace = Character->GetActorLocation() - WallrunNormal * 100.f;
+
+		FHitResult ValidationHit;
+		UKismetSystemLibrary::LineTraceSingle(this, ValidationStartTrace, ValidationEndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, ValidationHit, true);
+
+		if (!ValidationHit.bBlockingHit)
+		{
+			EndWallrun();
+			return false;
+		}
 	}
 
 	// Execute only the wallrun we're actually performing
-	if (LocomotionAction == WallrunTag)
+	if (IsLateralWallrunning())
 	{
 		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
 		const float CurveExponent = .5f; // How fast the velocity should decrease at the end
@@ -1068,7 +1126,7 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 
 #if ENABLE_DRAW_DEBUG
 		if (UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals"))
-			DebugType = EDrawDebugTrace::ForDuration;
+			DebugType = EDrawDebugTrace::ForOneFrame;
 #endif
 
 		// Trace a down vector to check if sliding is possible
@@ -1112,6 +1170,55 @@ void UOvrlCharacterMovementComponent::CancelSliding()
 	MaxWalkSpeedCrouched = DefaultMaxWalkSpeedCrouched;
 
 	SetLocomotionAction(FGameplayTag::EmptyTag);
+}
+
+double UOvrlCharacterMovementComponent::GetDesiredCameraRoll()
+{
+	double TargetRoll = 0;
+
+	if (IsLateralWallrunning())
+	{
+		TargetRoll = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? WallrunCameraTiltAngle : -WallrunCameraTiltAngle;
+	}
+
+	return TargetRoll;
+}
+
+void UOvrlCharacterMovementComponent::ApplyCameraPitchLimits(float& ViewPitchMin, float& ViewPitchMax)
+{
+	if (IsVerticalWallrunning())
+	{
+		ViewPitchMin = VerticalWallrunCameraLimits.ViewPitchMin;
+		ViewPitchMax = VerticalWallrunCameraLimits.ViewPitchMax;
+	}
+}
+
+void UOvrlCharacterMovementComponent::ApplyCameraYawLimits(float& ViewYawMin, float& ViewYawMax)
+{
+	if (IsVerticalWallrunning() || IsWallClinging())
+	{
+		ViewYawMin = VerticalWallrunCameraLimits.ViewYawMin;
+		ViewYawMax = VerticalWallrunCameraLimits.ViewYawMax;
+	}
+	else if (IsLateralWallrunning())
+	{
+		const bool bIsRightWall = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft;
+		const float WallDirection = bIsRightWall ? 1.f : -1.f;
+		const FVector WallForwardDirection = FVector::CrossProduct(WallrunNormal, -GetGravityDirection()) * WallDirection;
+		const float WallYaw = WallForwardDirection.Rotation().Yaw;
+
+		//OVRL_LOG("%f", WallYaw);
+
+		ViewYawMin = WallYaw + WallrunCameraLimits.ViewYawMin * -WallDirection;
+		ViewYawMax = WallYaw + WallrunCameraLimits.ViewYawMax * WallDirection;
+
+		if (WallYaw <= 0.f && WallYaw > -180.f)
+		{
+			float Temp = ViewYawMin;
+			ViewYawMin = ViewYawMax;
+			ViewYawMax = Temp;
+		}
+	}
 }
 
 FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
