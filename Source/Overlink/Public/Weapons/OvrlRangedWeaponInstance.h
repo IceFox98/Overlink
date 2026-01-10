@@ -8,8 +8,9 @@
 #include "OvrlRangedWeaponInstance.generated.h"
 
 class UOvrlCharacterMovementComponent;
-class UOvrlWeaponSightDefinition;
-class UOvrlCameraModifier_FOV;
+//class UOvrlWeaponSightDefinition;
+enum class ESightMagnification;
+class UOvrlCameraModifierBase;
 class UAnimMontage;
 class UAnimSequence;
 
@@ -48,7 +49,7 @@ public:
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
 	FORCEINLINE float GetWeaponCameraRecoil() const { return CurrentCameraRecoil.Pitch; };
-	FORCEINLINE float GetAimSpeed() const { return AimSpeed; };
+	FORCEINLINE float GetAimTime() const { return AimTime; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	FTransform GetMuzzleTransform() const;
@@ -79,6 +80,8 @@ protected:
 	void UpdateRecoil(float DeltaTime);
 	void UpdateSpread(float DeltaTime);
 	void UpdateSpreadMultiplier(float DeltaTime);
+
+	float GetMagnifiedFOV(float InFOV);
 
 	virtual void PlayFireAnimation();
 
@@ -121,12 +124,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Instance")
 	TObjectPtr<UCameraShakeBase> FireCameraShake;
 
-	// How quickly the weapon enters to ADS
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f))
-	float AimSpeed;
+	// How much time (in seconds) the weapon needs to aim
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f, Units="s"))
+	float AimTime;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim")
-	TObjectPtr<UOvrlWeaponSightDefinition> SightDefinition;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim")
+	//TObjectPtr<UOvrlWeaponSightDefinition> SightDefinition;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Sight Definition")
+	ESightMagnification SightMagnification;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
@@ -183,7 +189,7 @@ private:
 	TObjectPtr<UOvrlCharacterMovementComponent> OwnerMovementComp;
 
 	UPROPERTY()
-	TObjectPtr<UOvrlCameraModifier_FOV> CameraFOV;
+	TObjectPtr<UOvrlCameraModifierBase> CameraFOV;
 
 	// Spread
 	float SpreadMultiplier;

@@ -33,9 +33,9 @@ bool UOvrlCameraModifierBase::ModifyCamera(float DeltaTime, FMinimalViewInfo& In
 	}
 
 	float FOVOffset = 0.f;
-	if (FOVModifier)
+	if (FOVModifier.GetRichCurve())
 	{
-		FOVOffset = FOVModifier->GetFloatValue(ElapsedTime) * Alpha;
+		FOVOffset = FOVModifier.GetRichCurve()->Eval(ElapsedTime) * Alpha;
 	}
 
 	const FCameraAnimationHelperOffset CameraOffset{ OutLocation, OutRotation };
@@ -67,5 +67,22 @@ void UOvrlCameraModifierBase::DisableModifier(bool bImmediate)
 	if (bImmediate)
 	{
 		ElapsedTime = 0.f;
+	}
+}
+
+void UOvrlCameraModifierBase::SetAlphaTime(float InAlphaTime)
+{
+	AlphaInTime = InAlphaTime;
+	AlphaOutTime = InAlphaTime;
+}
+
+void UOvrlCameraModifierBase::SetCustomFOVOffset(float InFOVOffset)
+{
+	FRichCurve* FOVCurve = FOVModifier.GetRichCurve();
+
+	if (FOVCurve)
+	{
+		FOVCurve->Reset();
+		FOVCurve->AddKey(0.f, InFOVOffset);
 	}
 }

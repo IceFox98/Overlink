@@ -20,7 +20,7 @@ void UOvrlRangedWeaponAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaT
 
 	if (IsValid(EquippedWeapon))
 	{
-		AimSpeed = EquippedWeapon->GetAimSpeed();
+		AimTime = EquippedWeapon->GetAimTime();
 
 		WeaponRecoilTranslation = EquippedWeapon->GetWeaponKickbackRecoil().GetLocation();
 		WeaponRecoilRotation = EquippedWeapon->GetWeaponKickbackRecoil().GetRotation().Rotator();
@@ -42,7 +42,18 @@ void UOvrlRangedWeaponAnimInstance::UpdateAim(float DeltaTime)
 {
 	const bool bIsWeaponAiming = EquippedWeapon->IsADS();
 	const float TargetAimAlpha = bIsWeaponAiming ? 1.f : 0.f;
-	AimAlpha = FMath::FInterpTo(AimAlpha, TargetAimAlpha, DeltaTime, AimSpeed);
+
+	if (bIsWeaponAiming)
+	{
+		LerpAimAlpha = FMath::Min(LerpAimAlpha + DeltaTime / AimTime, TargetAimAlpha);
+	}
+	else
+	{
+		LerpAimAlpha = FMath::Max(LerpAimAlpha - DeltaTime / AimTime, TargetAimAlpha);
+	}
+
+	AimAlpha = FMath::InterpEaseIn(0.f, 1.f, LerpAimAlpha, 1.5f);
+	//AimAlpha = LerpAimAlpha;
 
 	// Change aplha to recude the sway movement while player is aiming
 	LookingSwayAlpha = bIsWeaponAiming ? LookingSwayAlphaADS : 1.f;

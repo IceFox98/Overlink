@@ -95,6 +95,11 @@ UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() co
 	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
 }
 
+bool AOvrlPlayerCharacter::IsAiming()
+{
+	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
+}
+
 void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
 {
 	if (GetMesh() && FullBodyMesh)

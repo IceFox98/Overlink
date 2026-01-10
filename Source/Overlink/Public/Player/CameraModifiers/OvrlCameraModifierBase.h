@@ -26,6 +26,9 @@ public:
 	virtual bool ModifyCamera(float DeltaTime, struct FMinimalViewInfo& InOutPOV) override;
 	virtual void DisableModifier(bool bImmediate = false) override;
 
+	void SetAlphaTime(float InAlphaTime);
+	void SetCustomFOVOffset(float InFOVOffset);
+
 public:
 
 	UPROPERTY(EditAnywhere)
@@ -44,7 +47,7 @@ public:
 	FVector RotationMultiplier;
 
 	UPROPERTY(EditAnywhere, meta = (DisplayName = "FOV Modifier"))
-	TObjectPtr<UCurveFloat> FOVModifier;
+	FRuntimeFloatCurve FOVModifier;
 
 	// If > 0, this modifier will auto disable after N seconds
 	UPROPERTY(EditAnywhere)

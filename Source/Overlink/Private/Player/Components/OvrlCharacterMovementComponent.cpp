@@ -138,7 +138,7 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 
 		SetGait(OvrlGaitTags::Idle);
 	}
-	else if (bShouldRun)
+	else if (ShouldRun())
 	{
 		StartRunning();
 	}
@@ -147,6 +147,11 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 		StopRunning();
 		SetGait(OvrlGaitTags::Walking);
 	}
+}
+
+bool UOvrlCharacterMovementComponent::ShouldRun()
+{
+	return bShouldRun && !Character->IsAiming();
 }
 
 void UOvrlCharacterMovementComponent::Crouch(bool bClientSimulation)
@@ -497,7 +502,6 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 
 void UOvrlCharacterMovementComponent::ResetTraversal()
 {
-	//Character->UnCrouch();
 	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	SetMovementMode(EMovementMode::MOVE_Falling);
 	SetLocomotionAction(FGameplayTag::EmptyTag);
@@ -551,11 +555,11 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	FVector TraceStart = Character->GetActorLocation();
 	FVector TraceEnd = TraceStart + Character->GetActorForwardVector() * TraversalCheckDistance.X;
 
-	const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+	//const float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const float CapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-	const float TraceCapsuleRadius = 10.f;
-	const float TraceCapsuleHalfHeight = 10.f;
+	const float TraceCapsuleRadius = 5.f;
+	const float TraceCapsuleHalfHeight = 5.f;
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Character);
@@ -563,13 +567,13 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 
 	// Make first sweep trace to find if there's any obstacle in front of us
 	FHitResult ForwardTraversalHit;
-	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, CapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
 
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, CapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 1.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, CapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 1.f);
 #endif
 
 	if (!ForwardTraversalHit.bBlockingHit) // No traversals found
@@ -579,7 +583,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const FVector FeetLocation = GetActorFeetLocation();
 
 	// If we found a traversal, we make a downward capsule sweep to find the height of the traversal.
-	const float InwardOffset = 20.f;
+	const float InwardOffset = 10.f;
 
 	// Calculate a vector with opposite direction of the hit normal
 	const FVector InwardPosition = ForwardImpactPoint - ForwardTraversalHit.ImpactNormal * InwardOffset;
@@ -593,7 +597,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FLinearColor::Red, FLinearColor::Green, 1.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FColor::Orange, FLinearColor::Green, 1.f);
 #endif
 
 	const FVector DownwardImpactPoint = DownwardTraversalHit.ImpactPoint;
@@ -699,7 +703,7 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 		}
 		else
 		{
-			WarpLocation = TraversalResult.FrontEdgeLocation + WarpRotation.Vector() * 150.f;
+			WarpLocation = TraversalResult.FrontEdgeLocation + WarpRotation.Vector() * 50.f;
 		}
 
 #if ENABLE_DRAW_DEBUG

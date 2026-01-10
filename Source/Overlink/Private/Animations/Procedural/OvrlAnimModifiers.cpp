@@ -96,7 +96,6 @@ void UOvrlSimpleAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslatio
 			continue;
 		}
 
-		// Apply translation curve, modified by the movement amount
 		OutTranslation += Data.TranslationCurve->GetVectorValue(Data.Time) * Data.TranslationMultiplier * TargetAlpha;
 
 		// Apply rotation curve
@@ -180,7 +179,7 @@ void UOvrlMovementAnimModifier::UpdateImpl(float DeltaTime, FVector& OutTranslat
 
 	for (FModifierData& Data : DataList)
 	{
-		OutRotation += FRotator(FMath::Clamp(LastTranslation.X, -1.f, 1.f) * -Data.RotationMultiplier.X, 0.f, 0.f);
+		OutRotation += FRotator(FMath::Clamp(LastTranslation.X, -1.f, 1.f) * -Data.RotationMultiplier.Y, 0.f, 0.f);
 	}
 
 	// Since OutTranslation and OutRotation is reset every frame, we save LastTranslation and LastRotation locally to be able to smooth correctly

@@ -7,7 +7,7 @@
 #include "Weapons/OvrlWeaponSightDefinition.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Player/Components/OvrlCameraComponent.h"
-#include "Player/CameraModifiers/OvrlCameraModifier_FOV.h"
+#include "Player/CameraModifiers/OvrlCameraModifierBase.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Inventory/OvrlItemInstance.h"
 #include "OvrlGameplayTags.h"
@@ -28,7 +28,7 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	BulletsPerCartridge = 1;
 	MaxDamageRange = 25000.0f;
 	FireRate = 400.f;
-	AimSpeed = 25.f;
+	AimTime = .15f;
 
 	KickbackRecoverySpeed = 10.f;
 	CameraRecoilRecoverySpeed = 10.f;
@@ -141,26 +141,26 @@ void AOvrlRangedWeaponInstance::ToggleADS(bool bEnable)
 {
 	bIsADS = bEnable;
 
-	if (!ensure(SightDefinition))
-	{
-		return;
-	}
+	//if (!ensure(SightDefinition))
+	//{
+	//	return;
+	//}
 
 	if (AOvrlPlayerCameraManager* CameraManager = AOvrlPlayerCameraManager::Get(this))
 	{
 		if (bIsADS)
 		{
-			if (ensure(SightDefinition->CameraFOV))
+			//if (ensure(SightDefinition->CameraFOV))
 			{
-				CameraFOV = CameraManager->GetOrAddCameraModifier<UOvrlCameraModifier_FOV>(SightDefinition->CameraFOV);
+				CameraFOV = CameraManager->GetOrAddCameraModifier<UOvrlCameraModifierBase>(UOvrlCameraModifierBase::StaticClass());
 				if (CameraFOV)
 				{
 					// Enable every time since we're re-using the same modifier
 					CameraFOV->EnableModifier();
 
-					const float TargetFOV = SightDefinition->GetMagnifiedFOV(CameraManager->DefaultFOV);
-					CameraFOV->SetTargetFOV(TargetFOV);
-					CameraFOV->SetInterpSpeed(AimSpeed);
+					const float MagnifiedFOV = GetMagnifiedFOV(CameraManager->DefaultFOV); // E.g.: Default is 90, Magnified is 80 (zoom in)
+					CameraFOV->SetCustomFOVOffset(MagnifiedFOV - CameraManager->DefaultFOV); // Offset will be -10, since camera modifier works with offset
+					CameraFOV->SetAlphaTime(AimTime);
 				}
 			}
 		}
@@ -253,6 +253,7 @@ void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
 	//OVRL_LOG("%f", CurrentHeat);
 }
 
+
 void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 {
 	float TargetMultiplier = 1.f;
@@ -290,6 +291,40 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 	}
 
 	SpreadMultiplier = FMath::FInterpTo(SpreadMultiplier, TargetMultiplier, DeltaTime, 10.f);
+}
+
+float AOvrlRangedWeaponInstance::GetMagnifiedFOV(float InFOV)
+{
+	float TargetMagnification = 1.f;
+
+	switch (SightMagnification)
+	{
+	case ESightMagnification::One:
+		TargetMagnification = 1.1f; // We still want a little bit of FOV when using 1x scope
+		break;
+	case ESightMagnification::OneHalf:
+		TargetMagnification = 1.5f;
+		break;
+	case ESightMagnification::Two:
+		TargetMagnification = 2.f;
+		break;
+	case ESightMagnification::TwoHalf:
+		TargetMagnification = 2.5f;
+		break;
+	case ESightMagnification::Three:
+		TargetMagnification = 3.f;
+		break;
+	case ESightMagnification::Four:
+		TargetMagnification = 4.f;
+		break;
+	case ESightMagnification::Five:
+		TargetMagnification = 5.f;
+		break;
+	default:
+		break;
+	}
+
+	return InFOV / FMath::Pow(TargetMagnification, 0.9f);
 }
 
 void AOvrlRangedWeaponInstance::PlayFireAnimation()

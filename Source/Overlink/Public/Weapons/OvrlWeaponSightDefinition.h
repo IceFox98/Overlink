@@ -31,10 +31,10 @@ class OVERLINK_API UOvrlWeaponSightDefinition : public UDataAsset
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Sight Definition")
-		ESightMagnification SightMagnification;
+	ESightMagnification SightMagnification;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Sight Definition")
-		TSubclassOf<UCameraModifier> CameraFOV;
+	TSubclassOf<UCameraModifier> CameraFOV;
 
 public:
 

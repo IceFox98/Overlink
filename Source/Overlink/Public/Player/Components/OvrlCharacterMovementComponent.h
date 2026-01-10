@@ -164,6 +164,7 @@ protected:
 private:
 
 	void UpdateGaitStatus();
+	bool ShouldRun();
 
 	// ------------------------
 	// ------ TRAVERSALS ------

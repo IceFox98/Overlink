@@ -64,9 +64,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 	float AimAlpha;
 
-	// How quickly the weapon enters to ADS
+	// How much time (in seconds) the weapon needs to aim
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
-	float AimSpeed;
+	float AimTime;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Anim Instance", Transient)
 	FVector WeaponRecoilTranslation;
@@ -90,4 +90,6 @@ protected:
 
 	UPROPERTY()
 	AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
+
+	float LerpAimAlpha = 0.f;
 };

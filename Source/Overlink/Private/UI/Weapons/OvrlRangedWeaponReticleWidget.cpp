@@ -14,7 +14,7 @@ void UOvrlRangedWeaponReticleWidget::InitializeFromWeapon(AOvrlRangedWeaponInsta
 	Weapon->OnHitSomething.BindUObject(this, &UOvrlRangedWeaponReticleWidget::OnWeaponHitSomething);
 	Weapon->OnDestroyed.AddUniqueDynamic(this, &UOvrlRangedWeaponReticleWidget::OnWeaponDestroyed);
 
-	FadeOutSpeed = Weapon->GetAimSpeed();
+	FadeOutTime = Weapon->GetAimTime();
 }
 
 void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -36,8 +36,8 @@ void UOvrlRangedWeaponReticleWidget::NativeTick(const FGeometry& MyGeometry, flo
 		// Fade out/in the reticle
 		const float TargetRenderOpacity = FMath::InterpEaseOut(0.f, 1.f, CurrentAlpha, 1.f);
 		const float AlphaDirection = WeaponInstance->IsADS() ? -1.f : 1.f;
-		const float TargetFadeSpeedMultiplier = WeaponInstance->IsADS() ? FadeOutSpeedMultiplier : FadeInSpeedMultiplier;
-		CurrentAlpha = FMath::Clamp(CurrentAlpha + FadeOutSpeed * TargetFadeSpeedMultiplier * AlphaDirection * InDeltaTime, 0.f, 1.f);
+		const float TargetFadeSpeedMultiplier = WeaponInstance->IsADS() ? FadeOutTimeMultiplier : FadeInTimeMultiplier;
+		CurrentAlpha = FMath::Clamp(CurrentAlpha + InDeltaTime / (FadeOutTime * TargetFadeSpeedMultiplier * AlphaDirection), 0.f, 1.f);
 
 		CrosshairReticle->SetOpacity(TargetRenderOpacity);
 
