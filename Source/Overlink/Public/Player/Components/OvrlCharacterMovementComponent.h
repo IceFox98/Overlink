@@ -236,6 +236,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
 	FName EndTraversalWarpTargetName;
 
+	// The minimum height of the wall for which vault can be performed
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	float MinVaultHeight;
+
 	// The maximum height of the wall for which vault can be performed
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
 	float MaxVaultHeight;
