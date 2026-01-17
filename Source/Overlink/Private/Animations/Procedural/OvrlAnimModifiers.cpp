@@ -9,6 +9,8 @@
 // Engine
 #include "Curves/CurveVector.h"
 
+#include "OvrlUtils.h"
+
 void UOvrlAnimModifierBase::Initialize(AOvrlPlayerCharacter* InPlayerCharacter)
 {
 	PlayerCharacter = InPlayerCharacter;
@@ -34,6 +36,8 @@ void UOvrlAnimModifierBase::Update(float DeltaTime, FVector& OutTranslation, FRo
 {
 	ComputeAlpha(DeltaTime);
 
+	//Alpha = 1.f;
+
 	if (Alpha > 0.f && bEnabled)
 	{
 		UpdateImpl(DeltaTime, OutTranslation, OutRotation);
@@ -51,11 +55,18 @@ void UOvrlAnimModifierBase::SetTag(const FGameplayTag& NewTag)
 	}
 
 	CurrentTag = NewTag;
+
+	//Toggle(TagsToCheck.HasTagExact(CurrentTag));
+}
+
+bool UOvrlAnimModifierBase::HasTag(const FGameplayTag& Tag)
+{
+	return TagsToCheck.HasTagExact(Tag);
 }
 
 void UOvrlAnimModifierBase::ComputeAlpha(float DeltaTime)
 {
-	if (TagsToCheck.HasTagExact(CurrentTag) && bShouldUpdateAlpha)
+	if (/*TagsToCheck.HasTagExact(CurrentTag) *//*&& !CancelTags.HasTagExact(CurrentTag)*//* &&*/ bShouldUpdateAlpha)
 	{
 		Alpha = 1.f; // We want fully alpha to be applied
 	}

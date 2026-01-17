@@ -68,6 +68,8 @@ public:
 
 	void SetTag(const FGameplayTag& NewTag);
 
+	bool HasTag(const FGameplayTag& Tag);
+
 protected:
 
 	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) {};
@@ -88,6 +90,9 @@ protected:
 	// Gameplay Tag that the player must have to enable this modifier
 	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base", meta = (Categories = "Ovrl.Gait,Ovrl.LocomotionAction"))
 	FGameplayTagContainer TagsToCheck;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base", meta = (Categories = "Ovrl.Gait,Ovrl.LocomotionAction"))
+	FGameplayTagContainer CancelTags;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base")
 	float RecoverySpeed = 1.f;

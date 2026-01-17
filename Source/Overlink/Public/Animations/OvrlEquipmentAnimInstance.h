@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Animations/OvrlLinkedAnimInstance.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "GameplayTagContainer.h"
 
 #include "OvrlEquipmentAnimInstance.generated.h"
 
@@ -40,6 +41,9 @@ protected:
 
 	virtual bool CheckCrouchLeaning();
 	virtual float CalculateCrouchLeanSpeed();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
+	void GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation);
 
 private:
 

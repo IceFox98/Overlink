@@ -36,23 +36,23 @@ protected:
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Health Component|Events")
-		FOnHealthChangedSignature OnHealthChanged;
+	FOnHealthChangedSignature OnHealthChanged;
 
 	UPROPERTY(BlueprintAssignable, Category = "Health Component|Events")
-		FOnHealthChangedSignature OnMaxHealthChanged;
+	FOnHealthChangedSignature OnMaxHealthChanged;
 
 	UPROPERTY(BlueprintAssignable, Category = "Health Component|Events")
-		FOnOutOfHealthSignature OnOutOfHealth;
+	FOnOutOfHealthSignature OnOutOfHealth;
 public:
 
 	// Ability system used by this component.
 	UPROPERTY()
-		TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
 	// Health set used by this component.
 	UPROPERTY()
-		TObjectPtr<const UOvrlHealthSet> HealthSet;
+	TObjectPtr<const UOvrlHealthSet> HealthSet;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health Component")
-		bool bIsDead;
+	bool bIsDead;
 };

@@ -29,15 +29,15 @@ public:
 
 	// Gameplay ability to grant.
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<UOvrlGameplayAbility> Ability = nullptr;
+	TSubclassOf<UOvrlGameplayAbility> Ability = nullptr;
 
 	// Level of ability to grant.
 	UPROPERTY(EditDefaultsOnly)
-		int32 AbilityLevel = 1;
+	int32 AbilityLevel = 1;
 
 	// Tag used to process input for the ability.
 	UPROPERTY(EditDefaultsOnly, Meta = (Categories = "Ovrl"))
-		FGameplayTag InputTag;
+	FGameplayTag InputTag;
 };
 
 /**
@@ -54,11 +54,11 @@ public:
 
 	// Gameplay effect to grant.
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<UGameplayEffect> GameplayEffect = nullptr;
+	TSubclassOf<UGameplayEffect> GameplayEffect = nullptr;
 
 	// Level of gameplay effect to grant.
 	UPROPERTY(EditDefaultsOnly)
-		float EffectLevel = 1.0f;
+	float EffectLevel = 1.0f;
 };
 
 /**
@@ -74,7 +74,7 @@ struct FOvrlAbilitySet_AttributeSet
 public:
 	// Gameplay effect to grant.
 	UPROPERTY(EditDefaultsOnly)
-		TSubclassOf<UAttributeSet> AttributeSet;
+	TSubclassOf<UAttributeSet> AttributeSet;
 
 };
 
@@ -100,15 +100,15 @@ protected:
 
 	// Handles to the granted abilities.
 	UPROPERTY()
-		TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
+	TArray<FGameplayAbilitySpecHandle> AbilitySpecHandles;
 
 	// Handles to the granted gameplay effects.
 	UPROPERTY()
-		TArray<FActiveGameplayEffectHandle> GameplayEffectHandles;
+	TArray<FActiveGameplayEffectHandle> GameplayEffectHandles;
 
 	// Pointers to the granted attribute sets
 	UPROPERTY()
-		TArray<TObjectPtr<UAttributeSet>> GrantedAttributeSets;
+	TArray<TObjectPtr<UAttributeSet>> GrantedAttributeSets;
 };
 
 /**
@@ -133,13 +133,13 @@ protected:
 
 	// Gameplay abilities to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta = (TitleProperty = Ability))
-		TArray<FOvrlAbilitySet_GameplayAbility> GrantedGameplayAbilities;
+	TArray<FOvrlAbilitySet_GameplayAbility> GrantedGameplayAbilities;
 
 	// Gameplay effects to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta = (TitleProperty = GameplayEffect))
-		TArray<FOvrlAbilitySet_GameplayEffect> GrantedGameplayEffects;
+	TArray<FOvrlAbilitySet_GameplayEffect> GrantedGameplayEffects;
 
 	// Attribute sets to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta = (TitleProperty = AttributeSet))
-		TArray<FOvrlAbilitySet_AttributeSet> GrantedAttributes;
+	TArray<FOvrlAbilitySet_AttributeSet> GrantedAttributes;
 };

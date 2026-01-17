@@ -33,20 +33,20 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION()
-		virtual void HandleDeath(AActor* InInstigator);
+	virtual void HandleDeath(AActor* InInstigator);
 
 protected:
 
 	/** Components that manages the player abilities */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
-		TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
-		UOvrlHealthComponent* HealthComponent;
+	TObjectPtr<UOvrlHealthComponent> HealthComponent;
 
 public:
 
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Abilities")
-		TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
+	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
 };

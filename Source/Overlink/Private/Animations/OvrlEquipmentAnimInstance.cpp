@@ -13,6 +13,7 @@
 #include "OvrlUtils.h"
 #include "Overlink.h"
 #include "Animations/Procedural/OvrlStanceStatesAnimManager.h"
+#include "Animations/Procedural/OvrlAnimModifiers.h"
 
 // Engine
 #include "Curves/CurveVector.h"
@@ -87,7 +88,7 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	{
 		if (Manager)
 		{
-			Manager->Update(DeltaTime, RightHandInitialLocation, RightHandInitialRotation, ModifiersTranslation, ModifiersRotation);
+			Manager->GetStartingPosition(DeltaTime, RightHandInitialLocation, RightHandInitialRotation);
 		}
 	}
 
@@ -293,4 +294,23 @@ bool UOvrlEquipmentAnimInstance::CheckCrouchLeaning()
 float UOvrlEquipmentAnimInstance::CalculateCrouchLeanSpeed()
 {
 	return 10.f;
+}
+
+void UOvrlEquipmentAnimInstance::GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation)
+{
+	for (UOvrlStanceStatesAnimManager* Manager : Managers)
+	{
+		if (Manager/* && Manager->IsActive()*/)
+		{
+			for (UOvrlAnimModifierBase* Modifier : Manager->GetModifiers())
+			{
+				if (Modifier->HasTag(ModifierTag))
+				{
+					Modifier->Update(GetDeltaSeconds(), OutTranslation, OutRotation);
+				}
+			}
+		}
+	}
+
+	OutTranslation = SpineRotation.RotateVector(OutTranslation);
 }

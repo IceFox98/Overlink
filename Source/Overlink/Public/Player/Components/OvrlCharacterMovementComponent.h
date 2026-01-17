@@ -76,6 +76,7 @@ public:
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStanceChanged, const FGameplayTag&, OldStance, const FGameplayTag&, NewStance);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGaitChanged, const FGameplayTag&, OldGait, const FGameplayTag&, NewGait);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLocomotionActionChanged, const FGameplayTag&, OldLocomotionAction, const FGameplayTag&, NewLocomotionAction);
 
 /**
  *
@@ -210,6 +211,7 @@ public:
 
 	FOnStanceChanged OnStanceChanged;
 	FOnGaitChanged OnGaitChanged;
+	FOnLocomotionActionChanged OnLocomotionActionChanged;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
 	float MaxRunSpeed;

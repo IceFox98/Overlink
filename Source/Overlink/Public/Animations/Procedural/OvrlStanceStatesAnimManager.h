@@ -21,7 +21,13 @@ public:
 
 	void Initialize(AOvrlPlayerCharacter* PlayerCharacter);
 
-	void Update(float DeltaTime, FVector& OutStartTranslation, FRotator& OutStartRotation, FVector& OutTranslation, FRotator& OutRotation);
+	//void Update(float DeltaTime, FVector& OutStartTranslation, FRotator& OutStartRotation, FVector& OutTranslation, FRotator& OutRotation);
+
+	FORCEINLINE bool IsActive() { return bShouldUpdateStartPosition; };
+
+	FORCEINLINE TArray<UOvrlAnimModifierBase*> GetModifiers() const { return Modifiers; };
+
+	void GetStartingPosition(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
 
 protected:
 

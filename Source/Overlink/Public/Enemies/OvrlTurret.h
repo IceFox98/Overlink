@@ -29,59 +29,59 @@ protected:
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
-		void SetTarget(APawn* InTargetPawn);
+	void SetTarget(APawn* InTargetPawn);
 
 	UFUNCTION()
-		void Fire();
+	void Fire();
 
 public:
 
 	// ---- COMPONENTS ----
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turret|Components")
-		TObjectPtr<UCapsuleComponent> Capsule;
+	TObjectPtr<UCapsuleComponent> Capsule;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turret|Components")
-		TObjectPtr<UStaticMeshComponent> BaseMesh;
+	TObjectPtr<UStaticMeshComponent> BaseMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turret|Components")
-		TObjectPtr<UStaticMeshComponent> TurretMesh;
+	TObjectPtr<UStaticMeshComponent> TurretMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turret|Components")
-		TObjectPtr<UStaticMeshComponent> CannonMesh;
+	TObjectPtr<UStaticMeshComponent> CannonMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turret|Components")
-		TObjectPtr<USceneComponent> Muzzle;
+	TObjectPtr<USceneComponent> Muzzle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turret|Components")
-		TObjectPtr<UStaticMeshComponent> Laser;
+	TObjectPtr<UStaticMeshComponent> Laser;
 
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Turret|Combat")
-		TSubclassOf<AActor> ProjectileClass;
+	TSubclassOf<AActor> ProjectileClass;
 
 	// Amounts of bullets shot per second.
 	UPROPERTY(EditAnywhere, Category = "Turret|Combat")
-		float RPS;
+	float RPS;
 
 	UPROPERTY(EditAnywhere, Category = "Turret|Combat")
-		float FireInitialDelay;
+	float FireInitialDelay;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Turret|Combat")
-		float FireRate;
+	float FireRate;
 
 	// The higher the value is, the less time it takes for the turret to lock on the target.
 	UPROPERTY(EditAnywhere, Category = "Turret|Combat")
-		float SnapRotationSpeed;
+	float SnapRotationSpeed;
 
 	UPROPERTY(EditAnywhere, Category = "Turret|Laser")
-		FVector LaserEndPointOffset;
+	FVector LaserEndPointOffset;
 
 protected:
 
 	UPROPERTY()
-		APawn* TargetPawn;
+	APawn* TargetPawn;
 
 	FTimerHandle TimerHandle_Fire;
 

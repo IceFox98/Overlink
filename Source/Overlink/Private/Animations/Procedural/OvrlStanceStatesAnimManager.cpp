@@ -13,6 +13,7 @@ void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharac
 	UOvrlCharacterMovementComponent* CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());
 	CharacterMovementComponent->OnStanceChanged.AddUniqueDynamic(this, &UOvrlStanceStatesAnimManager::OnStanceChanged);
 	CharacterMovementComponent->OnGaitChanged.AddUniqueDynamic(this, &UOvrlStanceStatesAnimManager::OnGaitChanged);
+	CharacterMovementComponent->OnLocomotionActionChanged.AddUniqueDynamic(this, &UOvrlStanceStatesAnimManager::OnGaitChanged);
 
 	// Initialize modifiers
 	for (TSubclassOf<UOvrlAnimModifierBase> ModifierClass : ModifierClasses)
@@ -30,20 +31,20 @@ void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharac
 	OnGaitChanged(FGameplayTag::EmptyTag, CharacterMovementComponent->GetGait());
 }
 
-void UOvrlStanceStatesAnimManager::Update(float DeltaTime, FVector& OutStartTranslation, FRotator& OutStartRotation, FVector& OutTranslation, FRotator& OutRotation)
+void UOvrlStanceStatesAnimManager::GetStartingPosition(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
 {
 	// Smooth start position to avoid jerky movements when switch stance
 	const float TargetAlpha = bShouldUpdateStartPosition ? 1.f : 0.f;
 	Alpha = FMath::FInterpTo(Alpha, TargetAlpha, DeltaTime, 10.f);
 
-	OutStartTranslation += StartTranslation * Alpha;
-	OutStartRotation += StartRotation * Alpha;
+	OutTranslation += StartTranslation * Alpha;
+	OutRotation += StartRotation * Alpha;
 
 	for (UOvrlAnimModifierBase* Modifier : Modifiers)
 	{
 		if (Modifier)
 		{
-			Modifier->Update(DeltaTime, OutTranslation, OutRotation);
+			//Modifier->Update(DeltaTime, OutTranslation, OutRotation);
 		}
 	}
 }

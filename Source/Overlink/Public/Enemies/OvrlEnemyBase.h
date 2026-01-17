@@ -15,10 +15,10 @@ struct FOvrlKillMessage
 public:
 
 	UPROPERTY(BlueprintReadOnly)
-		AActor* Killer;
+	AActor* Killer;
 
 	UPROPERTY(BlueprintReadOnly)
-		AActor* Victim;
+	AActor* Victim;
 };
 
 UCLASS()
