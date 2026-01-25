@@ -42,7 +42,7 @@ void AOvrlProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CollisionComp->OnComponentHit.AddDynamic(this, &AOvrlProjectile::OnProjectileHit);
+	//CollisionComp->OnComponentHit.AddDynamic(this, &AOvrlProjectile::OnProjectileHit);
 }
 
 void AOvrlProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)

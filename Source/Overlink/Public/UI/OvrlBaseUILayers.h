@@ -21,7 +21,7 @@ class OVERLINK_API UOvrlBaseUILayers : public UCommonUserWidget
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Base UI Layers")
-		void RegisterLayer(UPARAM(meta = (Categories = "Ovrl.UI.Layer")) FGameplayTag LayerName, UCommonActivatableWidgetContainerBase* LayerWidget);
+	void RegisterLayer(UPARAM(meta = (Categories = "Ovrl.UI.Layer")) FGameplayTag LayerName, UCommonActivatableWidgetContainerBase* LayerWidget);
 
 	// Get the layer widget for the given layer tag.
 	UCommonActivatableWidgetContainerBase* GetLayerWidget(const FGameplayTag& LayerName);
@@ -29,5 +29,5 @@ public:
 private:
 
 	UPROPERTY()
-		TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetContainerBase>> Layers;
+	TMap<FGameplayTag, TObjectPtr<UCommonActivatableWidgetContainerBase>> Layers;
 };

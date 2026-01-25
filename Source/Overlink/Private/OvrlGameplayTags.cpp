@@ -111,6 +111,7 @@ namespace OvrlFoleyEvents
 	UE_DEFINE_GAMEPLAY_TAG(RunBackwards, "Ovrl.FoleyEvent.RunBackwards");
 	UE_DEFINE_GAMEPLAY_TAG(RunStrafe, "Ovrl.FoleyEvent.RunStrafe");
 	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.FoleyEvent.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(Slide, "Ovrl.FoleyEvent.Slide");
 	UE_DEFINE_GAMEPLAY_TAG(Scuff, "Ovrl.FoleyEvent.Scuff");
 	UE_DEFINE_GAMEPLAY_TAG(ScuffWall, "Ovrl.FoleyEvent.ScuffWall");
 	UE_DEFINE_GAMEPLAY_TAG(Handplant, "Ovrl.FoleyEvent.Handplant");

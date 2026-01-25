@@ -22,15 +22,15 @@ class OVERLINK_API UOvrlGameUIManagerSubsystem : public UGameInstanceSubsystem
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Game UI Manager")
-		void CreateBaseWidget(TSoftClassPtr<UOvrlBaseUILayers> BaseLayerWidgetClass);
+	void CreateBaseWidget(TSoftClassPtr<UOvrlBaseUILayers> BaseLayerWidgetClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Game UI Manager")
-		void AddWidgetToLayer(UPARAM(meta = (Categories = "Ovrl.UI.Layer")) FGameplayTag LayerName, TSoftClassPtr<UCommonActivatableWidget> WidgetClass);
+	void AddWidgetToLayer(UPARAM(meta = (Categories = "Ovrl.UI.Layer")) FGameplayTag LayerName, TSoftClassPtr<UCommonActivatableWidget> WidgetClass);
 
 	void NotifyPlayerDestroyed(ULocalPlayer* LocalPlayer);
 
 private:
 
 	UPROPERTY()
-		TObjectPtr<UOvrlBaseUILayers> BaseLayersWidget;
+	TObjectPtr<UOvrlBaseUILayers> BaseLayersWidget;
 };

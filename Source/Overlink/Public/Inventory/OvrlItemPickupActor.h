@@ -24,7 +24,7 @@ public:
 	AOvrlItemPickupActor();
 
 public:
-	
+
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 protected:
@@ -47,14 +47,14 @@ public:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<USphereComponent> PickupCollider;
+	TObjectPtr<USphereComponent> PickupCollider;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UStaticMeshComponent> ItemMesh;
+	TObjectPtr<UStaticMeshComponent> ItemMesh;
 
 	// ------ ITEM ------
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Spawner")
-		TObjectPtr<UOvrlPickupDefinition> ItemPickupDefinition;
+	TObjectPtr<UOvrlPickupDefinition> ItemPickupDefinition;
 
 protected:
 
