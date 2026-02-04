@@ -89,7 +89,7 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 		AddSpread();
 	}
 
-	PlayFireAnimation();
+	PlayWeaponAnimation(FireAnimation);
 	SpawnImpactVFX(HitData);
 
 	UpdateMagazineAmmoCountDisplay();
@@ -106,11 +106,12 @@ void AOvrlRangedWeaponInstance::StartReloading()
 {
 	Super::StartReloading();
 
-	if (UAnimMontage* ReloadAnimMontage = ReloadMontage.LoadSynchronous())
+	if (UAnimMontage* PlayerReloadAnimMontage = PlayerReloadMontage.LoadSynchronous())
 	{
 		if (AOvrlCharacterBase* Character = Cast<AOvrlCharacterBase>(GetOwner()))
 		{
-			Character->PlayAnimMontage(ReloadAnimMontage);
+			Character->PlayAnimMontage(PlayerReloadAnimMontage);
+			PlayWeaponAnimation(ReloadAnimation);
 		}
 	}
 	else
@@ -327,11 +328,11 @@ float AOvrlRangedWeaponInstance::GetMagnifiedFOV(float InFOV)
 	return InFOV / FMath::Pow(TargetMagnification, 0.9f);
 }
 
-void AOvrlRangedWeaponInstance::PlayFireAnimation()
+void AOvrlRangedWeaponInstance::PlayWeaponAnimation(UAnimSequence* AnimToPlay)
 {
-	if (ensure(WeaponMesh && FireAnimation))
+	if (ensure(WeaponMesh && AnimToPlay))
 	{
-		WeaponMesh->PlayAnimation(FireAnimation, false);
+		WeaponMesh->PlayAnimation(AnimToPlay, false);
 	}
 }
 

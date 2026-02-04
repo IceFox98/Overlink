@@ -83,7 +83,7 @@ protected:
 
 	float GetMagnifiedFOV(float InFOV);
 
-	virtual void PlayFireAnimation();
+	virtual void PlayWeaponAnimation(UAnimSequence* AnimToPlay);
 
 	UMaterialInstanceDynamic* GetMagazineAmmoCountMaterial();
 	void UpdateMagazineAmmoCountDisplay();
@@ -112,7 +112,10 @@ protected:
 	float MaxDamageRange;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-	TSoftObjectPtr<UAnimMontage> ReloadMontage;
+	TSoftObjectPtr<UAnimMontage> PlayerReloadMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	TObjectPtr<UAnimSequence> ReloadAnimation;
 
 	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
