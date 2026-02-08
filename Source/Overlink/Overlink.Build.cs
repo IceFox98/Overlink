@@ -4,30 +4,47 @@ using UnrealBuildTool;
 
 public class Overlink : ModuleRules
 {
-    public Overlink(ReadOnlyTargetRules Target) : base(Target)
-    {
-        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+	public Overlink(ReadOnlyTargetRules Target) : base(Target)
+	{
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] {
-            "Core",
-            "CoreUObject",
-            "Engine",
-            "InputCore",
-            "EnhancedInput",
-            "GameplayTags",
-            "GameplayTasks",
-            "GameplayAbilities",
-            "MotionWarping",
-            "EngineSettings",
-            "UMG",
-            "Slate",
-            "SlateCore",
-            "PhysicsCore",
-            "CommonUI",
-            "Niagara",
-            "GameplayMessageRuntime",
-        });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"EnhancedInput",
+			"GameplayTags",
+			"GameplayTasks",
+			"GameplayAbilities",
+			"MotionWarping",
+			"EngineSettings",
+			"UMG",
+			"Slate",
+			"SlateCore",
+			"PhysicsCore",
+			"CommonUI",
+			"Niagara",
+			"GameplayMessageRuntime",
+			"AnimationWarpingRuntime",
+			"AnimGraph",
+			"AnimGraphRuntime"
+		});
+		
+		if (Target.bBuildEditor == true)
+		{
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"BlueprintGraph",
+					"EditorFramework",
+					"Kismet",
+					"UnrealEd",
+				}
+			);
+		}
 
-        OptimizeCode = CodeOptimization.InShippingBuildsOnly;
-    }
+		OptimizeCode = CodeOptimization.InShippingBuildsOnly;
+	}
 }

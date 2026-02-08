@@ -38,6 +38,11 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 	CameraComp->FirstPersonScale = .2f; // Used to avoid arms compenetrating walls when too close
 	CameraComp->bEnableFirstPersonScale = true;
 
+	// Disable controller rotation since it was dealing with pawn rotation when a different vector gravity is applied.
+	// Let the Movement Component handle the rotation.
+	bUseControllerRotationYaw = false; 
+	GetCharacterMovement()->RotationRate = FRotator(-1.f, -1.f, -1.f); // Set to negative to have instant turns of the player
+
 	GetMesh()->CastShadow = false;
 	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson; // Used to avoid arms compenetrating walls when too close
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -95,7 +100,7 @@ UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() co
 	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
 }
 
-bool AOvrlPlayerCharacter::IsAiming()
+bool AOvrlPlayerCharacter::IsAiming() const
 {
 	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
 }

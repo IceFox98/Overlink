@@ -165,19 +165,19 @@ protected:
 private:
 
 	void UpdateGaitStatus();
-	bool ShouldRun();
+	bool ShouldRun() const;
 
 	// ------------------------
 	// ------ TRAVERSALS ------
 	// ------------------------
 
 	FTraversalResult CheckForTraversal();
-	void SetVaultWarpingData(const FTraversalResult& TraversalResult);
-	void SetMantleWarpingData(const FTraversalResult& TraversalResult);
+	void SetVaultWarpingData(const FTraversalResult& TraversalResult) const;
+	void SetMantleWarpingData(const FTraversalResult& TraversalResult) const;
 	float FindMontageStartForDeltaZ(UAnimMontage* Montage, double DeltaZ);
 	void UpdateHandsIKTransform(const FTraversalResult& TraversalResult);
 
-	void FindLandingPoint(FTraversalResult& OutTraversalResult);
+	void FindLandingPoint(FTraversalResult& OutTraversalResult) const;
 	bool HandleTraversals();
 
 	// ------ VAULT ------
@@ -188,7 +188,7 @@ private:
 
 	// ------ WALLRUN ------
 
-	bool ShouldHandleWallrun();
+	bool ShouldHandleWallrun() const;
 
 	void HandleWallrun(float DeltaTime);
 

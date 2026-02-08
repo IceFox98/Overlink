@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Player/Components/OvrlCameraComponent.h"
 
 #include "GameFramework/Character.h"
@@ -16,8 +15,8 @@ void UOvrlCameraComponent::GetCameraView(float DeltaTime, FMinimalViewInfo& Desi
 	UpdateForOwner();
 	UpdateCrouchOffset(DeltaTime);
 
-	FVector PivotLocation = GetPivotLocation() + CurrentCrouchOffset;
-	//FRotator PivotRotation = GetPivotRotation();
+	// FVector PivotLocation = GetPivotLocation() + CurrentCrouchOffset;
+	// FRotator PivotRotation = GetPivotRotation();
 
 	// Update current camera view, without moving the actual camera object
 	//DesiredView.Location = PivotLocation;
@@ -119,4 +118,3 @@ void UOvrlCameraComponent::UpdateCrouchOffset(float DeltaTime)
 		CrouchOffsetBlendAlpha = 1.0f;
 	}
 }
-

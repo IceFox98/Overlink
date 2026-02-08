@@ -10,6 +10,7 @@
 // Engine
 #include "Kismet/KismetMathLibrary.h"
 #include "AbilitySystemGlobals.h"
+#include "OvrlUtils.h"
 
 void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 {
@@ -65,7 +66,10 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	if (!CharacterMovementComponent || !PlayerCharacter)
 		return;
 
-	const FRotator ComposedRotator = UKismetMathLibrary::ComposeRotators(PlayerCharacter->GetControlRotation(), FRotator(180.f, 0.f, 0.f));
+	const FRotator RotationOffset = UOvrlUtils::GetGravityRelativeRotation(FRotator(180.f, 0.f, 0.f), CharacterMovementComponent->GetGravityDirection());
+
+	const FRotator ComposedRotator = UKismetMathLibrary::ComposeRotators(PlayerCharacter->GetControlRotation(), RotationOffset);
+	//SpineRotation = UOvrlUtils::GetGravityRelativeRotation(FRotator(0.f, 0.f, ComposedRotator.Pitch), CharacterMovementComponent->GetGravityDirection());
 	SpineRotation = FRotator(0.f, 0.f, ComposedRotator.Pitch);
 
 	PitchAngle = -ComposedRotator.Pitch;

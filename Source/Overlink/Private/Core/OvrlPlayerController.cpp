@@ -84,7 +84,8 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	APawn* const P = GetPawnOrSpectator();
 	if (P)
 	{
-		P->FaceRotation(ViewRotation, DeltaTime);
+		// This is useless since we disabled all the pawn "Use Controller Rotation" bool
+		//P->FaceRotation(ViewRotation, DeltaTime);
 	}
 }
 

@@ -110,7 +110,8 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 		UpdateCrouchLeanAlpha(DeltaTime);
 		//UpdateRunPositionAlpha(DeltaTime);
 
-		const FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+		FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+		CameraRotation = UOvrlUtils::GetGravityRelativeRotation(CameraRotation, CharacterMovementComponent->GetGravityDirection());
 		WallrunCameraTiltRotation = FRotator(CameraRotation.Roll, 0.f, 0.f);
 	}
 }

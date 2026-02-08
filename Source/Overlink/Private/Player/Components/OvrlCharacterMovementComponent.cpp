@@ -150,7 +150,7 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 	}
 }
 
-bool UOvrlCharacterMovementComponent::ShouldRun()
+bool UOvrlCharacterMovementComponent::ShouldRun() const
 {
 	return bShouldRun && !Character->IsAiming();
 }
@@ -657,7 +657,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	return TraversalResult;
 }
 
-void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTraversalResult)
+void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTraversalResult) const
 {
 	const FVector DownwardOffset = GetGravityDirection() * 10.f; // Used to don't trace along the upper side of the traversal
 
@@ -716,7 +716,7 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 	}
 }
 
-void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult& TraversalResult)
+void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult& TraversalResult) const
 {
 	if (UMotionWarpingComponent* MotionWarping = Character->GetMotionWarpingComponent())
 	{
@@ -754,7 +754,7 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 	}
 }
 
-void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResult& TraversalResult)
+void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResult& TraversalResult) const
 {
 	if (UMotionWarpingComponent* MotionWarping = Character->GetMotionWarpingComponent())
 	{
@@ -851,7 +851,7 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
 }
 
-bool UOvrlCharacterMovementComponent::ShouldHandleWallrun()
+bool UOvrlCharacterMovementComponent::ShouldHandleWallrun() const
 {
 	const FVector LastVelocity = GetLastUpdateVelocity();
 	return IsFalling() && bHasPlayerJumped && !bIsWallrunInCooldown && LastVelocity.Z > WallrunMinCheckVelocityZ;
@@ -1201,8 +1201,8 @@ bool UOvrlCharacterMovementComponent::ShouldCancelSliding()
 
 	//OvrlLOG("%f", GetLastUpdateVelocity().Length());
 
-	//return GetLastUpdateVelocity().Length() <= 575.f;
-	return false;
+	return GetLastUpdateVelocity().Length() <= 575.f;
+	//return false;
 }
 
 void UOvrlCharacterMovementComponent::CancelSliding()

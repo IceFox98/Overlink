@@ -49,7 +49,7 @@ public:
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
 	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
 
-	bool IsAiming();
+	bool IsAiming() const;
 public:
 
 	//virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
