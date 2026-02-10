@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 
 #include "GameFramework/Character.h"
@@ -559,22 +558,25 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const float PlayerCapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const float PlayerCapsuleHalfHeight = Character->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-	const float TraceCapsuleRadius = 5.f;
-	const float TraceCapsuleHalfHeight = 5.f;
+	constexpr float TraceCapsuleRadius = 5.f;
+	constexpr float TraceCapsuleHalfHeight = 5.f;
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Character);
 	QueryParams.bFindInitialOverlaps = false;
 
+	// Find the 'smallest' rotation to rotate default gravity vector to be aligned with the custom one
+	const FQuat CapsuleRotation = FQuat::FindBetweenNormals(FVector::DownVector, GetGravityDirection());
+
 	// Make first sweep trace to find if there's any obstacle in front of us
 	FHitResult ForwardTraversalHit;
-	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, CapsuleRotation, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
 
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, PlayerCapsuleHalfHeight, EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 1.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, PlayerCapsuleHalfHeight, CapsuleRotation.Rotator(), EDrawDebugTrace::ForDuration, ForwardTraversalHit.bBlockingHit, ForwardTraversalHit, FLinearColor::Blue, FLinearColor::Green, 1.f);
 #endif
 
 	if (!ForwardTraversalHit.bBlockingHit) // No traversals found
@@ -584,24 +586,33 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	const FVector FeetLocation = GetActorFeetLocation();
 
 	// If we found a traversal, we make a downward capsule sweep to find the height of the traversal.
-	const float InwardOffset = 10.f;
+	constexpr float InwardOffset = 10.f;
 
 	// Calculate a vector with opposite direction of the hit normal
 	const FVector InwardPosition = ForwardImpactPoint - ForwardTraversalHit.ImpactNormal * InwardOffset;
 
-	TraceStart = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z + (PlayerCapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
-	TraceEnd = FVector(InwardPosition.X, InwardPosition.Y, FeetLocation.Z); // @TODO: Forse � meglio che il trace finisca a 10/15cm pi� sopra della mesh location
+	// Projection of feet location along the gravity direction. It actually 'filters out' the gravity-relative up component
+	const float FeetAlongGravity = FVector::DotProduct(FeetLocation, GetGravityDirection());
+	const float InwardAlongGravity = FVector::DotProduct(InwardPosition, GetGravityDirection());
+
+	// Subtract feet Z position to inward one, to get a delta
+	TraceEnd = InwardPosition - GetGravityDirection() * (InwardAlongGravity - FeetAlongGravity);
+	TraceStart = TraceEnd - GetGravityDirection() * ((PlayerCapsuleHalfHeight * 2.f) + TraversalCheckDistance.Y);
 
 	// Perform downward trace
 	FHitResult DownwardTraversalHit;
-	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, TraceCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, CapsuleRotation, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, TraceCapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FColor::Orange, FLinearColor::Green, 1.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, TraceCapsuleRadius, TraceCapsuleHalfHeight, CapsuleRotation.Rotator(), EDrawDebugTrace::ForDuration, DownwardTraversalHit.bBlockingHit, DownwardTraversalHit, FColor::Orange, FLinearColor::Green, 1.f);
 #endif
 
 	if (!DownwardTraversalHit.bBlockingHit) // Can't find top of the traversal
+		return TraversalResult;
+
+	// This only works on mesh with simple collisions
+	if (DownwardTraversalHit.bStartPenetrating)
 		return TraversalResult;
 
 	const FVector TraversalTopLocation = DownwardTraversalHit.ImpactPoint;
@@ -613,44 +624,49 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	TraceEnd = TraceStart;
 
 	FHitResult PlayerHit;
-	GetWorld()->SweepSingleByChannel(PlayerHit, TraceStart, TraceEnd, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeCapsule(PlayerCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(PlayerHit, TraceStart, TraceEnd, CapsuleRotation, ECC_Visibility, FCollisionShape::MakeCapsule(PlayerCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
-		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, PlayerCapsuleRadius, PlayerCapsuleHalfHeight, EDrawDebugTrace::ForDuration, PlayerHit.bBlockingHit, PlayerHit, FColor::Orange, FLinearColor::Green, 1.f);
+		DrawDebugCapsuleTraceSingle(GetWorld(), TraceStart, TraceEnd, PlayerCapsuleRadius, PlayerCapsuleHalfHeight, CapsuleRotation.Rotator(), EDrawDebugTrace::ForDuration, PlayerHit.bBlockingHit, PlayerHit, FColor::Orange, FLinearColor::Green, 1.f);
 #endif
 
-	if (PlayerHit.bBlockingHit) // Player can't fit
+	if (PlayerHit.bBlockingHit) // Player won't fit
 		return TraversalResult;
 
-	const float TraversalHeight = FMath::Abs(TraversalTopLocation.Z - FeetLocation.Z);
+	// Projection of top edge location along the gravity direction. It actually 'filters out' the gravity-relative up component
+	const float TopLocationAlongGravity = FVector::DotProduct(TraversalTopLocation, GetGravityDirection());
+	const float ForwardPointAlongGravity = FVector::DotProduct(ForwardImpactPoint, GetGravityDirection());
+	
+	// Subtract top Z position to forward point Z, to get a delta
+	const FVector FrontEdgeLocation = ForwardImpactPoint - GetGravityDirection() * (ForwardPointAlongGravity - TopLocationAlongGravity);
+	
+#if ENABLE_DRAW_DEBUG
+	if (bDebugEnabled)
+		DrawDebugPoint(GetWorld(), FrontEdgeLocation, 20.f, FColor::Purple, false, 1.f);
+#endif
 
-	// Get distance from start trace point to impact point, ignoring Z axix
-	const float TraversalDistance = FVector2D::Distance(FVector2D(ForwardTraversalHit.TraceStart), FVector2D(ForwardImpactPoint));
+	// Get traversal height along the gravity vector
+	const float TraversalHeight = FMath::Abs(FVector::DotProduct(TraversalTopLocation - FeetLocation, GetGravityDirection()));
 
-	const FVector FrontEdgeLocation = FVector(ForwardImpactPoint.X, ForwardImpactPoint.Y, TraversalTopLocation.Z);
-
-	// This only works on mesh with simple collisions
-	if (DownwardTraversalHit.bStartPenetrating)
-	{
-		return TraversalResult;
-	}
+	// Calculate how far is the front edge
+	const float TraversalFrontEdgeDistance = FVector2D::Distance(FVector2D(ForwardTraversalHit.TraceStart), FVector2D(ForwardImpactPoint));
 
 	if (TraversalHeight >= MinVaultHeight && TraversalHeight <= MaxVaultHeight) // Vault
 	{
 		TraversalResult.bFound = true;
-		TraversalResult.UpperImpactPoint = TraversalTopLocation;
 		TraversalResult.FrontEdgeNormal = ForwardTraversalHit.ImpactNormal;
 		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
+		TraversalResult.Height = TraversalHeight;
 		TraversalResult.Type = ETraversalType::Vault;
 		FindLandingPoint(TraversalResult);
 	}
-	else if (TraversalDistance <= MinMantleDistance && TraversalHeight > MaxVaultHeight) // Mantle
+	else if (TraversalFrontEdgeDistance <= MinMantleDistance && TraversalHeight > MaxVaultHeight) // Mantle
 	{
 		TraversalResult.bFound = true;
-		TraversalResult.UpperImpactPoint = TraversalTopLocation;
 		TraversalResult.FrontEdgeNormal = ForwardTraversalHit.ImpactNormal;
 		TraversalResult.FrontEdgeLocation = FrontEdgeLocation;
+		TraversalResult.Height = TraversalHeight;
 		TraversalResult.Type = ETraversalType::Mantle;
 	}
 
@@ -682,8 +698,16 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 	// Proceed only if the back edge is found and trace didn't start in penetration
 	if (BackEdgeHit.bBlockingHit && !BackEdgeHit.bStartPenetrating)
 	{
+		const float TopLocationAlongGravity = FVector::DotProduct(OutTraversalResult.FrontEdgeLocation, GetGravityDirection());
+		const float BackPointAlongGravity = FVector::DotProduct(BackEdgeHit.ImpactPoint, GetGravityDirection());
+	
 		// Cache back edge location
-		OutTraversalResult.BackEdgeLocation = FVector(BackEdgeHit.ImpactPoint.X, BackEdgeHit.ImpactPoint.Y, OutTraversalResult.UpperImpactPoint.Z);
+		OutTraversalResult.BackEdgeLocation = BackEdgeHit.ImpactPoint - GetGravityDirection() * (BackPointAlongGravity - TopLocationAlongGravity);
+		
+#if ENABLE_DRAW_DEBUG
+		if (bDebugEnabled)
+			DrawDebugPoint(GetWorld(), OutTraversalResult.BackEdgeLocation, 20.f, FColor::Purple, false, 1.f);
+#endif
 
 		// Perform downward trace to find the exact landing point
 		TraceStart = OutTraversalResult.BackEdgeLocation - OutTraversalResult.FrontEdgeNormal * TraversalLandingPointDistance;
@@ -763,12 +787,7 @@ void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResul
 		FMotionWarpingTarget StartWarpTarget;
 		StartWarpTarget.Name = StartTraversalWarpTargetName;
 		StartWarpTarget.Rotation = WarpRotation;
-
-		const float OffsetAmount = Character->GetCapsuleComponent()->GetScaledCapsuleRadius() - 20.f;
-		const FVector OutwardOffset = TraversalResult.FrontEdgeLocation; // +TraversalResult.FrontEdgeNormal * OffsetAmount;
-
-		const FVector WarpTargetLocation = FVector(OutwardOffset.X, OutwardOffset.Y, TraversalResult.UpperImpactPoint.Z);
-		StartWarpTarget.Location = WarpTargetLocation;
+		StartWarpTarget.Location = TraversalResult.FrontEdgeLocation;
 
 		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
 	}
@@ -842,10 +861,7 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 {
 	SetMantleWarpingData(TraversalResult);
 
-	const double CharacterZ = GetActorFeetLocation().Z;
-	const double DeltaZ = TraversalResult.FrontEdgeLocation.Z - CharacterZ;
-
-	const float StartTime = FindMontageStartForDeltaZ(MantleMontage, DeltaZ);
+	const float StartTime = FindMontageStartForDeltaZ(MantleMontage, TraversalResult.Height);
 
 	Character->PlayAnimMontage(MantleMontage, StartTime);
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
@@ -870,7 +886,6 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 		//		return;
 		//	}
 		//}
-
 
 		const bool bIsPlayerMoving = GetLastInputVector().Length() > 0.f;
 
@@ -969,7 +984,7 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 
 	const float WallDirection = bIsLeftSide ? -1.f : 1.f;
 	const FVector WallrunCheckVector = (Character->GetActorRightVector() * WallrunStrafeCheckDistance * WallDirection) +
-		Character->GetActorForwardVector() * WallrunForwardCheckDistance;
+	                                   Character->GetActorForwardVector() * WallrunForwardCheckDistance;
 
 	const FVector StartTrace = Character->GetActorLocation();
 	const FVector EndTrace = Character->GetActorLocation() + WallrunCheckVector;

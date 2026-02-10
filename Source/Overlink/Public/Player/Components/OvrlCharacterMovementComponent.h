@@ -35,11 +35,6 @@ struct FTraversalResult
 	// this range, then it's valid, otherwise the character should either mantle or vault and fall.
 	bool bHasLandingPoint = false;
 
-	// The impact point found during the downward trace.
-	// It's the highest point of the traversal
-	// TODO: Useless? Use FrontEdgeLocation instead
-	FVector UpperImpactPoint;
-
 	// The location of the nearest edge in front of us
 	FVector FrontEdgeLocation;
 
@@ -51,6 +46,9 @@ struct FTraversalResult
 
 	// Where the player should land and end its animation
 	FVector LandingPoint;
+	
+	// The height of the traversal, considering the player's feet position as starting point 
+	float Height;
 
 	ETraversalType Type = ETraversalType::None;
 };
