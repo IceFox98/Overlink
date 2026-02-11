@@ -43,7 +43,7 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 
 	// @TODO: Call ProcessViewRotation() of camera manager modifiers, since we skip the Super call
 
-	FVector GravityDirection = CharacterMovementComponent->GetGravityDirection();
+	const FVector GravityDirection = CharacterMovementComponent->GetGravityDirection();
 
 	// Get the current control rotation in world space
 	FRotator ViewRotation = GetControlRotation();

@@ -1041,8 +1041,8 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	if (IsLateralWallrunning())
 	{
 		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
-		const float CurveExponent = .5f; // How fast the velocity should decrease at the end
-		const FVector UpVelocity = FVector::UpVector * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
+		constexpr float CurveExponent = .5f; // How fast the velocity should decrease at the end
+		const FVector UpVelocity = -GetGravityDirection() * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
 		LateralWallrunAlpha = FMath::Clamp(LateralWallrunAlpha - DeltaTime, 0.f, 1.f);
 
 		// Force the player to stick to the wall

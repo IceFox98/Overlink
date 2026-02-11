@@ -118,53 +118,32 @@ void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime
 
 void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 {
-	// Get camera delta movement
-	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(LastPlayerCameraRotation, PlayerCharacter->GetCameraComponent()->GetComponentRotation());
-
+	// Get camera delta movement, relative to the current gravity
+	const FRotator LocalCameraRotation = UOvrlUtils::GetGravityRelativeRotation(PlayerCharacter->GetControlRotation(), CharacterMovementComponent->GetGravityDirection());
+	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(LastPlayerCameraRotation, LocalCameraRotation);
+	
 	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -LookingSwayRotationLimit.Y, LookingSwayRotationLimit.Y);
 	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -LookingSwayRotationLimit.X, LookingSwayRotationLimit.X);
 	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
-
-	//LastLookingSwayRotation = UKismetMathLibrary::QuaternionSpringInterp(FQuat(LastLookingSwayRotation), FQuat(TargetSwayRotation), SpringStateRotation, LookingSwayStiffness, LookingSwayCriticalDampingFactor, DeltaTime, .0006f, .3f).Rotator();
-
+	
 	// Speed = 3.5
 	LastLookingSwayRotation = UKismetMathLibrary::RInterpTo(LastLookingSwayRotation, TargetSwayRotation, DeltaTime, 3.5f);
-
+	
 	// Apply weapon sway looking to Anim BP
 	LookingSwayTranslation = FVector(
 		LastLookingSwayRotation.Yaw * LookingSwayMovementMultiplier.X,
 		LastLookingSwayRotation.Yaw * LookingSwayMovementMultiplier.Z,
 		LastLookingSwayRotation.Pitch * LookingSwayMovementMultiplier.Y
 	);
-
+	
 	LookingSwayRotation = FRotator(
 		LastLookingSwayRotation.Pitch * LookingSwayRotationMultiplier.Y,
 		LastLookingSwayRotation.Yaw * LookingSwayRotationMultiplier.Z,
 		LastLookingSwayRotation.Yaw * LookingSwayRotationMultiplier.X
 	);
-
-
-
-
-	//const FVector CameraDelta = FVector(SwayYaw, SwayPitch, 0.f);
-
-	//LastLookingSwayTranslation = UKismetMathLibrary::VectorSpringInterp(LastLookingSwayTranslation, CameraDelta, SprintStateLookingSway, LookingSwayStiffness, LookingSwayCriticalDampingFactor, DeltaTime, 1.f, 0.3f);
-
-	//// Apply weapon sway looking to Anim BP
-	//LookingSwayTranslation = FVector(
-	//	LastLookingSwayTranslation.X * LookingSwayMovementMultiplier.X,
-	//	LastLookingSwayTranslation.X * LookingSwayMovementMultiplier.Z,
-	//	LastLookingSwayTranslation.Y * LookingSwayMovementMultiplier.Y
-	//);
-
-	//LookingSwayRotation = FRotator(
-	//	LastLookingSwayTranslation.Y * LookingSwayRotationMultiplier.Y,
-	//	LastLookingSwayTranslation.X * LookingSwayRotationMultiplier.Z,
-	//	LastLookingSwayTranslation.X * LookingSwayRotationMultiplier.X
-	//);
-
+	
 	// Save the last sway rotation
-	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+	LastPlayerCameraRotation = LocalCameraRotation;
 }
 
 //void UOvrlEquipmentAnimInstance::UpdateMovementSway(float DeltaTime)
