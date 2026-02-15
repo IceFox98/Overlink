@@ -60,6 +60,12 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 	ThrowForce = 1200.f;
 }
 
+void AOvrlPlayerCharacter::OnJumped_Implementation()
+{
+	Super::OnJumped_Implementation();
+	OnPlayerJumped.Broadcast();
+}
+
 void AOvrlPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();

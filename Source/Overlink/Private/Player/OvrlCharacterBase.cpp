@@ -38,13 +38,6 @@ void AOvrlCharacterBase::BeginPlay()
 	}
 }
 
-// Called every frame
-void AOvrlCharacterBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 {
 	OVRL_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));

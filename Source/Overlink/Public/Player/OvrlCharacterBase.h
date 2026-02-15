@@ -26,10 +26,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-public:
 
 	virtual UOvrlAbilitySystemComponent* GetOvrlAbilitySystemComponent() const { return AbilitySystemComponent; };
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;

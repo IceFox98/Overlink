@@ -136,7 +136,7 @@ public:
 	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
 
 	// Returns the last update velocity, but relative to the player
-	FVector GetRelativeLastUpdateVelocity();
+	FVector GetRelativeLastUpdateVelocity() const;
 
 	bool IsMovingForward(float AngleFromForwardVector = 90.f);
 

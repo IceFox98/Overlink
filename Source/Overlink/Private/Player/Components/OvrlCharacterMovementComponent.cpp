@@ -869,7 +869,7 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 
 bool UOvrlCharacterMovementComponent::ShouldHandleWallrun() const
 {
-	const FVector LastVelocity = GetLastUpdateVelocity();
+	const FVector LastVelocity = GetRelativeLastUpdateVelocity();
 	return IsFalling() && bHasPlayerJumped && !bIsWallrunInCooldown && LastVelocity.Z > WallrunMinCheckVelocityZ;
 }
 
@@ -1278,7 +1278,7 @@ void UOvrlCharacterMovementComponent::ApplyCameraYawLimits(float& ViewYawMin, fl
 	}
 }
 
-FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity()
+FVector UOvrlCharacterMovementComponent::GetRelativeLastUpdateVelocity() const
 {
 	return Character ? Character->GetActorTransform().InverseTransformVector(GetLastUpdateVelocity()) : FVector::ZeroVector;
 }

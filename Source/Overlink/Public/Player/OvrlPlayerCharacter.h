@@ -21,6 +21,8 @@ class UPlayerCameraFXConfig;
 class UPlayerSFXConfig;
 struct FInputActionValue;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerJumped);
+
 /**
  *
  */
@@ -34,6 +36,10 @@ public:
 	// Sets default values for this character's properties
 	AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
+public:
+	
+	virtual void OnJumped_Implementation() override;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -116,12 +122,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UMotionWarpingComponent> MotionWarping;
 
-	// ------ LOCOMOTION ------
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
-	FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
-
 public:
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerJumped OnPlayerJumped;
 
 	// ------ INPUT ------
 
@@ -135,6 +139,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 	float ThrowForce;
+	
+protected:
+	// ------ LOCOMOTION ------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
+	FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
 
 private:
 
