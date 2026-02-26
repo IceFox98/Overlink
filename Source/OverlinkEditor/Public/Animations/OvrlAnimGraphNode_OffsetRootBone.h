@@ -14,7 +14,6 @@ class UOvrlAnimGraphNode_OffsetRootBone : public UAnimGraphNode_Base
 {
 	GENERATED_UCLASS_BODY()
 
-
 	UPROPERTY(EditAnywhere, Category = Settings)
 	FOvrlAnimNode_OffsetRootBone Node;
 

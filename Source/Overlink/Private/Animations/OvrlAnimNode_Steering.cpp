@@ -15,8 +15,8 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(OvrlAnimNode_Steering)
 
 bool bAnimNodeSteeringEnabled = true;
-static FAutoConsoleVariableRef CVarAnimNodeSteeringEnabled(
-	TEXT("a.AnimNode.Steering.Enabled"),
+static FAutoConsoleVariableRef CVarOvrlAnimNodeSteeringEnabled(
+	TEXT("Ovrl.Steering.Enabled"),
 	bAnimNodeSteeringEnabled,
 	TEXT("True will enable steering anim nodes. Equivalent to setting alpha to non-zero.")
 );

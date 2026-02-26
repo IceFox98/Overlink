@@ -28,22 +28,8 @@ public class Overlink : ModuleRules
 			"Niagara",
 			"GameplayMessageRuntime",
 			"AnimationWarpingRuntime",
-			"AnimGraph",
-			"AnimGraphRuntime"
+			"AnimGraphRuntime",
 		});
-		
-		if (Target.bBuildEditor == true)
-		{
-			PrivateDependencyModuleNames.AddRange(
-				new string[]
-				{
-					"BlueprintGraph",
-					"EditorFramework",
-					"Kismet",
-					"UnrealEd",
-				}
-			);
-		}
 
 		OptimizeCode = CodeOptimization.InShippingBuildsOnly;
 	}

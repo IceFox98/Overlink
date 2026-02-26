@@ -14,9 +14,9 @@
 DECLARE_CYCLE_STAT(TEXT("OffsetRootBone Eval"), STAT_OffsetRootBone_Eval, STATGROUP_Anim);
 
 #if ENABLE_ANIM_DEBUG
-TAutoConsoleVariable<int32> CVarAnimNodeOffsetRootBoneDebug(TEXT("a.AnimNode.OffsetRootBone.Debug"), 0, TEXT("Turn on visualization debugging for Offset Root Bone"));
-TAutoConsoleVariable<int32> CVarAnimNodeOffsetRootBoneEnable(TEXT("a.AnimNode.OffsetRootBone.Enable"), 1, TEXT("Toggle Offset Root Bone"));
-TAutoConsoleVariable<int32> CVarAnimNodeOffsetRootBoneModifyBone(TEXT("a.AnimNode.OffsetRootBone.ModifyBone"), 1, TEXT("Toggle whether the transform is applied to the bone"));
+TAutoConsoleVariable<int32> CVarOvrlAnimNodeOffsetRootBoneDebug(TEXT("Ovrl.OffsetRootBone.Debug"), 0, TEXT("Turn on visualization debugging for Offset Root Bone"));
+TAutoConsoleVariable<int32> CVarOvrlAnimNodeOffsetRootBoneEnable(TEXT("Ovrl.OffsetRootBone.Enable"), 1, TEXT("Toggle Offset Root Bone"));
+TAutoConsoleVariable<int32> CVarOvrlAnimNodeOffsetRootBoneModifyBone(TEXT("Ovrl.OffsetRootBone.ModifyBone"), 1, TEXT("Toggle whether the transform is applied to the bone"));
 #endif
 
 IMPLEMENT_ANIMGRAPH_MESSAGE(Ovrl::AnimationWarping::FRootOffsetProvider);
@@ -128,7 +128,7 @@ void FOvrlAnimNode_OffsetRootBone::Evaluate_AnyThread(FPoseContext& Output)
 	Source.Evaluate(Output);
 
 #if ENABLE_ANIM_DEBUG
-	if (CVarAnimNodeOffsetRootBoneEnable.GetValueOnAnyThread() == 0)
+	if (CVarOvrlAnimNodeOffsetRootBoneEnable.GetValueOnAnyThread() == 0)
 	{
 		return;
 	}
@@ -291,7 +291,7 @@ void FOvrlAnimNode_OffsetRootBone::Evaluate_AnyThread(FPoseContext& Output)
 
 	bool bModifyBone = true;
 #if ENABLE_ANIM_DEBUG
-	bModifyBone = CVarAnimNodeOffsetRootBoneModifyBone.GetValueOnAnyThread() == 1;
+	bModifyBone = CVarOvrlAnimNodeOffsetRootBoneModifyBone.GetValueOnAnyThread() == 1;
 #endif
 
 	if (GetTranslationMode() == EOffsetRootBoneMode::Release ||
@@ -451,7 +451,7 @@ void FOvrlAnimNode_OffsetRootBone::Evaluate_AnyThread(FPoseContext& Output)
 #endif
 
 #if ENABLE_ANIM_DEBUG
-	bool bDebugging = CVarAnimNodeOffsetRootBoneDebug.GetValueOnAnyThread() == 1;
+	bool bDebugging = CVarOvrlAnimNodeOffsetRootBoneDebug.GetValueOnAnyThread() == 1;
 	if (bDebugging)
 	{
 		const float InnerCircleRadius = 40.0f;

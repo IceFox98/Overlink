@@ -16,6 +16,11 @@
 				"UMG",
 				"CommonUI"
 			]
+		},
+		{
+			"Name": "OverlinkEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
 		}
 	],
 	"Plugins": [

@@ -13,7 +13,7 @@ struct FNodeDebugData;
 
 // Add procedural delta to the root motion attribute 
 USTRUCT(BlueprintInternalUseOnly)
-struct FOvrlAnimNode_Steering : public FAnimNode_SkeletalControlBase
+struct OVERLINK_API FOvrlAnimNode_Steering : public FAnimNode_SkeletalControlBase
 {
 	GENERATED_BODY()
 

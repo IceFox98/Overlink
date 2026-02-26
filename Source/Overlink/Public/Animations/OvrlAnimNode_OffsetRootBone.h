@@ -30,7 +30,7 @@ private:
 }
 
 USTRUCT(BlueprintInternalUseOnly, Experimental)
-struct FOvrlAnimNode_OffsetRootBone : public FAnimNode_Base
+struct OVERLINK_API FOvrlAnimNode_OffsetRootBone : public FAnimNode_Base
 {
 	GENERATED_BODY();
 
