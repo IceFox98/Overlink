@@ -23,15 +23,7 @@ public:
 	// Sets default values for this component's properties
 	UOvrlInventoryComponent();
 
-	//protected:
-	//	// Called when the game starts
-	//	virtual void BeginPlay() override;
-	//
 public:
-	//	// Called every frame
-	//	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-		//UItem* AddItemFromPickup(UPuzzleGuyPickupDefinition* PickupDef);
 
 	UFUNCTION(BlueprintCallable)
 	void DropItem(UOvrlItemInstance* ItemToDrop);
@@ -39,46 +31,28 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void RemoveItem(UOvrlItemInstance* ItemToRemove);
 
-	//UFUNCTION(BlueprintCallable)
-	//	void RemoveCurrentItem();
-
-	//UFUNCTION(BlueprintCallable)
-	//	void NextItem();
-
-	//UFUNCTION(BlueprintCallable)
-	//	void PrevItem();
-
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
-
-	//UFUNCTION(BlueprintCallable)
-	//	AActor* DropSelectedItem();
 
 	UFUNCTION(BlueprintCallable)
 	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount = 1);
 
 	UFUNCTION(BlueprintCallable)
 	void AddItem(UOvrlItemInstance* Item, int32 StackCount);
+	
+	UFUNCTION(BlueprintCallable)
+	void SetActiveSlotIndex(int32 NewIndex);
 
 private:
 
 	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
 
-	//void EquipItemInSlot();
-	//void UnequipCurrentItem();
-
-	UFUNCTION(BlueprintCallable)
-	void SetActiveSlotIndex(int32 NewIndex);
-
-	//USceneComponent* GetItemHoldingPoint() const;
-	//USceneComponent* GetItemAttachComp() const;
-
-	//UPuzzleGuyAbilitySystemComponent* GetAbilitySystemComponent() const;
+	UFUNCTION()
+	void SetActiveSlotIndex_Internal(int32 NewIndex);
 
 	void EquipItemInSlot();
-	//void EquipItem(AOvrlEquipmentInstance* ItemToEquip);
 	void UnequipItemInSlot();
-	void UnequipItem(AOvrlEquipmentInstance* ItemToUnequip);
+	void UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const;
 
 public:
 
@@ -96,6 +70,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<AOvrlEquipmentInstance> EquippedItem;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 SelectedIndex;
-
+	
+private:
+	
+	FTimerHandle TimerHandle_EquipItem;
 };

@@ -19,17 +19,20 @@ class OVERLINK_API UOvrlEquipmentDefinition : public UObject
 	GENERATED_BODY()
 
 public:
-
 	/**The mesh to display for this items pickup*/
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TSubclassOf<AOvrlEquipmentInstance> InstanceType;
+	TSubclassOf<AOvrlEquipmentInstance> InstanceType;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrant;
+	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrant;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TSubclassOf<UOvrlLinkedAnimInstance> OverlayAnimInstance;
+	TSubclassOf<UOvrlLinkedAnimInstance> OverlayAnimInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment")
-		TObjectPtr<UAnimMontage> EquipMontage;
+	TObjectPtr<UAnimMontage> EquipMontage;
+	
+	// Name of the notify used in the equipment montage, to hide the equipped item at specific time.
+	UPROPERTY(EditAnywhere, Category = "Equipment")
+	FName EquipNotifyName = FName("ChangeItemNotify");
 };

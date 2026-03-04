@@ -27,7 +27,7 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 	ItemInstance->SetItemDef(ItemDef);
 
 	// Instantiate the item fragments
-	for (UOvrlItemFragment* Fragment : GetDefault<UOvrlItemDefinition>(ItemDef)->Fragments)
+	for (const UOvrlItemFragment* Fragment : GetDefault<UOvrlItemDefinition>(ItemDef)->Fragments)
 	{
 		if (Fragment)
 		{
@@ -44,7 +44,7 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 StackCount)
 {
 	Items.Add(Item);
 
-	// Spawn Item if equippable
+	// Spawn item if we find an equippable fragment
 	if (const UOvrlItemFragment_EquippableItem* EquipInfo = Item->FindFragmentByClass<UOvrlItemFragment_EquippableItem>())
 	{
 		TSubclassOf<UOvrlEquipmentDefinition> EquipDefClass = EquipInfo->EquipmentDefinition;
@@ -72,6 +72,25 @@ UOvrlAbilitySystemComponent* UOvrlInventoryComponent::GetAbilitySystemComponent(
 }
 
 void UOvrlInventoryComponent::SetActiveSlotIndex(int32 NewIndex)
+{
+	if (EquippedItems.IsValidIndex(NewIndex))
+	{
+		AOvrlEquipmentInstance* NewEquipInstance = EquippedItems[NewIndex];
+		if (ensure(NewEquipInstance))
+		{
+			const float EquipNotifyTime = NewEquipInstance->GetEquipNotifyTime();
+		
+			// Simulate weapon switch animation, but actually perform the switch only after specific amount of time
+			FTimerDelegate TimerDelegate;
+			TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UOvrlInventoryComponent, SetActiveSlotIndex_Internal), NewIndex);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_EquipItem, TimerDelegate, EquipNotifyTime, false);
+		
+			NewEquipInstance->PlayEquipMontage();
+		}
+	}
+}
+
+void UOvrlInventoryComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
 {
 	UnequipItemInSlot();
 
@@ -104,52 +123,14 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 		OnItemEquipped.Broadcast(EquippedItem);
 	}
 }
-//
-//void UOvrlInventoryComponent::EquipItem(AOvrlEquipmentInstance* ItemToEquip)
-//{
-//	// You can equip a new Item only if there's no current equipped item.
-//	// Be sure to call UnequipCurrentItem first
-//	if (!EquippedItem && EquippedItems.IsValidIndex(SelectedIndex))
-//	{
-//		AOvrlEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
-//		EquipInstance->OnEquipped();
-//
-//		const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipInstance->EquipmentDefinitionClass);
-//
-//		if (UOvrlAbilitySystemComponent* ASC = GetAbilitySystemComponent())
-//		{
-//			// When the item is equipped, we give all its abilities/effects/attributes to player's ASC
-//			for (TObjectPtr<const UOvrlAbilitySet> AbilitySet : EquipmentDef->AbilitySetsToGrant)
-//			{
-//				AbilitySet->GiveToAbilitySystem(ASC, /*inout*/ &EquipInstance->GrantedHandles, EquipInstance);
-//			}
-//		}
-//
-//		EquippedItem = EquipInstance;
-//		OnItemEquipped.Broadcast(EquippedItem);
-//	}
-//}
 
 void UOvrlInventoryComponent::UnequipItemInSlot()
 {
-	//if (EquippedItem)
-	//{
-	//	EquippedItem->OnUnequipped();
-
-	//	if (UOvrlAbilitySystemComponent* ASC = GetAbilitySystemComponent())
-	//	{
-	//		// When unequip the item, remove all given abilities/effects/attributes from player's ASC
-	//		EquippedItem->GrantedHandles.TakeFromAbilitySystem(ASC);
-	//	}
-
-	//	EquippedItem = nullptr;
-	//}
-
 	UnequipItem(EquippedItem);
 	EquippedItem = nullptr;
 }
 
-void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip)
+void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const
 {
 	if (ItemToUnequip)
 	{
@@ -164,11 +145,6 @@ void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip)
 		//ItemToUnequip = nullptr;
 	}
 }
-
-//void UOvrlInventoryComponent::RemoveCurrentItem()
-//{
-//	RemoveItem(SelectedIndex);
-//}
 
 void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove)
 {

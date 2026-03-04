@@ -28,7 +28,6 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void Destroyed() override;
 
 public:
@@ -47,10 +46,13 @@ public:
 	FORCEINLINE void SetDisplayMesh(UStaticMesh* InDisplayMesh) { DisplayMesh = InDisplayMesh; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
+	
+	float GetEquipNotifyTime() const;
+	void PlayEquipMontage() const;
 
 protected:
 
-	void ApplyOverlayAnimInstance();
+	void ApplyOverlayAnimInstance() const;
 
 protected:
 

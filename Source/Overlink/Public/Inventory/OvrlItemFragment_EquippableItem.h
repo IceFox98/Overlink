@@ -18,5 +18,5 @@ class OVERLINK_API UOvrlItemFragment_EquippableItem : public UOvrlItemFragment
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Fragment")
-		TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinition;
+	TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinition;
 };

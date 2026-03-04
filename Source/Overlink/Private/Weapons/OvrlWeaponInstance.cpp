@@ -15,9 +15,6 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 	SetRootComponent(WeaponMesh);
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 
-	PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
-	PickupSphere->SetupAttachment(WeaponMesh);
-
 	LeftHandIKSocketName = TEXT("LeftHandIK");
 }
 
@@ -73,6 +70,8 @@ void AOvrlWeaponInstance::StartReloading()
 void AOvrlWeaponInstance::PerformReload()
 {
 	bIsReloading = false;
+	
+	OnReloaded.Broadcast(this);
 }
 
 FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const

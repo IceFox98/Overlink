@@ -31,20 +31,18 @@ public:
 	UOvrlItemDefinition(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 public:
-
 	// Search for the passed class through all the Fragments of this item
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
 public:
-
 	// The display name for this item in the inventory
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-		FText DisplayName;
+	FText DisplayName;
 
 	//Visual representation of the item
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
-		TObjectPtr<UStaticMesh> DisplayMesh;
+	TObjectPtr<UStaticMesh> DisplayMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Display, Instanced)
-		TArray<TObjectPtr<UOvrlItemFragment>> Fragments;
+	TArray<TObjectPtr<UOvrlItemFragment>> Fragments;
 };

@@ -11,6 +11,7 @@
 
 DECLARE_DELEGATE_OneParam(FOnHitSomething, const FHitResult& HitData);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFired, AOvrlWeaponInstance*, Weapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReloaded, AOvrlWeaponInstance*, Weapon);
 
 class USphereComponent;
 class USoundBase;
@@ -93,9 +94,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
 	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
-	TObjectPtr<USphereComponent> PickupSphere;
-
 public:
 
 	// Used for weapon IK. It's the name of the skeletal mesh IK bone to which this weapon is attached.
@@ -113,6 +111,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnFired OnFired;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnReloaded OnReloaded;
 
 protected:
 

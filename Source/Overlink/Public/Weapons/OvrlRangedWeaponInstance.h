@@ -14,6 +14,8 @@ class UOvrlCameraModifierBase;
 class UAnimMontage;
 class UAnimSequence;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoUpdated, int32, MagazineAmmo, int32, SpareAmmo);
+
 /**
  *
  */
@@ -63,12 +65,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	void ToggleADS(bool bEnable);
 
+	// Get the amount of ammo the magazine can store.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	int32 GetMagazineSize() const;
 
+	// Get the amount of ammo in the current magazine.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	int32 GetMagazineAmmo() const;
 
+	// Get the remaining ammo of the weapon.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	int32 GetSpareAmmo() const;
 
@@ -85,8 +90,8 @@ protected:
 
 	virtual void PlayWeaponAnimation(UAnimSequence* AnimToPlay);
 
-	UMaterialInstanceDynamic* GetMagazineAmmoCountMaterial();
-	void UpdateMagazineAmmoCountDisplay();
+	UMaterialInstanceDynamic* GetMagazineAmmoCountMaterial() const;
+	void UpdateMagazineAmmoCountDisplay() const;
 
 protected:
 
@@ -94,6 +99,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl anged Weapon Instance|Components")
 	TObjectPtr<UStaticMeshComponent> MagazineAmmoCountDisplay;
+	
+public:
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnAmmoUpdated OnAmmoUpdated;
 
 protected:
 

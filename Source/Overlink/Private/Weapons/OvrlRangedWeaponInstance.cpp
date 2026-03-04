@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
 #include "Core/OvrlPlayerCameraManager.h"
@@ -72,7 +71,6 @@ void AOvrlRangedWeaponInstance::OnEquipped()
 	Super::OnEquipped();
 
 	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(0.f);
-
 	OwnerMovementComp = GetOwner()->GetComponentByClass<UOvrlCharacterMovementComponent>();
 
 	UpdateMagazineAmmoCountDisplay();
@@ -123,8 +121,6 @@ void AOvrlRangedWeaponInstance::StartReloading()
 
 void AOvrlRangedWeaponInstance::PerformReload()
 {
-	Super::PerformReload();
-
 	if (UOvrlItemInstance* Item = GetAssociatedItem())
 	{
 		const int32 CurrentMagazineAmmo = Item->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
@@ -136,6 +132,8 @@ void AOvrlRangedWeaponInstance::PerformReload()
 
 		UpdateMagazineAmmoCountDisplay();
 	}
+
+	Super::PerformReload();
 }
 
 void AOvrlRangedWeaponInstance::ToggleADS(bool bEnable)
@@ -222,7 +220,6 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 
 		//OVRL_LOG("%s", *RecoilStep.ToString());
 
-
 		LastControllerRotation = PlayerController->GetControlRotation();
 	}
 	else if (bCanRecoverFromRecoil)
@@ -253,7 +250,6 @@ void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
 	CurrentHeat = FMath::Clamp(CurrentHeat - SpreadRecoverySpeed * DeltaTime, 0.f, 100.f);
 	//OVRL_LOG("%f", CurrentHeat);
 }
-
 
 void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 {
@@ -336,7 +332,7 @@ void AOvrlRangedWeaponInstance::PlayWeaponAnimation(UAnimSequence* AnimToPlay)
 	}
 }
 
-UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMaterial()
+UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMaterial() const
 {
 	if (MagazineAmmoCountDisplay)
 	{
@@ -346,16 +342,14 @@ UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMateria
 	return nullptr;
 }
 
-void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay()
+void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay() const
 {
 	if (UMaterialInstanceDynamic* Material = GetMagazineAmmoCountMaterial())
 	{
-		if (UOvrlItemInstance* Item = GetAssociatedItem())
-		{
-			const int32 CurrentMagazineAmmo = Item->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
-			Material->SetScalarParameterValue(TEXT("Value"), CurrentMagazineAmmo);
-		}
+		Material->SetScalarParameterValue(TEXT("Value"), GetMagazineAmmo());
 	}
+
+	OnAmmoUpdated.Broadcast(GetMagazineAmmo(), GetSpareAmmo());
 }
 
 FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const

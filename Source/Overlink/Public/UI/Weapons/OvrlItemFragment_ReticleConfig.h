@@ -15,7 +15,6 @@ class OVERLINK_API UOvrlItemFragment_ReticleConfig : public UOvrlItemFragment
 	GENERATED_BODY()
 
 public:
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Fragment")
-		TSubclassOf<class UOvrlReticleWidgetBase> ReticleWidgetClass;
+	TSubclassOf<class UOvrlReticleWidgetBase> ReticleWidgetClass;
 };
