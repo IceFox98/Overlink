@@ -6,6 +6,7 @@
 // Internal
 #include "Player/OvrlPlayerCharacter.h"	
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "Player/Components/OvrlCameraComponent.h"
 
 // Engine
 #include "Kismet/KismetMathLibrary.h"
@@ -81,4 +82,16 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	bIsSliding = (LocomotionAction == OvrlLocomotionActionTags::Sliding);
 	bIsWallrunning = CharacterMovementComponent->IsWallrunning();
 	bIsWallClinging = CharacterMovementComponent->IsWallClinging();
+}
+
+FRotator UOvrlPlayerAnimInstance::GetWallrunCameraTiltRotation() const
+{
+	if (PlayerCharacter && CharacterMovementComponent)
+	{
+		FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+		CameraRotation = UOvrlUtils::GetGravityRelativeRotation(CameraRotation, CharacterMovementComponent->GetGravityDirection());
+		return FRotator(CameraRotation.Roll, 0.f, 0.f);
+	}
+	
+	return FRotator::ZeroRotator;
 }

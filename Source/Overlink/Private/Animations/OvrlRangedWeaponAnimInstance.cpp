@@ -9,8 +9,6 @@
 UOvrlRangedWeaponAnimInstance::UOvrlRangedWeaponAnimInstance()
 {
 	LookingSwayAlphaADS = .4f;
-	MovementSwayAlphaADS = .5f;
-	WalkSwayAlphaADS = .1f;
 	JumpSwayAlphaADS = .15f;
 }
 
@@ -25,13 +23,9 @@ void UOvrlRangedWeaponAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaT
 		WeaponRecoilTranslation = EquippedWeapon->GetWeaponKickbackRecoil().GetLocation();
 		WeaponRecoilRotation = EquippedWeapon->GetWeaponKickbackRecoil().GetRotation().Rotator();
 		
-		WeaponCameraRecoil = EquippedWeapon->GetWeaponCameraRecoil();
-		
 		WeaponAimTranslation = EquippedWeapon->GetAimTransform().GetLocation();
 		WeaponAimRotation = EquippedWeapon->GetAimTransform().GetRotation().Rotator();
 		
-		LeftHandIKTransform = EquippedWeapon->GetLeftHandIKTransform();
-
 		UpdateAim(DeltaTime);
 
 		InitialTransformAlpha = 1.f - AimAlpha;
@@ -53,12 +47,9 @@ void UOvrlRangedWeaponAnimInstance::UpdateAim(float DeltaTime)
 	}
 
 	AimAlpha = FMath::InterpEaseIn(0.f, 1.f, LerpAimAlpha, 1.5f);
-	//AimAlpha = LerpAimAlpha;
 
 	// Change aplha to recude the sway movement while player is aiming
 	LookingSwayAlpha = bIsWeaponAiming ? LookingSwayAlphaADS : 1.f;
-	MovementSwayAlpha = bIsWeaponAiming ? MovementSwayAlphaADS : 1.f;
-	WalkSwayAlpha = bIsWeaponAiming ? WalkSwayAlphaADS : 1.f;
 	JumpSwayAlpha = bIsWeaponAiming ? JumpSwayAlphaADS : 1.f;
 }
 
@@ -74,28 +65,4 @@ void UOvrlRangedWeaponAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* Ne
 	{
 		EquippedWeapon = nullptr;
 	}
-}
-
-bool UOvrlRangedWeaponAnimInstance::CheckCrouchLeaning()
-{
-	const bool bBaseCheck = Super::CheckCrouchLeaning();
-
-	if (EquippedWeapon)
-	{
-		return bBaseCheck && !EquippedWeapon->IsADS();
-	}
-
-	return bBaseCheck;
-}
-
-float UOvrlRangedWeaponAnimInstance::CalculateCrouchLeanSpeed()
-{
-	const float BaseSpeed = Super::CalculateCrouchLeanSpeed();
-
-	if (EquippedWeapon && EquippedWeapon->IsADS())
-	{
-		return BaseSpeed * 3.f;
-	}
-
-	return BaseSpeed;
 }

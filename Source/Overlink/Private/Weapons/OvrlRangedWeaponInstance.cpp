@@ -3,9 +3,7 @@
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
 #include "Core/OvrlPlayerCameraManager.h"
-#include "Weapons/OvrlWeaponSightDefinition.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-#include "Player/Components/OvrlCameraComponent.h"
 #include "Player/CameraModifiers/OvrlCameraModifierBase.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Inventory/OvrlItemInstance.h"
@@ -290,7 +288,7 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 	SpreadMultiplier = FMath::FInterpTo(SpreadMultiplier, TargetMultiplier, DeltaTime, 10.f);
 }
 
-float AOvrlRangedWeaponInstance::GetMagnifiedFOV(float InFOV)
+float AOvrlRangedWeaponInstance::GetMagnifiedFOV(float InFOV) const
 {
 	float TargetMagnification = 1.f;
 

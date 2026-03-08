@@ -70,8 +70,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Weapon Instance")
 	virtual bool IsReloading() const { return bIsReloading; }
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-	FTransform GetLeftHandIKTransform() const;
+	virtual FTransform GetLeftHandIKTransform() const override;
 
 	void ToggleWeaponPhysics(bool bEnable);
 

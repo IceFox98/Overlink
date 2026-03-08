@@ -39,47 +39,18 @@ protected:
 	UFUNCTION()
 	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem);
 
-	virtual bool CheckCrouchLeaning();
-	virtual float CalculateCrouchLeanSpeed();
-
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
 	void GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation);
 
 private:
 
 	void UpdateLookingSway(float DeltaTime);
-	//void UpdateMovementSway(float DeltaTime);
 	void UpdateJumpSway(float DeltaTime);
-	//void UpdateWalkSway(float DeltaTime);
-	void UpdateCrouchLeanAlpha(float DeltaTime);
-	//void UpdateRunPositionAlpha(float DeltaTime);
 	void UpdateLeftHandIKAplha(float DeltaTime);
 
 protected:
 
 	// ------- CONFIG VARIABLES -------
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
-	FVector RightHandInitialLocation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance")
-	FRotator RightHandInitialRotation;
-
-	// Translation applied to the weapon when player is crouching
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch")
-	FVector CrouchTranslation;
-
-	// Rotation applied to the weapon when player is crouching
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch")
-	FRotator CrouchRotation;
-
-	//// Translation applied to the weapon when player is crouching
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Run")
-	//FVector RunTranslation;
-
-	// Rotation applied to the weapon when player is crouching
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Run")
-	FRotator RunRotation;
 
 	// The maximum sway looking rotation limit the equipped item can reach on both axis X and Y.
 	// This is to avoid excessive translation with rapid mouse movements.
@@ -100,51 +71,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
 	FVector LookingSwayRotationMultiplier;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
-	float LookingSwayStiffness;
-
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Looking Sway")
-	float LookingSwayCriticalDampingFactor;
-
-	// The speed of the sway movement interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Movement Sway")
-	float MovementSwaySpeed;
-
-	// How much the equipped item should move, when the player moves sideway
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Movement Sway")
-	float MovementSwayMultiplier;
-
-	// How much the equipped item should roll, when the player moves sideway
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Movement Sway")
-	float MovementSwayRollMultiplier;
-
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
-	float WalkSwayFrequency;
-
-	// This curve defines the movement of the equipped item while the player is walking
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
-	TObjectPtr<UCurveVector> WalkSwayTranslationCurve;
-
-	// This curve defines the rotation of the equipped item while the player is walking
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
-	TObjectPtr<UCurveVector> WalkSwayRotationCurve;
-
-	// X -> Left/Right
-	// Y -> Forward/Backward
-	// Z -> Up/Down
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
-	FVector WalkSwayTranslationMultiplier;
-
-	// X -> Roll
-	// Y -> Pitch
-	// Z -> Yaw
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
-	FVector WalkSwayRotationMultiplier;
-
-	// The speed of the walk sway interpolation
-	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Walk Sway")
-	float WalkSwaySpeed;
-
 	// This curve defines the movement of this equipped item while the player is walking
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Jump Sway")
 	TObjectPtr<UCurveVector> JumpSwayCurve;
@@ -152,20 +78,33 @@ protected:
 	// Multiplier applied when player jumps while moving right/left
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Jump Sway")
 	FVector JumpSwayRotationMultiplier;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Instanced)
+	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
 
 	// ------- RUNTIME VALUES -------
+	
+	// Hands
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	FVector RightHandInitialLocation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	FRotator RightHandInitialRotation;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	float InitialTransformAlpha;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	FTransform LeftHandIKTransform;
+	
+	// How much of the Left Hand IK is applied
+	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
+	float LeftHandIKAlpha;
 
-	//// Represents the alpha of the weapon position while running
-	//UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch", Transient)
-	//float RunPositionAlpha;
-
-	// Represents the alpha of the weapon crouch leaning
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Crouch", Transient)
-	float CrouchLeanAlpha;
-
+	// Looking sway
+	
+	// How much of the looking sway is applied
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float LookingSwayAlpha;
 
@@ -177,28 +116,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FRotator LookingSwayRotation;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
-	float MovementSwayAlpha;
-
-	// Sway that follows the player movement (component space).
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
-	FVector MovementSwayTranslation;
-
-	// Sway rotation applied when player moves (component space).
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
-	FRotator MovementSwayRotation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
-	float WalkSwayAlpha;
-
-	// Sway applied when player is moving, it simulates a walking animation (component space).
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
-	FVector WalkSwayTranslation;
-
-	// Sway rotation applied when player is moving, it simulates a walking animation (component space).
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
-	FRotator WalkSwayRotation;
-
+	// Jump sway
+	
+	// How much of the jump sway is applied
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float JumpSwayAlpha;
 
@@ -210,19 +130,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FRotator JumpSwayRotation;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Camera", Transient)
-	FRotator WallrunCameraTiltRotation;
-
-	// Represents the alpha of the weapon crouch leaning
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
-	float LeftHandIKAlpha;
-
-
-
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced)
-	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
+	// Modifiers
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	FVector ModifiersTranslation;
@@ -237,7 +145,7 @@ protected:
 	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
 	UPROPERTY()
-	AOvrlEquipmentInstance* EquippedItem = nullptr;
+	TObjectPtr<AOvrlEquipmentInstance> EquippedItem = nullptr;
 
 private:
 	FRotator SpineRotation;

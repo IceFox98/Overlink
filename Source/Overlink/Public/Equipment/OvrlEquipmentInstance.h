@@ -47,6 +47,9 @@ public:
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Instance")
+	virtual FTransform GetLeftHandIKTransform() const { return FTransform(); };
+	
 	float GetEquipNotifyTime() const;
 	void PlayEquipMontage() const;
 

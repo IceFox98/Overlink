@@ -35,6 +35,9 @@ public:
 public:
 
 	FORCEINLINE FRotator GetSpineRotation() const { return SpineRotation; };
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Player Anim Instance")
+	FRotator GetWallrunCameraTiltRotation() const;
 
 protected:
 
