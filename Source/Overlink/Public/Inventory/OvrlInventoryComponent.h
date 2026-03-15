@@ -12,6 +12,7 @@ class UOvrlItemInstance;
 class AOvrlEquipmentInstance;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -24,27 +25,25 @@ public:
 	UOvrlInventoryComponent();
 
 public:
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta = (AdvancedDisplay = 1))
+	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 StackCount = 1);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
+	void AddItem(UOvrlItemInstance* Item, int32 StackCount);
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void DropItem(UOvrlItemInstance* ItemToDrop);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void RemoveItem(UOvrlItemInstance* ItemToRemove);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
 
-	UFUNCTION(BlueprintCallable)
-	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount = 1);
-
-	UFUNCTION(BlueprintCallable)
-	void AddItem(UOvrlItemInstance* Item, int32 StackCount);
-	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void SetActiveSlotIndex(int32 NewIndex);
 
 private:
-
 	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
 
 	UFUNCTION()
@@ -55,12 +54,10 @@ private:
 	void UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const;
 
 public:
-
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemEquipped OnItemEquipped;
 
 protected:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<TObjectPtr<UOvrlItemInstance>> Items;
 
@@ -72,8 +69,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 SelectedIndex;
-	
+
 private:
-	
 	FTimerHandle TimerHandle_EquipItem;
 };

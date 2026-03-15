@@ -12,28 +12,6 @@
 #include "OvrlUtils.h"
 #include "Overlink.h"
 
-// Sets default values
-AOvrlEquipmentInstance::AOvrlEquipmentInstance()
-{
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
-}
-
-// Called when the game starts or when spawned
-void AOvrlEquipmentInstance::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-
-// Called every frame
-void AOvrlEquipmentInstance::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void AOvrlEquipmentInstance::Destroyed()
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))

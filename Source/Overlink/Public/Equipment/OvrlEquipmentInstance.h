@@ -12,26 +12,15 @@ class UOvrlInventoryComponent;
 class UOvrlItemInstance;
 class UCurveVector;
 
-UCLASS()
+UCLASS(meta = (Category = "Ovrl Equipment Instance"))
 class OVERLINK_API AOvrlEquipmentInstance : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	AOvrlEquipmentInstance();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
 public:
-
 	virtual void OnEquipped();
 	virtual void OnUnequipped();
 
@@ -46,19 +35,17 @@ public:
 	FORCEINLINE void SetDisplayMesh(UStaticMesh* InDisplayMesh) { DisplayMesh = InDisplayMesh; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Instance")
 	virtual FTransform GetLeftHandIKTransform() const { return FTransform(); };
-	
+
 	float GetEquipNotifyTime() const;
 	void PlayEquipMontage() const;
 
 protected:
-
 	void ApplyOverlayAnimInstance() const;
 
 protected:
-
 	// The equipment class that got equipped
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Instance")
 	TSubclassOf<UOvrlEquipmentDefinition> EquipmentDefinitionClass;
@@ -67,7 +54,6 @@ protected:
 	TObjectPtr<UOvrlItemInstance> AssociatedItem;
 
 private:
-
 	friend class UOvrlInventoryComponent;
 
 	// List of granted handles

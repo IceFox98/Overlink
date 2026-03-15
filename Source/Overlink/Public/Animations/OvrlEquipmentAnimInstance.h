@@ -14,6 +14,7 @@ class AOvrlRangedWeaponInstance;
 class AOvrlEquipmentInstance;
 class UCurveVector;
 class UOvrlStanceStatesAnimManager;
+class UOvrlAnimManagerData;
 
 /**
  *
@@ -79,8 +80,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Jump Sway")
 	FVector JumpSwayRotationMultiplier;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Instanced)
-	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
+	UPROPERTY(EditAnywhere, Category = "Ovrl Linked Anim Instance")
+	TArray<TSoftObjectPtr<UOvrlAnimManagerData>> ManagersData;
 
 	// ------- RUNTIME VALUES -------
 	
@@ -130,15 +131,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	FRotator JumpSwayRotation;
 
-	// Modifiers
-
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
-	FVector ModifiersTranslation;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
-	FRotator ModifiersRotation;
-
-
 protected:
 
 	UPROPERTY()
@@ -146,6 +138,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<AOvrlEquipmentInstance> EquippedItem = nullptr;
+	
+	UPROPERTY()
+	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
 
 private:
 	FRotator SpineRotation;

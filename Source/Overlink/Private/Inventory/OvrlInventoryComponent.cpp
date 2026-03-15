@@ -14,20 +14,28 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "AbilitySystemGlobals.h"
+#include "Overlink.h"
+#include "OvrlUtils.h"
 
 UOvrlInventoryComponent::UOvrlInventoryComponent()
 {
 }
 
-UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDef, int32 StackCount/* = 1*/)
+UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 StackCount/* = 1*/)
 {
+	if (ItemDefinition)
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "ItemDefinition is NULL!");
+		return nullptr;
+	}
+	
 	UOvrlItemInstance* ItemInstance = nullptr;
 
 	ItemInstance = NewObject<UOvrlItemInstance>(GetOwner());
-	ItemInstance->SetItemDef(ItemDef);
+	ItemInstance->SetItemDef(ItemDefinition);
 
 	// Instantiate the item fragments
-	for (const UOvrlItemFragment* Fragment : GetDefault<UOvrlItemDefinition>(ItemDef)->Fragments)
+	for (const UOvrlItemFragment* Fragment : GetDefault<UOvrlItemDefinition>(ItemDefinition)->Fragments)
 	{
 		if (Fragment)
 		{
@@ -42,6 +50,12 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 
 void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 StackCount)
 {
+	if (Item)
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Item is NULL!");
+		return;
+	}
+	
 	Items.Add(Item);
 
 	// Spawn item if we find an equippable fragment

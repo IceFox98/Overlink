@@ -7,6 +7,7 @@
 #include "OvrlStanceStatesAnimManager.generated.h"
 
 class UOvrlAnimModifierBase;
+class UOvrlAnimManagerData;
 class AOvrlPlayerCharacter;
 
 /**
@@ -19,12 +20,9 @@ class OVERLINK_API UOvrlStanceStatesAnimManager : public UObject
 
 public:
 
-	void Initialize(AOvrlPlayerCharacter* PlayerCharacter);
-
-	//void Update(float DeltaTime, FVector& OutStartTranslation, FRotator& OutStartRotation, FVector& OutTranslation, FRotator& OutRotation);
+	void Initialize(AOvrlPlayerCharacter* PlayerCharacter, const UOvrlAnimManagerData* ManagerData);
 
 	FORCEINLINE bool IsActive() { return bShouldUpdateStartPosition; };
-
 	FORCEINLINE TArray<UOvrlAnimModifierBase*> GetModifiers() const { return Modifiers; };
 
 	void GetStartingPosition(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
@@ -39,24 +37,15 @@ protected:
 
 protected:
 
-	UPROPERTY(EditAnywhere)
 	FGameplayTag StanceToCheck = OvrlStanceTags::Standing;
-
-	UPROPERTY(EditAnywhere)
 	FVector StartTranslation;
-
-	UPROPERTY(EditAnywhere)
 	FRotator StartRotation;
-
-	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<UOvrlAnimModifierBase>> ModifierClasses;
-
-private:
-
+	
 	UPROPERTY()
 	TArray<TObjectPtr<UOvrlAnimModifierBase>> Modifiers;
 
-	bool bShouldUpdateStartPosition = false;
+private:
 
+	bool bShouldUpdateStartPosition = false;
 	float Alpha = 1.f;
 };

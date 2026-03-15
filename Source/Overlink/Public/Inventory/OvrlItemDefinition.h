@@ -16,6 +16,8 @@ class OVERLINK_API UOvrlItemFragment : public UObject
 	GENERATED_BODY()
 
 public:
+	
+	// Called when an item is added to inventory by its definition
 	virtual void OnInstanceCreated(UOvrlItemInstance* Instance) const {}
 };
 
@@ -39,10 +41,28 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
 	FText DisplayName;
 
-	//Visual representation of the item
+	// Visual representation of the item
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<UStaticMesh> DisplayMesh;
+	
+	//Visual representation of the item
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<UTexture2D> DisplayTexture;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Display, Instanced)
 	TArray<TObjectPtr<UOvrlItemFragment>> Fragments;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+

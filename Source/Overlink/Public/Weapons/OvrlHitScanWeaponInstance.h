@@ -10,7 +10,7 @@
 /**
  *
  */
-UCLASS()
+UCLASS(meta = (Category = "Ovrl Hit-Scan Weapon Instance"))
 class OVERLINK_API AOvrlHitScanWeaponInstance : public AOvrlRangedWeaponInstance
 {
 	GENERATED_BODY()
@@ -30,5 +30,5 @@ protected:
 protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Hit-Scan Weapon Instance", meta = (AllowPrivateAccess = true))
-	UNiagaraSystem* BulletTrailVFX;
+	TObjectPtr<UNiagaraSystem> BulletTrailVFX;
 };

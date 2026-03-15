@@ -6,8 +6,9 @@
 #include "Player/OvrlPlayerAnimInstance.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Animations/Procedural/OvrlAnimModifiers.h"
+#include "Animations/Procedural/OvrlAnimManagerData.h"
 
-void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharacter)
+void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharacter, const UOvrlAnimManagerData* ManagerData)
 {
 	// Bind Stance and Gait delegates
 	UOvrlCharacterMovementComponent* CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());
@@ -15,8 +16,12 @@ void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharac
 	CharacterMovementComponent->OnGaitChanged.AddUniqueDynamic(this, &UOvrlStanceStatesAnimManager::OnGaitChanged);
 	CharacterMovementComponent->OnLocomotionActionChanged.AddUniqueDynamic(this, &UOvrlStanceStatesAnimManager::OnGaitChanged);
 
+	StanceToCheck = ManagerData->StanceToCheck;
+	StartTranslation = ManagerData->StartTranslation;
+	StartRotation = ManagerData->StartRotation;
+	
 	// Initialize modifiers
-	for (TSubclassOf<UOvrlAnimModifierBase> ModifierClass : ModifierClasses)
+	for (const TSubclassOf<UOvrlAnimModifierBase>& ModifierClass : ManagerData->ModifierClasses)
 	{
 		// Outer is Equipment Anim Instance
 		UOvrlAnimModifierBase* Modifier = NewObject<UOvrlAnimModifierBase>(GetOuter(), ModifierClass);

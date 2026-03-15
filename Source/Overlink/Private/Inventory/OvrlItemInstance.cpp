@@ -79,7 +79,7 @@ void UOvrlItemInstance::SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InIte
 
 const UOvrlItemFragment* UOvrlItemInstance::FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const
 {
-	if ((ItemDef != nullptr) && (FragmentClass != nullptr))
+	if (ItemDef && FragmentClass)
 	{
 		return GetDefault<UOvrlItemDefinition>(ItemDef)->FindFragmentByClass(FragmentClass);
 	}

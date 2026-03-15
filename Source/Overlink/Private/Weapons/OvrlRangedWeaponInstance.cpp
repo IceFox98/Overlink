@@ -121,8 +121,8 @@ void AOvrlRangedWeaponInstance::PerformReload()
 {
 	if (UOvrlItemInstance* Item = GetAssociatedItem())
 	{
-		const int32 CurrentMagazineAmmo = Item->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
-		const int32 MagazineSize = Item->GetTagStackCount(OvrlWeaponTags::MagazineSize);
+		const int32 CurrentMagazineAmmo = GetMagazineAmmo();
+		const int32 MagazineSize = GetMagazineSize();
 		const int32 ShotsFired = MagazineSize - CurrentMagazineAmmo;
 
 		Item->RemoveStack(OvrlWeaponTags::SpareAmmo, ShotsFired); // Decrease total ammo

@@ -20,23 +20,24 @@ struct FGameplayTagStack
 	GENERATED_BODY()
 
 public:
-
-	FGameplayTagStack() {}
+	FGameplayTagStack()
+	{
+	}
 
 	FGameplayTagStack(FGameplayTag InTag, int32 InStackCount)
 		: Tag(InTag)
-		, StackCount(InStackCount)
-	{}
+		  , StackCount(InStackCount)
+	{
+	}
 
 private:
-
 	friend class UOvrlItemInstance;
 
 	UPROPERTY(VisibleInstanceOnly)
-		FGameplayTag Tag;
+	FGameplayTag Tag;
 
 	UPROPERTY(VisibleInstanceOnly)
-		int32 StackCount = 0;
+	int32 StackCount = 0;
 };
 
 /**
@@ -54,14 +55,15 @@ public:
 	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
 	void RemoveStack(FGameplayTag Tag, int32 StackCount);
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	int32 GetTagStackCount(FGameplayTag Tag) const;
 
 	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDef);
 
 	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDef() const { return ItemDef; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure = false, meta = (DeterminesOutputType = FragmentClass))
-		const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
+	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
 	template <typename ResultClass>
 	const ResultClass* FindFragmentByClass() const
@@ -70,15 +72,14 @@ public:
 	}
 
 private:
-
 	TSubclassOf<UOvrlItemDefinition> ItemDef;
 
 	// List of gameplay tag stacks
-	UPROPERTY(VisibleInstanceOnly)
-		TArray<FGameplayTagStack> Stacks;
+	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Item Instance")
+	TArray<FGameplayTagStack> Stacks;
 
 	// Accelerated list of tag stacks for queries
 	UPROPERTY()
-		TMap<FGameplayTag, int32> TagToCountMap;
+	TMap<FGameplayTag, int32> TagToCountMap;
 
 };

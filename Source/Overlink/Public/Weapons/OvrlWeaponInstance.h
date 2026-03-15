@@ -34,7 +34,7 @@ struct FBulletImpactEffects
 /**
  *
  */
-UCLASS()
+UCLASS(meta = (Category = "Ovrl Weapon Instance"))
 class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 {
 	GENERATED_BODY()

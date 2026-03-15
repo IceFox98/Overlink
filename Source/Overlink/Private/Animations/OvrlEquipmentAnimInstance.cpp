@@ -16,6 +16,7 @@
 #include "Animations/Procedural/OvrlAnimModifiers.h"
 
 // Engine
+#include "Animations/Procedural/OvrlAnimManagerData.h"
 #include "Curves/CurveVector.h"
 
 UOvrlEquipmentAnimInstance::UOvrlEquipmentAnimInstance()
@@ -43,15 +44,17 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 	check(PlayerCharacter);
 	PlayerCharacter->GetInventoryComponent()->OnItemEquipped.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnNewItemEquipped);
 
-	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
-
 	ensure(JumpSwayCurve);
+	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+	Managers.Empty();
 
-	for (UOvrlStanceStatesAnimManager* Manager : Managers)
+	for (const TSoftObjectPtr<UOvrlAnimManagerData>& ManagerDataPtr : ManagersData)
 	{
-		if (Manager)
+		if (const UOvrlAnimManagerData* ManagerData = ManagerDataPtr.LoadSynchronous())
 		{
-			Manager->Initialize(PlayerCharacter);
+			UOvrlStanceStatesAnimManager* Manager = NewObject<UOvrlStanceStatesAnimManager>(this);
+			Manager->Initialize(PlayerCharacter, ManagerData);
+			Managers.Add(Manager);
 		}
 	}
 }
@@ -66,8 +69,6 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	}
 
 	// Reset every frame
-	ModifiersTranslation = FVector::ZeroVector;
-	ModifiersRotation = FRotator::ZeroRotator;
 	RightHandInitialLocation = FVector::ZeroVector;
 	RightHandInitialRotation = FRotator::ZeroRotator;
 
@@ -78,9 +79,6 @@ void UOvrlEquipmentAnimInstance::NativeUpdateAnimation(float DeltaTime)
 			Manager->GetStartingPosition(DeltaTime, RightHandInitialLocation, RightHandInitialRotation);
 		}
 	}
-
-	// Since we're in Component space, I have to rotate the vector in order to follow the player aim.
-	ModifiersTranslation = SpineRotation.RotateVector(ModifiersTranslation);
 }
 
 void UOvrlEquipmentAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)

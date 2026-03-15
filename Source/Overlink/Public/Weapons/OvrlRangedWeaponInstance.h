@@ -29,7 +29,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoUpdated, int32, MagazineAmmo
 /**
  *
  */
-UCLASS()
+UCLASS(meta = (Category = "Ovrl Ranged Weapon Instance"))
 class OVERLINK_API AOvrlRangedWeaponInstance : public AOvrlWeaponInstance
 {
 	GENERATED_BODY()
@@ -106,7 +106,7 @@ protected:
 
 	// Components
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl anged Weapon Instance|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Components")
 	TObjectPtr<UStaticMeshComponent> MagazineAmmoCountDisplay;
 	
 public:
@@ -150,7 +150,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f, Units="s"))
 	float AimTime;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Weapon Sight Definition")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Instance")
 	ESightMagnification SightMagnification;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.

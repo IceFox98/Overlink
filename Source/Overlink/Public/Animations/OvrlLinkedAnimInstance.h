@@ -8,6 +8,7 @@
 
 class UOvrlPlayerAnimInstance;
 class AOvrlPlayerCharacter;
+class UOvrlStanceStatesAnimManager;
 
 /**
  *
@@ -31,7 +32,7 @@ public:
 	// because it is guaranteed that this function will be called before parallel animation evaluation. Reading
 	// variables that change in other functions can be dangerous because they can be changed in the game thread
 	// at the same time as being read in the worker thread, which can lead to undefined behavior or even a crash.
-	UFUNCTION(BlueprintPure, Category = "ALS|Linked Animation Instance", Meta = (BlueprintThreadSafe, ReturnDisplayName = "Parent"))
+	UFUNCTION(BlueprintPure, Category = "Ovrl Linked Anim Instance", Meta = (BlueprintThreadSafe, ReturnDisplayName = "Parent"))
 	UOvrlPlayerAnimInstance* GetParent() const;
 
 protected:
@@ -40,5 +41,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
 	TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
-
 };
