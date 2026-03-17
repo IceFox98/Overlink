@@ -32,18 +32,15 @@ class OVERLINK_API UOvrlGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 
 public:
-
 	UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 public:
-
 	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 
 	virtual void OnAbilityInputPressed() {};
-	virtual void OnAbilityInputReleased() {};
+	virtual void OnAbilityInputReleased(){};
 
 protected:
-
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
@@ -52,13 +49,12 @@ protected:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
 protected:
-
 	// Defines how this ability is meant to activate.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Ability Activation")
-		EOvrlAbilityActivationPolicy ActivationPolicy;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Gameplay Ability|Ability Activation")
+	EOvrlAbilityActivationPolicy ActivationPolicy;
 
 	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Ovrl|Costs")
-		TArray<TObjectPtr<UOvrlAbilityCost>> AdditionalCosts;
-	
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Ovrl Gameplay Ability|Costs")
+	TArray<TObjectPtr<UOvrlAbilityCost>> AdditionalCosts;
+
 };

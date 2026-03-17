@@ -50,9 +50,11 @@ class OVERLINK_API UOvrlItemInstance : public UObject
 
 public:
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	void AddStack(FGameplayTag Tag, int32 StackCount);
 
 	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	void RemoveStack(FGameplayTag Tag, int32 StackCount);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")

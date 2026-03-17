@@ -18,6 +18,9 @@ class OVERLINK_API AOvrlEquipmentInstance : public AActor
 	GENERATED_BODY()
 
 public:
+	AOvrlEquipmentInstance();
+
+public:
 	virtual void Destroyed() override;
 
 public:

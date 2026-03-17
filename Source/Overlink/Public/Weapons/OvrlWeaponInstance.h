@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Equipment/OvrlEquipmentInstance.h"
 #include "NiagaraComponent.h"
+#include "Weapons/AmmoTypes/OvrlItemAmmoBase.h"
 #include "NiagaraFunctionLibrary.h"
 
 #include "OvrlWeaponInstance.generated.h"
@@ -65,7 +66,7 @@ public:
 	virtual void StartReloading();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-	virtual void PerformReload();
+	virtual void EndReloading();
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Weapon Instance")
 	virtual bool IsReloading() const { return bIsReloading; }
@@ -97,13 +98,13 @@ public:
 
 	// Used for weapon IK. It's the name of the skeletal mesh IK bone to which this weapon is attached.
 	// NOTE: Don't use the socket name used to attach the actor, since it has different transform than hand.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 	FName OwnerAttachBoneName = "hand_r";
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 	FName LeftHandIKSocketName;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 	TSubclassOf<UGameplayEffect> GE_Damage;
 
 	FOnHitSomething OnHitSomething;

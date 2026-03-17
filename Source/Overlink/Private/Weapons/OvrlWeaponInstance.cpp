@@ -67,7 +67,7 @@ void AOvrlWeaponInstance::StartReloading()
 	bIsReloading = true;
 }
 
-void AOvrlWeaponInstance::PerformReload()
+void AOvrlWeaponInstance::EndReloading()
 {
 	bIsReloading = false;
 	

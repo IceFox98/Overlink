@@ -54,7 +54,7 @@ public:
 	virtual void StopFire() override;
 
 	virtual void StartReloading() override;
-	virtual void PerformReload() override;
+	virtual void EndReloading() override;
 
 	FORCEINLINE float GetTimeBetweenShots() const { return 60.f / FireRate; };
 	FORCEINLINE float GetMaxDamageRange() const { return MaxDamageRange; };
@@ -125,6 +125,9 @@ protected:
 	// Number of bullets to fire in a single cartridge (typically 1, but may be more for shotguns)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	int32 BulletsPerCartridge;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	TSubclassOf<UOvrlItemAmmoBase> AmmoType;
 
 	// The maximum distance at which this weapon can deal damage
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ForceUnits = cm))

@@ -2,6 +2,7 @@
 
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
+#include "Overlink.h"
 #include "Core/OvrlPlayerCameraManager.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Player/CameraModifiers/OvrlCameraModifierBase.h"
@@ -14,10 +15,13 @@
 #include "Curves/CurveFloat.h"
 #include "Animation/AnimMontage.h"
 
+#include "Overlink.h"
 #include "OvrlUtils.h"
 
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
+	
+	
 	MagazineAmmoCountDisplay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineAmmoCountDisplay"));
 	MagazineAmmoCountDisplay->SetupAttachment(WeaponMesh);
 	MagazineAmmoCountDisplay->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -112,53 +116,40 @@ void AOvrlRangedWeaponInstance::StartReloading()
 	}
 	else
 	{
-		ensureMsgf(false, TEXT("ReloadAnimMontage is NULL! The reload animation will be skipped and weapon will instantly reload."));
-		PerformReload();
+		OVRL_LOG_WARN(LogOverlink, true, "ReloadAnimMontage is NULL! The reload animation will be skipped and weapon will instantly reload.");
+		EndReloading();
 	}
 }
 
-void AOvrlRangedWeaponInstance::PerformReload()
+void AOvrlRangedWeaponInstance::EndReloading()
 {
-	if (UOvrlItemInstance* Item = GetAssociatedItem())
+	if (!IsReloading())
 	{
-		const int32 CurrentMagazineAmmo = GetMagazineAmmo();
-		const int32 MagazineSize = GetMagazineSize();
-		const int32 ShotsFired = MagazineSize - CurrentMagazineAmmo;
-
-		Item->RemoveStack(OvrlWeaponTags::SpareAmmo, ShotsFired); // Decrease total ammo
-		Item->AddStack(OvrlWeaponTags::MagazineAmmo, ShotsFired); // Reset magazine ammo
-
-		UpdateMagazineAmmoCountDisplay();
+		return;
 	}
-
-	Super::PerformReload();
+	
+	UpdateMagazineAmmoCountDisplay();
+	
+	Super::EndReloading();
 }
 
 void AOvrlRangedWeaponInstance::ToggleADS(bool bEnable)
 {
 	bIsADS = bEnable;
 
-	//if (!ensure(SightDefinition))
-	//{
-	//	return;
-	//}
-
 	if (AOvrlPlayerCameraManager* CameraManager = AOvrlPlayerCameraManager::Get(this))
 	{
 		if (bIsADS)
 		{
-			//if (ensure(SightDefinition->CameraFOV))
+			CameraFOV = CameraManager->GetOrAddCameraModifier<UOvrlCameraModifierBase>(UOvrlCameraModifierBase::StaticClass());
+			if (CameraFOV)
 			{
-				CameraFOV = CameraManager->GetOrAddCameraModifier<UOvrlCameraModifierBase>(UOvrlCameraModifierBase::StaticClass());
-				if (CameraFOV)
-				{
-					// Enable every time since we're re-using the same modifier
-					CameraFOV->EnableModifier();
+				// Enable every time since we're re-using the same modifier
+				CameraFOV->EnableModifier();
 
-					const float MagnifiedFOV = GetMagnifiedFOV(CameraManager->DefaultFOV); // E.g.: Default is 90, Magnified is 80 (zoom in)
-					CameraFOV->SetCustomFOVOffset(MagnifiedFOV - CameraManager->DefaultFOV); // Offset will be -10, since camera modifier works with offset
-					CameraFOV->SetAlphaTime(AimTime);
-				}
+				const float MagnifiedFOV = GetMagnifiedFOV(CameraManager->DefaultFOV); // E.g.: Default is 90, Magnified is 80 (zoom in)
+				CameraFOV->SetCustomFOVOffset(MagnifiedFOV - CameraManager->DefaultFOV); // Offset will be -10, since camera modifier works with offset
+				CameraFOV->SetAlphaTime(AimTime);
 			}
 		}
 		else if (CameraFOV)

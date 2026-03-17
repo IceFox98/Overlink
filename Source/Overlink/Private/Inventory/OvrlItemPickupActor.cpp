@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Inventory/OvrlItemPickupActor.h"
 #include "Inventory/OvrlInventoryComponent.h"
 #include "Inventory/OvrlPickupDefinition.h"
@@ -58,21 +57,55 @@ void AOvrlItemPickupActor::ShowItemMesh()
 
 void AOvrlItemPickupActor::OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (const APawn* Pawn = Cast<APawn>(OtherActor))
+	if (APawn* Pawn = Cast<APawn>(OtherActor))
 	{
 		if (UOvrlInventoryComponent* InventoryComponent = Pawn->GetComponentByClass<UOvrlInventoryComponent>())
 		{
 			// The cached item is valid only when the item was dropped from the player/enemy
-			if (CachedItemInstance)
+			TSubclassOf<UOvrlItemDefinition> ItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDef() : ItemPickupDefinition->ItemDefinition;
+
+			UOvrlItemInstance* ExistingItem = InventoryComponent->FindFirstItemEntryByDefinition(ItemDefinition).Instance;
+
+			bool bSuccess = true;
+
+			if (ExistingItem) // Duplicated item found
 			{
-				InventoryComponent->AddItem(CachedItemInstance, 1);
+				if (bAllowDuplicatedItem)
+				{
+					// Add it anyway
+					AddItemToInventory(InventoryComponent);
+				}
+				else
+				{
+					// Let user manage the duplicated item
+					bSuccess = ManageDuplicatedItem(ItemDefinition, ExistingItem, Pawn);
+				}
 			}
 			else
 			{
-				InventoryComponent->AddItemFromDefinition(ItemPickupDefinition->ItemDefinition, 1);
+				// No duplicates found, execute default behavior
+				AddItemToInventory(InventoryComponent);
 			}
 
-			Destroy();
+			if (bSuccess)
+			{
+				Destroy();
+			}
+		}
+	}
+}
+
+void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent)
+{
+	if (TargetInventoryComponent)
+	{
+		if (HasCachedItem())
+		{
+			TargetInventoryComponent->AddItem(CachedItemInstance);
+		}
+		else
+		{
+			TargetInventoryComponent->AddItemFromDefinition(ItemPickupDefinition->ItemDefinition);
 		}
 	}
 }

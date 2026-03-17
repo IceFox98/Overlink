@@ -15,6 +15,20 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInsta
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
 
+// A single entry in an inventory
+USTRUCT(BlueprintType)
+struct FOvrlItemEntry
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UOvrlItemInstance> Instance;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 Count = 0;
+};
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
 {
@@ -25,23 +39,33 @@ public:
 	UOvrlInventoryComponent();
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta = (AdvancedDisplay = 1))
-	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 StackCount = 1);
+	virtual void BeginPlay() override;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta=(AdvancedDisplay = 2))
+	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
-	void AddItem(UOvrlItemInstance* Item, int32 StackCount);
+	void AddItem(UOvrlItemInstance* Item, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void DropItem(UOvrlItemInstance* ItemToDrop);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
-	void RemoveItem(UOvrlItemInstance* ItemToRemove);
+	void RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void SetActiveSlotIndex(int32 NewIndex);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
+	FOvrlItemEntry FindFirstItemEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
+
+	// Searches an item definition type for a matching stat and returns the value, or 0 if not found
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
+	static int32 GetDefaultStatFromItemDef(const TSubclassOf<UOvrlItemDefinition> WeaponItemClass, FGameplayTag StatTag);
 
 private:
 	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
@@ -58,16 +82,20 @@ public:
 	FOnItemEquipped OnItemEquipped;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TArray<TObjectPtr<UOvrlItemInstance>> Items;
+	// Items that will be automatically added on begin play
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TMap<TSubclassOf<UOvrlItemDefinition>, int32> InitialItems;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	TArray<FOvrlItemEntry> ItemEntries;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<AOvrlEquipmentInstance*> EquippedItems;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TObjectPtr<AOvrlEquipmentInstance> EquippedItem;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	int32 SelectedIndex;
 
 private:
