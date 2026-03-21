@@ -61,7 +61,6 @@ public:
 	int32 GetTagStackCount(FGameplayTag Tag) const;
 
 	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDef);
-
 	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDef() const { return ItemDef; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
@@ -72,6 +71,10 @@ public:
 	{
 		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
 	}
+
+public:
+	UPROPERTY()
+	TObjectPtr<UClass> PickupClass;
 
 private:
 	TSubclassOf<UOvrlItemDefinition> ItemDef;

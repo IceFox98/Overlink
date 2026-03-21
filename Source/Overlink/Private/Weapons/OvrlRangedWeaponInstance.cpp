@@ -20,8 +20,6 @@
 
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
-	
-	
 	MagazineAmmoCountDisplay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineAmmoCountDisplay"));
 	MagazineAmmoCountDisplay->SetupAttachment(WeaponMesh);
 	MagazineAmmoCountDisplay->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -127,9 +125,9 @@ void AOvrlRangedWeaponInstance::EndReloading()
 	{
 		return;
 	}
-	
+
 	UpdateMagazineAmmoCountDisplay();
-	
+
 	Super::EndReloading();
 }
 
@@ -338,7 +336,7 @@ void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay() const
 		Material->SetScalarParameterValue(TEXT("Value"), GetMagazineAmmo());
 	}
 
-	OnAmmoUpdated.Broadcast(GetMagazineAmmo(), GetSpareAmmo());
+	OnAmmoUpdated.Broadcast();
 }
 
 FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
@@ -381,16 +379,6 @@ int32 AOvrlRangedWeaponInstance::GetMagazineAmmo() const
 	if (AssociatedItem)
 	{
 		return AssociatedItem->GetTagStackCount(OvrlWeaponTags::MagazineAmmo);
-	}
-
-	return 0.0f;
-}
-
-int32 AOvrlRangedWeaponInstance::GetSpareAmmo() const
-{
-	if (AssociatedItem)
-	{
-		return AssociatedItem->GetTagStackCount(OvrlWeaponTags::SpareAmmo);
 	}
 
 	return 0.0f;

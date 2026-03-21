@@ -55,8 +55,10 @@
 // Warning log
 #define OVRL_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OVRL_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, ##__VA_ARGS__)
 
+class APawn;
 enum class ECameraFeedbackEvent : uint8;
 struct FAnimNodeReference;
+struct FOvrlItemEntry;
 
 /**
  *
@@ -67,7 +69,7 @@ class OVERLINK_API UOvrlUtils : public UBlueprintFunctionLibrary
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Utils")
 	static bool IsRunningEditor()
 	{
 #if WITH_EDITOR
@@ -90,23 +92,19 @@ public:
 
 	static FTransform ExtractRootTransformFromMontage(const UAnimMontage* Montage, float Time);
 
-	/** Get the current world space transform from the offset root bone animgraph node */
+	// Get the current world space transform from the offset root bone animgraph node
 	UFUNCTION(BlueprintPure, Category = "Ovrl Utils", meta = (BlueprintThreadSafe), DisplayName = "Get Ovrl Offset Root Transform")
 	static FTransform GetOffsetRootTransform(const FAnimNodeReference& Node);
 
 	static bool ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName);
 
 	static void TriggerCameraEvent(UObject* WorldObjectContext, ECameraFeedbackEvent CameraEvent);
+	
+	// Looks for an Inventory Component and retrieve the first item matching the passed definition.
+	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
+	static UPARAM(DisplayName="Item") FOvrlItemEntry GetFirstItemEntry(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);
 
-	static void CriticalSpringDamperQuat(FQuat& InOutRotation, FVector& InOutAngularVelocityRadians, const FQuat& TargetRotation, float SmoothingTime, float DeltaTime);
-	
-	static constexpr float SmoothingTimeToDamping(float SmoothingTime)
-	{
-		return 4.0f / FMath::Max(SmoothingTime, UE_KINDA_SMALL_NUMBER);
-	}
-	
-	static constexpr float HalfLifeToSmoothingTime(float HalfLife)
-	{
-		return HalfLife / UE_LN2;
-	}
+	// Looks for an Inventory Component and retrieve the first equipment instance matching the passed definition.
+	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
+	static UPARAM(DisplayName="Equipment Instance") AOvrlEquipmentInstance* GetFirstEquipmentInstance(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);
 };

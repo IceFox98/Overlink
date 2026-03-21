@@ -6,6 +6,7 @@
 #include "Animation/AnimNodeReference.h"
 #include "GameFramework/HUD.h"
 #include "Core/OvrlPlayerCameraManager.h"
+#include "Inventory/OvrlInventoryComponent.h"
 
 FRotator UOvrlUtils::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
 {
@@ -99,17 +100,28 @@ void UOvrlUtils::TriggerCameraEvent(UObject* WorldObjectContext, ECameraFeedback
 	}
 }
 
-void UOvrlUtils::CriticalSpringDamperQuat(FQuat& InOutRotation, FVector& InOutAngularVelocityRadians, const FQuat& TargetRotation, float SmoothingTime, float DeltaTime)
+FOvrlItemEntry UOvrlUtils::GetFirstItemEntry(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition)
 {
-	float Y = SmoothingTimeToDamping(SmoothingTime) / 2.0f;
+	if (InventoryOwner)
+	{
+		if (UOvrlInventoryComponent* Inventory = Cast<UOvrlInventoryComponent>(InventoryOwner->GetComponentByClass(UOvrlInventoryComponent::StaticClass())))
+		{
+			return Inventory->FindFirstItemEntryByDefinition(ItemDefinition);
+		}
+	}
+	
+	return FOvrlItemEntry();
+}
 
-	FQuat Diff = InOutRotation * TargetRotation.Inverse();
-	Diff.EnforceShortestArcWith(FQuat::Identity);
-	FVector J0 = Diff.ToRotationVector();
-	FVector J1 = InOutAngularVelocityRadians + J0 * Y;
-
-	float EyDt = FMath::InvExpApprox(Y * DeltaTime);
-
-	InOutRotation = FQuat::MakeFromRotationVector(EyDt * (J0 + J1 * DeltaTime)) * TargetRotation;
-	InOutAngularVelocityRadians = EyDt * (InOutAngularVelocityRadians - J1 * Y * DeltaTime);
+AOvrlEquipmentInstance* UOvrlUtils::GetFirstEquipmentInstance(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition)
+{
+	if (InventoryOwner)
+	{
+		if (UOvrlInventoryComponent* Inventory = Cast<UOvrlInventoryComponent>(InventoryOwner->GetComponentByClass(UOvrlInventoryComponent::StaticClass())))
+		{
+			return Inventory->FindFirstEquipmentInstanceByDefinition(ItemDefinition);
+		}
+	}
+	
+	return nullptr;
 }

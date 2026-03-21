@@ -1,7 +1,6 @@
 #include "Inventory/OvrlInventoryComponent.h"
 
 #include "Inventory/OvrlItemInstance.h"
-#include "Inventory/OvrlItemDefinition.h"
 #include "Inventory/OvrlPickupDefinition.h"
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
 #include "Inventory/OvrlItemFragment_SetStats.h"
@@ -24,14 +23,14 @@ UOvrlInventoryComponent::UOvrlInventoryComponent()
 void UOvrlInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	for (const auto& InitialItem : InitialItems)
+
+	for (const FOvrlInitialItemData& InitialItem : InitialItems)
 	{
-		AddItemFromDefinition(InitialItem.Key, InitialItem.Value);
+		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.PickupClass, InitialItem.Count);
 	}
 }
 
-UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Count/* = 1*/)
+UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, TSubclassOf<AOvrlItemPickupActor> PickupClass, int32 Count/* = 1*/)
 {
 	if (!ItemDefinition)
 	{
@@ -43,6 +42,7 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 
 	ItemInstance = NewObject<UOvrlItemInstance>(GetOwner());
 	ItemInstance->SetItemDef(ItemDefinition);
+	ItemInstance->PickupClass = PickupClass; // Set pickup class so we know what class to use when drop the item
 
 	// Instantiate the item fragments
 	for (const UOvrlItemFragment* Fragment : GetDefault<UOvrlItemDefinition>(ItemDefinition)->Fragments)
@@ -79,18 +79,23 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Count/* = 1
 		{
 			const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipDefClass);
 
-			AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->EquipmentClass);
-			EquipmentInstance->EquipmentDefinitionClass = EquipDefClass;
-			EquipmentInstance->AssociatedItem = Item;
-			EquipmentInstance->SetOwner(GetOwner());
-			EquipmentInstance->SetInstigator(Cast<APawn>(GetOwner()));
-			EquipmentInstance->SetDisplayMesh(GetDefault<UOvrlItemDefinition>(Item->GetItemDef())->DisplayMesh);
+			if (EquipmentDef->EquipmentClass)
+			{
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Owner = GetOwner();
+				SpawnParams.Instigator = Cast<APawn>(GetOwner());
 
-			EquippedItems.Emplace(EquipmentInstance);
+				AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->EquipmentClass, SpawnParams);
+				EquipmentInstance->Initialize(EquipDefClass, Item);
+
+				EquippedItems.Emplace(EquipmentInstance);
+			}
 		}
 	}
 
-	SetActiveSlotIndex(EquippedItems.Num() - 1);
+w	SetActiveSlotIndex(EquippedItems.Num() - 1);
+
+	OnItemAdded.Broadcast(Item);
 }
 
 UOvrlAbilitySystemComponent* UOvrlInventoryComponent::GetAbilitySystemComponent() const
@@ -128,6 +133,58 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByDefinition(TSubclass
 	}
 
 	return FOvrlItemEntry();
+}
+
+AOvrlEquipmentInstance* UOvrlInventoryComponent::FindFirstEquipmentInstanceByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const
+{
+	for (AOvrlEquipmentInstance* EquipmentInstance : EquippedItems)
+	{
+		if (EquipmentInstance && EquipmentInstance->GetAssociatedItem()->GetItemDef() == ItemDefinition)
+		{
+			return EquipmentInstance;
+		}
+	}
+
+	return nullptr;
+}
+
+void UOvrlInventoryComponent::AddItemCount(UOvrlItemInstance* Item, int32 CountToAdd, bool bCreateItemIfMissing)
+{
+	for (FOvrlItemEntry& ItemEntry : ItemEntries)
+	{
+		if (ItemEntry.Instance == Item)
+		{
+			ItemEntry.Count += CountToAdd;
+			OnItemUpdated.Broadcast(ItemEntry);
+			return;
+		}
+	}
+	
+	// Didn't find the item, let's create it if needed
+	if (bCreateItemIfMissing)
+	{
+		AddItem(Item, CountToAdd);
+	}
+}
+
+void UOvrlInventoryComponent::AddItemCountByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 CountToAdd,
+                                                       bool bCreateItemIfMissing, const TSubclassOf<AOvrlItemPickupActor>& PickupClass)
+{
+	for (FOvrlItemEntry& ItemEntry : ItemEntries)
+	{
+		if (ItemEntry.Instance && ItemEntry.Instance->GetItemDef() == ItemDefinition)
+		{
+			ItemEntry.Count += CountToAdd;
+			OnItemUpdated.Broadcast(ItemEntry);
+			return;
+		}
+	}
+
+	// Didn't find the item, let's create it if needed
+	if (bCreateItemIfMissing)
+	{
+		AddItemFromDefinition(ItemDefinition, PickupClass, CountToAdd);
+	}
 }
 
 void UOvrlInventoryComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
@@ -228,7 +285,8 @@ void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop)
 	Offset.SetLocation(FVector(300.f, 300.f, 20.f));
 	Offset.SetScale3D(FVector::ZeroVector);
 
-	AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(AOvrlItemPickupActor::StaticClass(), GetOwner()->GetActorTransform() + Offset);
+	// Deferred spawn so we can set cached item before BeginPlay is called
+	AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(ItemToDrop->PickupClass, GetOwner()->GetActorTransform() + Offset);
 	ItemPickupActor->SetCachedItemInstance(ItemToDrop);
 
 	UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform() + Offset);

@@ -24,7 +24,7 @@ class UOvrlCameraModifierBase;
 class UAnimMontage;
 class UAnimSequence;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoUpdated, int32, MagazineAmmo, int32, SpareAmmo);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAmmoUpdated);
 
 /**
  *
@@ -81,10 +81,6 @@ public:
 	// Get the amount of ammo in the current magazine.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	int32 GetMagazineAmmo() const;
-
-	// Get the remaining ammo of the weapon.
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
-	int32 GetSpareAmmo() const;
 
 protected:
 

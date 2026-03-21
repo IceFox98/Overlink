@@ -2,10 +2,11 @@
 
 #include "Equipment/OvrlEquipmentInstance.h"
 
-#include "OvrlUtils.h"
 #include "Equipment/OvrlEquipmentDefinition.h"
 #include "Animations/OvrlLinkedAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Inventory/OvrlItemDefinition.h"
+#include "Inventory/OvrlItemInstance.h"
 
 #include "Player/OvrlCharacterBase.h"
 
@@ -30,6 +31,17 @@ void AOvrlEquipmentInstance::Destroyed()
 	}
 
 	Super::Destroyed();
+}
+
+void AOvrlEquipmentInstance::Initialize(const TSubclassOf<UOvrlEquipmentDefinition>& InEquipmentDefinitionClass, UOvrlItemInstance* InAssociatedItem)
+{
+	EquipmentDefinitionClass = InEquipmentDefinitionClass;
+	AssociatedItem = InAssociatedItem;
+	
+	if (ensure(AssociatedItem))
+	{
+		DisplayMesh = GetDefault<UOvrlItemDefinition>(AssociatedItem->GetItemDef())->DisplayMesh;
+	}
 }
 
 void AOvrlEquipmentInstance::OnEquipped()

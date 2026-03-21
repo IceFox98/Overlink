@@ -32,15 +32,17 @@ protected:
 	void ShowItemMesh();
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Spawner")
-	FORCEINLINE UOvrlItemInstance* GetCachedItem() const { return CachedItemInstance; }
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Spawner")
+	// Returns true if this Pickup Actor has an existing cached item.
+	// The cached item is usually valid when the item was dropped from the player/enemy (see DropItem of Inventory Component)
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
 	FORCEINLINE bool HasCachedItem() const { return CachedItemInstance != nullptr; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
+	FORCEINLINE UOvrlItemInstance* GetCachedItem() const { return CachedItemInstance; }
 
 	FORCEINLINE void SetCachedItemInstance(UOvrlItemInstance* ItemToCache) { CachedItemInstance = ItemToCache; }
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Item Spawner")
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor", meta=(ReturnDisplayName="Handled"))
 	bool ManageDuplicatedItem(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn);
 
 protected:
@@ -61,11 +63,11 @@ public:
 	// ------ ITEM ------
 
 	// If true, the item will be added to the inventory even if there's already an instance of it.
-	// Otherwise, you have to manage the item pickup behavior using ManageDuplicatedItem() of this class.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Spawner")
-	bool bAllowDuplicatedItem;
+	// Otherwise, you can manage the item pickup behavior using ManageDuplicatedItem() of this class.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
+	bool bAddDuplicatedItem;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Spawner")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
 	TObjectPtr<UOvrlPickupDefinition> ItemPickupDefinition;
 
 protected:

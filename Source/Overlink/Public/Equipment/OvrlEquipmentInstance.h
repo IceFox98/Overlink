@@ -24,6 +24,8 @@ public:
 	virtual void Destroyed() override;
 
 public:
+	void Initialize(const TSubclassOf<UOvrlEquipmentDefinition>& InEquipmentDefinitionClass, UOvrlItemInstance* InAssociatedItem);
+	
 	virtual void OnEquipped();
 	virtual void OnUnequipped();
 
@@ -35,7 +37,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Instance")
 	FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };
-	FORCEINLINE void SetDisplayMesh(UStaticMesh* InDisplayMesh) { DisplayMesh = InDisplayMesh; };
 
 	FORCEINLINE bool IsEquipped() const { return bIsEquipped; };
 

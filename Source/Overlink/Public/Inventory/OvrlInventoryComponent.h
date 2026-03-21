@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OvrlItemPickupActor.h"
 #include "Components/ActorComponent.h"
 #include "OvrlInventoryComponent.generated.h"
 
@@ -10,10 +11,7 @@ class UOvrlAbilitySystemComponent;
 class UOvrlItemDefinition;
 class UOvrlItemInstance;
 class AOvrlEquipmentInstance;
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
+class AOvrlItemPickupActor;
 
 // A single entry in an inventory
 USTRUCT(BlueprintType)
@@ -29,6 +27,27 @@ public:
 	int32 Count = 0;
 };
 
+USTRUCT(BlueprintType)
+struct FOvrlInitialItemData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UOvrlItemDefinition> ItemDefinition;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<AOvrlItemPickupActor> PickupClass = AOvrlItemPickupActor::StaticClass();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 Count = 1;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemAdded, UOvrlItemInstance*, AddedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
+
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
 {
@@ -42,8 +61,7 @@ public:
 	virtual void BeginPlay() override;
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta=(AdvancedDisplay = 2))
-	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Count = 1);
+	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, TSubclassOf<AOvrlItemPickupActor> PickupClass, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void AddItem(UOvrlItemInstance* Item, int32 Count = 1);
@@ -63,6 +81,17 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FOvrlItemEntry FindFirstItemEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
+	AOvrlEquipmentInstance* FindFirstEquipmentInstanceByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta=(AdvancedDisplay="bCreateItemIfMissing"))
+	void AddItemCount(UOvrlItemInstance* Item, int32 CountToAdd, bool bCreateItemIfMissing);
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component",
+		meta=(PickupClass="OvrlItemPickupActor", AutoCreateRefTerm="PickupClass", AdvancedDisplay="bCreateItemIfMissing, PickupClass"))
+	void AddItemCountByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 CountToAdd,
+	                              bool bCreateItemIfMissing, const TSubclassOf<AOvrlItemPickupActor>& PickupClass);
+
 	// Searches an item definition type for a matching stat and returns the value, or 0 if not found
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	static int32 GetDefaultStatFromItemDef(const TSubclassOf<UOvrlItemDefinition> WeaponItemClass, FGameplayTag StatTag);
@@ -81,10 +110,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemEquipped OnItemEquipped;
 
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
+	FOnItemAdded OnItemAdded;
+
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
+	FOnItemUpdated OnItemUpdated;
+
 protected:
 	// Items that will be automatically added on begin play
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TMap<TSubclassOf<UOvrlItemDefinition>, int32> InitialItems;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TArray<FOvrlInitialItemData> InitialItems;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<FOvrlItemEntry> ItemEntries;
