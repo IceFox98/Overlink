@@ -42,7 +42,7 @@ void AOvrlItemPickupActor::ShowItemMesh()
 	// Pick the right mesh to display
 	if (CachedItemInstance)
 	{
-		ItemDefinition = Cast<UOvrlItemDefinition>(CachedItemInstance->GetItemDef()->GetDefaultObject());
+		ItemDefinition = CachedItemInstance->GetItemDef();
 	}
 	else if (ItemPickupDefinition)
 	{
@@ -68,7 +68,7 @@ void AOvrlItemPickupActor::OnPickupColliderOverlap(UPrimitiveComponent* Overlapp
 		if (UOvrlInventoryComponent* InventoryComponent = Pawn->GetComponentByClass<UOvrlInventoryComponent>())
 		{
 			// The cached item is valid only when the item was dropped from the player/enemy
-			TSubclassOf<UOvrlItemDefinition> ItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDef() : ItemPickupDefinition->ItemDefinition;
+			TSubclassOf<UOvrlItemDefinition> ItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDefClass() : ItemPickupDefinition->ItemDefinition;
 
 			// Search for an item of the same type
 			UOvrlItemInstance* ExistingItem = InventoryComponent->FindFirstItemEntryByDefinition(ItemDefinition).Instance;

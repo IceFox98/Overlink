@@ -38,9 +38,9 @@ void AOvrlEquipmentInstance::Initialize(const TSubclassOf<UOvrlEquipmentDefiniti
 	EquipmentDefinitionClass = InEquipmentDefinitionClass;
 	AssociatedItem = InAssociatedItem;
 	
-	if (ensure(AssociatedItem))
+	if (ensure(AssociatedItem) && AssociatedItem->GetItemDef())
 	{
-		DisplayMesh = GetDefault<UOvrlItemDefinition>(AssociatedItem->GetItemDef())->DisplayMesh;
+		DisplayMesh = AssociatedItem->GetItemDef()->DisplayMesh;
 	}
 }
 

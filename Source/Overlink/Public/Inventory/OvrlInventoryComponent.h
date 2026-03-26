@@ -43,8 +43,8 @@ public:
 	int32 Count = 1;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemAdded, UOvrlItemInstance*, AddedItem);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnItemRemoved);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem, bool, bJustCreated);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
 
@@ -96,6 +96,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	static int32 GetDefaultStatFromItemDef(const TSubclassOf<UOvrlItemDefinition> WeaponItemClass, FGameplayTag StatTag);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
+	FORCEINLINE TArray<AOvrlEquipmentInstance*> GetEquippedItems() const { return EquippedItems; };
 private:
 	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
 
@@ -111,10 +113,10 @@ public:
 	FOnItemEquipped OnItemEquipped;
 
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
-	FOnItemAdded OnItemAdded;
-
-	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemUpdated OnItemUpdated;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
+	FOnItemRemoved OnItemRemoved;
 
 protected:
 	// Items that will be automatically added on begin play

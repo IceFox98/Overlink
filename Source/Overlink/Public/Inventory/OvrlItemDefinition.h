@@ -38,7 +38,7 @@ public:
 
 public:
 	// The display name for this item in the inventory
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 	FText DisplayName;
 
 	// Visual representation of the item

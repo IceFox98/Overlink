@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Inventory/OvrlItemInstance.h"
 #include "Inventory/OvrlItemDefinition.h"
 
@@ -72,16 +71,21 @@ int32 UOvrlItemInstance::GetTagStackCount(FGameplayTag Tag) const
 	return TagToCountMap.FindRef(Tag);
 }
 
-void UOvrlItemInstance::SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDef)
+UOvrlItemDefinition* UOvrlItemInstance::GetItemDef() const
 {
-	ItemDef = InItemDef;
+	if (ItemDefClass)
+	{
+		return Cast<UOvrlItemDefinition>(ItemDefClass->GetDefaultObject());
+	}
+
+	return nullptr;
 }
 
 const UOvrlItemFragment* UOvrlItemInstance::FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const
 {
-	if (ItemDef && FragmentClass)
+	if (ItemDefClass && FragmentClass)
 	{
-		return GetDefault<UOvrlItemDefinition>(ItemDef)->FindFragmentByClass(FragmentClass);
+		return GetDefault<UOvrlItemDefinition>(ItemDefClass)->FindFragmentByClass(FragmentClass);
 	}
 
 	return nullptr;

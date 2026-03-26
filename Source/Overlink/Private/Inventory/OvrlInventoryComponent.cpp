@@ -89,13 +89,13 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Count/* = 1
 				EquipmentInstance->Initialize(EquipDefClass, Item);
 
 				EquippedItems.Emplace(EquipmentInstance);
+
+				SetActiveSlotIndex(EquippedItems.Num() - 1);
 			}
 		}
 	}
 
-w	SetActiveSlotIndex(EquippedItems.Num() - 1);
-
-	OnItemAdded.Broadcast(Item);
+	OnItemUpdated.Broadcast(ItemEntry, true);
 }
 
 UOvrlAbilitySystemComponent* UOvrlInventoryComponent::GetAbilitySystemComponent() const
@@ -126,7 +126,7 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByDefinition(TSubclass
 {
 	for (const FOvrlItemEntry& ItemEntry : ItemEntries)
 	{
-		if (ItemEntry.Instance && ItemEntry.Instance->GetItemDef() == ItemDefinition)
+		if (ItemEntry.Instance && ItemEntry.Instance->GetItemDefClass() == ItemDefinition)
 		{
 			return ItemEntry;
 		}
@@ -139,7 +139,7 @@ AOvrlEquipmentInstance* UOvrlInventoryComponent::FindFirstEquipmentInstanceByDef
 {
 	for (AOvrlEquipmentInstance* EquipmentInstance : EquippedItems)
 	{
-		if (EquipmentInstance && EquipmentInstance->GetAssociatedItem()->GetItemDef() == ItemDefinition)
+		if (EquipmentInstance && EquipmentInstance->GetAssociatedItem()->GetItemDefClass() == ItemDefinition)
 		{
 			return EquipmentInstance;
 		}
@@ -154,12 +154,12 @@ void UOvrlInventoryComponent::AddItemCount(UOvrlItemInstance* Item, int32 CountT
 	{
 		if (ItemEntry.Instance == Item)
 		{
-			ItemEntry.Count += CountToAdd;
-			OnItemUpdated.Broadcast(ItemEntry);
+			ItemEntry.Count += FMath::Max(0, CountToAdd);
+			OnItemUpdated.Broadcast(ItemEntry, false);
 			return;
 		}
 	}
-	
+
 	// Didn't find the item, let's create it if needed
 	if (bCreateItemIfMissing)
 	{
@@ -172,10 +172,10 @@ void UOvrlInventoryComponent::AddItemCountByDefinition(TSubclassOf<UOvrlItemDefi
 {
 	for (FOvrlItemEntry& ItemEntry : ItemEntries)
 	{
-		if (ItemEntry.Instance && ItemEntry.Instance->GetItemDef() == ItemDefinition)
+		if (ItemEntry.Instance && ItemEntry.Instance->GetItemDefClass() == ItemDefinition)
 		{
-			ItemEntry.Count += CountToAdd;
-			OnItemUpdated.Broadcast(ItemEntry);
+			ItemEntry.Count += FMath::Max(0, CountToAdd);
+			OnItemUpdated.Broadcast(ItemEntry, false);
 			return;
 		}
 	}
@@ -254,6 +254,8 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 			if (Entry.Count <= 0)
 			{
 				EntryIt.RemoveCurrent();
+				OnItemRemoved.Broadcast();
+				break;
 			}
 		}
 	}

@@ -60,8 +60,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	int32 GetTagStackCount(FGameplayTag Tag) const;
 
-	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDef);
-	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDef() const { return ItemDef; }
+	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDefClass) { ItemDefClass = InItemDefClass; };
+	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDefClass() const { return ItemDefClass; }
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
+	UOvrlItemDefinition* GetItemDef() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
@@ -77,7 +80,7 @@ public:
 	TObjectPtr<UClass> PickupClass;
 
 private:
-	TSubclassOf<UOvrlItemDefinition> ItemDef;
+	TSubclassOf<UOvrlItemDefinition> ItemDefClass;
 
 	// List of gameplay tag stacks
 	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Item Instance")
