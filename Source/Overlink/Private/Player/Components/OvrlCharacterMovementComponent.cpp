@@ -27,6 +27,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 
 	MaxWalkSpeed = 450.f;
 	MaxRunSpeed = 800.f;
+	GroundNormalCheckDistance = 200.f;
 
 	// Parkour variables
 	WallrunForwardCheckDistance = 75.f;
@@ -104,6 +105,7 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	ComputeGroundNormal();
 	UpdateGaitStatus();
 
 	if (bHasPlayerJumped)
@@ -152,6 +154,27 @@ void UOvrlCharacterMovementComponent::UpdateGaitStatus()
 bool UOvrlCharacterMovementComponent::ShouldRun() const
 {
 	return bShouldRun && !Character->IsAiming();
+}
+
+void UOvrlCharacterMovementComponent::ComputeGroundNormal()
+{
+	const FVector StartTrace = Character->GetActorLocation();
+	const FVector EndTrace = StartTrace + GetGravityDirection() * GroundNormalCheckDistance;
+	
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(Character);
+	
+	FHitResult OutHit;
+	GetWorld()->LineTraceSingleByChannel(OutHit, StartTrace, EndTrace, ECC_Visibility, QueryParams);
+	
+	if (OutHit.bBlockingHit)
+	{
+		GroundNormal = OutHit.ImpactNormal;
+	}
+	else
+	{
+		GroundNormal = -GetGravityDirection();
+	}
 }
 
 void UOvrlCharacterMovementComponent::Crouch(bool bClientSimulation)

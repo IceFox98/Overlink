@@ -80,10 +80,10 @@ public:
 	}
 
 	// Converts a rotation from world space to gravity relative space.
-	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
+	UFUNCTION(BlueprintPure, Category = "Ovrl Utils", meta = (BlueprintThreadSafe))
 	static FRotator GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection);
 
-	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
+	UFUNCTION(BlueprintPure, Category = "Ovrl Utils", meta = (BlueprintThreadSafe))
 	static FQuat GetGravityRelativeRotation_Quat(FQuat Rotation, FVector GravityDirection);
 
 	// Converts a rotation from gravity relative space to world space.

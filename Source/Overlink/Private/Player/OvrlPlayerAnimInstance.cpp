@@ -13,6 +13,12 @@
 #include "AbilitySystemGlobals.h"
 #include "OvrlUtils.h"
 
+UOvrlPlayerAnimInstance::UOvrlPlayerAnimInstance()
+{
+	StandingRootYawThreshold = FVector2D(-60.f, 60.f);
+	CrouchingRootYawThreshold = FVector2D(-60.f, 60.f);
+}
+
 void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
@@ -35,6 +41,8 @@ void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 	{
 		GameplayTagPropertyMap.Initialize(this, ASC);
 	}
+	
+	bIsPlayerValid = true;
 }
 
 void UOvrlPlayerAnimInstance::NativeBeginPlay()
@@ -82,6 +90,57 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	bIsSliding = (LocomotionAction == OvrlLocomotionActionTags::Sliding);
 	bIsWallrunning = CharacterMovementComponent->IsWallrunning();
 	bIsWallClinging = CharacterMovementComponent->IsWallClinging();
+	
+	PlayerRotation = UOvrlUtils::GetGravityRelativeRotation(PlayerCharacter->GetActorRotation(), CharacterMovementComponent->GetGravityDirection());
+	
+	// bHasJustLanded =
+}
+
+FRotator UOvrlPlayerAnimInstance::GetSlideSlopeRotation() const
+{
+	if (!CharacterMovementComponent)
+	{
+		return FRotator::ZeroRotator;
+	}
+	
+	const FVector PlayerRightVector = UKismetMathLibrary::GetRightVector(PlayerRotation);
+	const FVector PlayerUpVector = UKismetMathLibrary::GetUpVector(PlayerRotation);
+	const FVector GroundNormal = CharacterMovementComponent->GetGroundNormal();
+	
+	float OutSlopePitchAngle;
+	float OutSlopeRollAngle;
+	UKismetMathLibrary::GetSlopeDegreeAngles(PlayerRightVector, GroundNormal, PlayerUpVector, OutSlopePitchAngle, OutSlopeRollAngle);
+	
+	return FRotator(0.f, 0.f, -OutSlopePitchAngle);
+}
+
+bool UOvrlPlayerAnimInstance::IsIdle() const
+{
+	if (CharacterMovementComponent)
+	{
+		return CharacterMovementComponent->GetGait() == OvrlGaitTags::Idle && !bHasJustLanded && !bIsFalling;
+	}
+	
+	return false;
+}
+
+bool UOvrlPlayerAnimInstance::ShouldTurnInPlace() const
+{
+	if (!CharacterMovementComponent)
+	{
+		return false;
+	}
+	
+	FVector2D TargetThreshold = StandingRootYawThreshold;
+	if (CharacterMovementComponent->Stance == OvrlStanceTags::Crouching)
+	{
+		TargetThreshold = CrouchingRootYawThreshold;
+	}
+	
+	const bool bShouldTurnInPlace = RootYawOffset <= TargetThreshold.X || RootYawOffset >= TargetThreshold.Y;
+	
+	// We don't need to turn-in-place for FP mesh
+	return !bIsFirstPersonABP && bIsPlayerValid && bShouldTurnInPlace;
 }
 
 FRotator UOvrlPlayerAnimInstance::GetWallrunCameraTiltRotation() const
@@ -95,3 +154,4 @@ FRotator UOvrlPlayerAnimInstance::GetWallrunCameraTiltRotation() const
 	
 	return FRotator::ZeroRotator;
 }
+

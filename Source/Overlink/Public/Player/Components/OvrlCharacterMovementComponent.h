@@ -91,12 +91,14 @@ public:
 public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 	virtual void Crouch(bool bClientSimulation = false) override;
-
 	virtual void UnCrouch(bool bClientSimulation = false) override;
-
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
+	
+public:
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
+	FORCEINLINE FVector GetGroundNormal() const { return GroundNormal; };
 
 	// ------ TRAVERSALS ------
 
@@ -162,6 +164,7 @@ protected:
 
 private:
 
+	void ComputeGroundNormal();
 	void UpdateGaitStatus();
 	bool ShouldRun() const;
 
@@ -214,6 +217,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
 	float MaxRunSpeed;
 
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
+	float GroundNormalCheckDistance;
+	
 	// -----------------------------
 	// ------ PARKOUR SECTION ------
 	// -----------------------------
@@ -371,6 +377,7 @@ private:
 	float DefaultBrakingDecelerationWalking;
 
 	bool bShouldRun;
+	FVector GroundNormal;
 
 	// ------ HAND IK ------
 	FVector RightHandIKLocation;
