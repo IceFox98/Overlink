@@ -92,8 +92,7 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	bIsWallClinging = CharacterMovementComponent->IsWallClinging();
 	
 	PlayerRotation = UOvrlUtils::GetGravityRelativeRotation(PlayerCharacter->GetActorRotation(), CharacterMovementComponent->GetGravityDirection());
-	
-	// bHasJustLanded =
+	bHasJustLanded = PlayerCharacter->bJustLanded;
 }
 
 FRotator UOvrlPlayerAnimInstance::GetSlideSlopeRotation() const

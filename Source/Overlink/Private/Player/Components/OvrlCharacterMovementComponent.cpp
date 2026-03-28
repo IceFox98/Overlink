@@ -426,11 +426,13 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 	{
 		return false; // Avoid jump
 	}
+	
+	// Do the default jump
+	bool bSuccess = Super::DoJump(bReplayingMoves, DeltaTime);
 
 	OnPlayerJumped();
-
-	// Do the default jump
-	return Super::DoJump(bReplayingMoves, DeltaTime);
+	
+	return bSuccess;
 }
 
 void UOvrlCharacterMovementComponent::OnPlayerJumped()
@@ -1320,7 +1322,10 @@ void UOvrlCharacterMovementComponent::SetLocomotionAction(const FGameplayTag& Ne
 	if (LocomotionAction == NewLocomotionAction)
 		return;
 
+	const FGameplayTag OldLocomotionAction = LocomotionAction;
 	LocomotionAction = NewLocomotionAction;
+	
+	OnLocomotionActionChanged.Broadcast(OldLocomotionAction, LocomotionAction);
 }
 
 void UOvrlCharacterMovementComponent::SetLocomotionMode(const FGameplayTag& NewLocomotionMode)

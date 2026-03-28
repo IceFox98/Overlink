@@ -15,7 +15,7 @@ struct FSurfaceSounds
 public:
 
 	UPROPERTY(EditAnywhere, Category = "Surface Sound")
-	TMap<TEnumAsByte<EPhysicalSurface>, TObjectPtr<USoundBase>> SurfaceSounds;
+	TMap<TEnumAsByte<EPhysicalSurface>, TSoftObjectPtr<USoundBase>> SurfaceSounds;
 };
 
 /**
@@ -28,7 +28,7 @@ class OVERLINK_API UOvrlFoleyAudioBank : public UPrimaryDataAsset
 
 public:
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, meta=(AdvancedDisplay = "SurfaceType"))
 	USoundBase* GetSound(const FGameplayTag& Event, EPhysicalSurface SurfaceType) const;
 
 public:

@@ -60,7 +60,7 @@ protected:
 
 	// ------ STATES ------
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ovrl Player Anim Instance|States", Transient)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)
 	FGameplayTag LocomotionMode = OvrlLocomotionModeTags::Grounded;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|States", Transient)

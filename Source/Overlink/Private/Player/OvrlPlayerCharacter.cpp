@@ -12,6 +12,7 @@
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "Audio/OvrlFoleyAudioBank.h"
 #include "OvrlUtils.h"
 
 // Engine
@@ -24,7 +25,8 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/CapsuleComponent.h"
 #include "KismetTraceUtils.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOvrlCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -40,7 +42,7 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 
 	// Disable controller rotation since it was dealing with pawn rotation when a different vector gravity is applied.
 	// Let the Movement Component handle the rotation.
-	bUseControllerRotationYaw = false; 
+	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->RotationRate = FRotator(-1.f, -1.f, -1.f); // Set to negative to have instant turns of the player
 
 	GetMesh()->CastShadow = false;
@@ -57,20 +59,35 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 
-	ThrowForce = 1200.f;
+	LandedResetTime = .3f;
+	LandSoundMultiplier = .5f;
+	JumpSoundMultiplier = .5f;
 }
 
 void AOvrlPlayerCharacter::OnJumped_Implementation()
 {
 	Super::OnJumped_Implementation();
 	OnPlayerJumped.Broadcast();
+
+	PlayJumpSound();
+}
+
+void AOvrlPlayerCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	bJustLanded = true;
+	PlayLandSound();
+
+	GetWorldTimerManager().ClearTimer(TimerHandle_LandReset);
+	GetWorldTimerManager().SetTimer(TimerHandle_LandReset, [this]() {
+		bJustLanded = false;
+	}, LandedResetTime, false);
 }
 
 void AOvrlPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//ParkourComponent->Initialize(this);
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -80,6 +97,13 @@ void AOvrlPlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	GetCharacterMovement()->OnLocomotionActionChanged.AddUniqueDynamic(this, &AOvrlPlayerCharacter::OnLocomotionActionChanged);
+}
+
+bool AOvrlPlayerCharacter::CanJumpInternal_Implementation() const
+{
+	return Super::CanJumpInternal_Implementation() || GetCharacterMovement()->IsWallrunning() || GetCharacterMovement()->IsWallClinging();
 }
 
 void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -109,6 +133,28 @@ UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() co
 bool AOvrlPlayerCharacter::IsAiming() const
 {
 	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
+}
+
+void AOvrlPlayerCharacter::PlayLandSound() const
+{
+	if (!FoleyAudioBank) return;
+	
+	const float PlayerVelocityZ = GetCharacterMovement()->GetRelativeLastUpdateVelocity().Z;
+	constexpr float SoundVelocityThreshold = 200.f;
+
+	if (PlayerVelocityZ < -SoundVelocityThreshold)
+	{
+		USoundBase* LandSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Land, SurfaceType_Default);
+		UGameplayStatics::PlaySoundAtLocation(this, LandSound, FullBodyMesh->GetComponentLocation(), LandSoundMultiplier);
+	}
+}
+
+void AOvrlPlayerCharacter::PlayJumpSound() const
+{
+	if (!FoleyAudioBank) return;
+	
+	USoundBase* JumpSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Jump, SurfaceType_Default);
+	UGameplayStatics::PlaySoundAtLocation(this, JumpSound, FullBodyMesh->GetComponentLocation(), JumpSoundMultiplier);
 }
 
 void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
@@ -282,12 +328,19 @@ void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 	}
 }
 
-void AOvrlPlayerCharacter::SetOverlayMode(const FGameplayTag& NewOverlayMode)
+void AOvrlPlayerCharacter::OnLocomotionActionChanged(const FGameplayTag& OldLocomotionAction, const FGameplayTag& NewLocomotionAction)
 {
-	if (OverlayMode == NewOverlayMode)
-		return;
-
-	OverlayMode = NewOverlayMode;
+	if (!FoleyAudioBank) return;
+	
+	if (NewLocomotionAction == OvrlLocomotionActionTags::Sliding)
+	{
+		USoundBase* SlideSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Slide, SurfaceType_Default);
+		SlidingAudioComponent = UGameplayStatics::SpawnSoundAttached(SlideSound, FullBodyMesh);
+	}
+	else if (OldLocomotionAction == OvrlLocomotionActionTags::Sliding && SlidingAudioComponent)
+	{
+		SlidingAudioComponent->FadeOut(.5f, 0.f);
+	}
 }
 
 void AOvrlPlayerCharacter::Interact()
@@ -300,31 +353,6 @@ void AOvrlPlayerCharacter::Interact()
 	//	{
 	//		IInteractable* InteractiveObj = Cast<IInteractable>(ObjData.HitActor);
 	//		InteractiveObj->Execute_OnInteract(ObjData.HitActor, GetController(), ObjData.HitComponent);
-	//	}
-	//}
-}
-
-void AOvrlPlayerCharacter::ThrowEquippedObject()
-{
-	//if (InventoryComponent && ItemHoldingPoint)
-	//{
-	//	AActor* ActorToThrow = InventoryComponent->DropSelectedItem();
-
-	//	if (!ActorToThrow) return;
-
-	//	// Set Object location to throwing point location, before throwing it
-	//	//ActorToThrow->SetActorLocation(ItemHoldingPoint->GetComponentLocation(), false, nullptr, ETeleportType::TeleportPhysics);
-
-	//	UStaticMeshComponent* ActorMesh = Cast<UStaticMeshComponent>(ActorToThrow->GetComponentByClass(UStaticMeshComponent::StaticClass()));
-
-	//	if (ActorMesh)
-	//	{
-	//		ActorMesh->SetSimulatePhysics(true);
-	//		FVector Location;
-	//		FRotator Rotation;
-	//		GetActorEyesViewPoint(Location, Rotation);
-	//		ActorMesh->SetAllPhysicsLinearVelocity(Rotation.Vector() * ThrowForce);
-
 	//	}
 	//}
 }

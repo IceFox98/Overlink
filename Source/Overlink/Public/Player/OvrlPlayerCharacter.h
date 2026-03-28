@@ -11,14 +11,13 @@
 class UOvrlCameraComponent;
 class UOvrlCharacterMovementComponent;
 class UOvrlInteractionComponent;
-class USceneComponent;
 class UOvrlInventoryComponent;
 class UMotionWarpingComponent;
 class UOvrlInputConfig;
 class UInputMappingContext;
 class AStaticMeshActor;
-class UPlayerCameraFXConfig;
-class UPlayerSFXConfig;
+class UOvrlFoleyAudioBank;
+class UAudioComponent;
 struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerJumped);
@@ -29,43 +28,42 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerJumped);
 UCLASS(Blueprintable)
 class OVERLINK_API AOvrlPlayerCharacter : public AOvrlCharacterBase
 {
+
+private:
 	GENERATED_BODY()
 
 public:
-
 	// Sets default values for this character's properties
 	AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 public:
-	
 	virtual void OnJumped_Implementation() override;
-	
+	virtual void Landed(const FHitResult& Hit) override;
+
 protected:
 	virtual void BeginPlay() override;
+	virtual bool CanJumpInternal_Implementation() const override;
 
 public:
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
 	UOvrlCharacterMovementComponent* GetCharacterMovement() const;
-
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
 	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
 
-	bool IsAiming() const;
 public:
-
-	//virtual USceneComponent* GetEquipAttachmentComponent() const override { return Cast<USceneComponent>(GetMesh()); }
-
 	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
 	virtual void RestoreAnimLayerClass() override;
 	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay) override;
 	virtual void UnequipObject() override;
-
 	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
+
+	bool IsAiming() const;
+	void PlayLandSound() const;
+	void PlayJumpSound() const;
 
 	// ------ MOVEMENT ------
 
@@ -78,31 +76,21 @@ public:
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
-	// ------ LOCOMOTION ------
-
-	FORCEINLINE const FGameplayTag& GetOverlayMode() const { return OverlayMode; }
-
-	void SetOverlayMode(const FGameplayTag& NewOverlayMode);
-
 	// ------ INTERACTION ------
 
 	void Interact();
 
-	UFUNCTION(BlueprintCallable)
-	void ThrowEquippedObject();
-
 protected:
-
 	bool CheckWallCollisions(const FVector& Direction);
 
+	UFUNCTION()
+	void OnLocomotionActionChanged(const FGameplayTag& OldLocomotionAction, const FGameplayTag& NewLocomotionAction);
+
 private:
-
 	void OnAbilityInputPressed(FGameplayTag InputTag);
-
 	void OnAbilityInputReleased(FGameplayTag InputTag);
 
 protected:
-
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -123,9 +111,21 @@ protected:
 	TObjectPtr<UMotionWarpingComponent> MotionWarping;
 
 public:
-	
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerJumped OnPlayerJumped;
+
+	// Time (in seconds) before bJustLanded is reset.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character")
+	float LandedResetTime;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character|Audio")
+	TObjectPtr<UOvrlFoleyAudioBank> FoleyAudioBank;
+	
+	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
+	float LandSoundMultiplier;
+		
+	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
+	float JumpSoundMultiplier;
 
 	// ------ INPUT ------
 
@@ -136,18 +136,16 @@ public:
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 	TObjectPtr<UOvrlInputConfig> InputConfig;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
-	float ThrowForce;
 	
-protected:
-	// ------ LOCOMOTION ------
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
-	FGameplayTag OverlayMode = OvrlOverlayModeTags::Default;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character", Transient)
+	bool bJustLanded;
 
 private:
-
 	UPROPERTY()
 	TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
+	
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> SlidingAudioComponent;
+	
+	FTimerHandle TimerHandle_LandReset;
 };

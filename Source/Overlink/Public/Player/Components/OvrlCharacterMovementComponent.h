@@ -210,8 +210,13 @@ private:
 
 public:
 
+	UPROPERTY(BlueprintAssignable)
 	FOnStanceChanged OnStanceChanged;
+	
+	UPROPERTY(BlueprintAssignable)
 	FOnGaitChanged OnGaitChanged;
+	
+	UPROPERTY(BlueprintAssignable)
 	FOnLocomotionActionChanged OnLocomotionActionChanged;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
