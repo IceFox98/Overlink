@@ -34,6 +34,7 @@ void FOverlinkModule::OnRegisterConsoleAutoCompleteEntries(TArray<FAutoCompleteC
 	AddConsoleCommand(AutoCompleteCommands, "ShowDebug Ovrl.Traversals", "Displays traversals traces.");
 	AddConsoleCommand(AutoCompleteCommands, "ShowDebug Ovrl.Wallrun", "Displays wallrun traces.");
 	AddConsoleCommand(AutoCompleteCommands, "ShowDebug Ovrl.Weapons", "Displays weapon traces.");
+	AddConsoleCommand(AutoCompleteCommands, "ShowDebug Ovrl.Interactions", "Displays interaction traces.");
 }
 
 void FOverlinkModule::AddConsoleCommand(TArray<FAutoCompleteCommand>& AutoCompleteCommands, const FString& Command, const FString& Description)

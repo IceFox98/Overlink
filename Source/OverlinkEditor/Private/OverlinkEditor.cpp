@@ -2,7 +2,7 @@
 
 #include "OverlinkEditor.h"
 
-IMPLEMENT_MODULE(FOverlinkEditorModule, OverlinkEditor);
+IMPLEMENT_GAME_MODULE(FOverlinkEditorModule, OverlinkEditor);
 
 DEFINE_LOG_CATEGORY(LogOverlinkEditor);
 

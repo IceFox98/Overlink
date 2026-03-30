@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "OvrlItemPickupActor.generated.h"
 
-class USphereComponent;
+class UCapsuleComponent;
 class UStaticMeshComponent;
 class UOvrlPickupDefinition;
 class UOvrlItemInstance;
@@ -29,9 +29,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void ShowItemMesh();
-
 public:
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Pickup Actor")
+	void HandlePickup(APawn* InInstigator);
+	
 	// Returns true if this Pickup Actor has an existing cached item.
 	// The cached item is usually valid when the item was dropped from the player/enemy (see DropItem of Inventory Component)
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
@@ -50,12 +51,13 @@ protected:
 	void OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent);
+	void ShowItemMesh();
 
 public:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USphereComponent> PickupCollider;
+	TObjectPtr<UCapsuleComponent> PickupColliderTest;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> ItemMesh;

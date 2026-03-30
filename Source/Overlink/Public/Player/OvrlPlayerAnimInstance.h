@@ -40,9 +40,7 @@ public:
 	bool IsIdle() const;
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Anim Instance", meta=(BlueprintThreadSafe))
-	bool ShouldTurnInPlace() const;
-	
-	FORCEINLINE FRotator GetSpineRotation() const { return SpineRotation; };
+	bool ShouldTurnInPlace() const; // Used in Chooser Tables
 	
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Player Anim Instance", meta=(BlueprintThreadSafe))
 	FORCEINLINE void SetRootYawOffset(float InRootYawOffset) { RootYawOffset = InRootYawOffset; };
@@ -50,6 +48,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Player Anim Instance")
 	FRotator GetWallrunCameraTiltRotation() const; // Used in equipment ABP
 
+	FORCEINLINE FRotator GetSpineRotation() const { return SpineRotation; };
+	
 protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
@@ -82,22 +82,22 @@ protected:
 	
 	// ------ GENERAL ------
 	
+	// Used to handle different behaviors between FP and TP animations
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Anim Instance")
+	bool bIsFirstPersonABP;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
+	bool bIsPlayerValid;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
+	FRotator PlayerRotation;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
 	FRotator SpineRotation;
 
 	// Gravity-relative player camera pitch
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
 	float PitchAngle;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
-	bool bIsPlayerValid;
-	
-	// Used to handle different behaviors between FP and TP animations
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Anim Instance")
-	bool bIsFirstPersonABP;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
-	FRotator PlayerRotation;
 	
 	// Yaw angle (in degrees) between the root facing direction and player camera facing.
 	// Used to trigger turn-in-place animations (see RootYawThreshold).
@@ -139,7 +139,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
 	bool bIsWallClinging;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
 	bool bHasJustLanded;
 
 	// ------ IK ------

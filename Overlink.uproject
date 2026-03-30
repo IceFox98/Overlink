@@ -19,8 +19,8 @@
 		},
 		{
 			"Name": "OverlinkEditor",
-			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit"
+			"Type": "UncookedOnly",
+			"LoadingPhase": "PreDefault"
 		}
 	],
 	"Plugins": [

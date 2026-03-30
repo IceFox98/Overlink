@@ -34,13 +34,11 @@ namespace OvrlLocomotionActionTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(Mantling, "Ovrl.LocomotionAction.Mantling");
 	UE_DEFINE_GAMEPLAY_TAG(Vaulting, "Ovrl.LocomotionAction.Vaulting");
-	UE_DEFINE_GAMEPLAY_TAG(Ragdolling, "Ovrl.LocomotionAction.Ragdolling");
 	UE_DEFINE_GAMEPLAY_TAG(Sliding, "Ovrl.LocomotionAction.Sliding");
 	UE_DEFINE_GAMEPLAY_TAG(WallrunningVertical, "Ovrl.LocomotionAction.WallrunningVertical");
 	UE_DEFINE_GAMEPLAY_TAG(WallrunningLeft, "Ovrl.LocomotionAction.WallrunningLeft");
 	UE_DEFINE_GAMEPLAY_TAG(WallrunningRight, "Ovrl.LocomotionAction.WallrunningRight");
 	UE_DEFINE_GAMEPLAY_TAG(WallClinging, "Ovrl.LocomotionAction.WallClinging");
-	UE_DEFINE_GAMEPLAY_TAG(GettingUp, "Ovrl.LocomotionAction.GettingUp");
 }
 
 namespace OvrlViewModeTags
@@ -57,6 +55,7 @@ namespace OvrlInputTags
 	UE_DEFINE_GAMEPLAY_TAG(Crouch, "Ovrl.InputTag.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.InputTag.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Slide, "Ovrl.InputTag.Slide");
+	UE_DEFINE_GAMEPLAY_TAG(Interact, "Ovrl.InputTag.Interact");
 	UE_DEFINE_GAMEPLAY_TAG(ADS, "Ovrl.InputTag.ADS");
 }
 

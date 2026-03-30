@@ -7,16 +7,18 @@
 #include "Inventory/OvrlItemDefinition.h"
 
 // Engine
-#include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 
 AOvrlItemPickupActor::AOvrlItemPickupActor()
 {
-	PickupCollider = CreateDefaultSubobject<USphereComponent>(TEXT("PickupCollider"));
-	SetRootComponent(PickupCollider);
-
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMesh"));
-	ItemMesh->SetupAttachment(PickupCollider);
+	SetRootComponent(ItemMesh);
+	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ItemMesh->SetGenerateOverlapEvents(false);
+	
+	PickupColliderTest = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PickupColliderTest"));
+	PickupColliderTest->SetupAttachment(ItemMesh);
 }
 
 void AOvrlItemPickupActor::OnConstruction(const FTransform& Transform)
@@ -30,9 +32,47 @@ void AOvrlItemPickupActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PickupCollider->OnComponentBeginOverlap.AddDynamic(this, &AOvrlItemPickupActor::OnPickupColliderOverlap);
+	PickupColliderTest->OnComponentBeginOverlap.AddDynamic(this, &AOvrlItemPickupActor::OnPickupColliderOverlap);
 
 	ShowItemMesh();
+}
+
+void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)
+{
+	if (UOvrlInventoryComponent* InventoryComponent = InInstigator->GetComponentByClass<UOvrlInventoryComponent>())
+	{
+		// The cached item is valid only when the item was dropped from the player/enemy
+		TSubclassOf<UOvrlItemDefinition> ItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDefClass() : ItemPickupDefinition->ItemDefinition;
+
+		// Search for an item of the same type
+		UOvrlItemInstance* ExistingItem = InventoryComponent->FindFirstItemEntryByDefinition(ItemDefinition).Instance;
+
+		bool bHandled = true;
+		if (ExistingItem) // Duplicated item found
+		{
+			if (bAddDuplicatedItem)
+			{
+				// Add it anyway
+				AddItemToInventory(InventoryComponent);
+			}
+			else
+			{
+				// Let user manage the duplicated item
+				bHandled = ManageDuplicatedItem(ItemDefinition, ExistingItem, InInstigator);
+			}
+		}
+		else
+		{
+			// No duplicates found, execute default behavior
+			AddItemToInventory(InventoryComponent);
+		}
+
+		// If the item has been handled successfully, we can destroy this Actor
+		if (bHandled)
+		{
+			Destroy();
+		}
+	}
 }
 
 void AOvrlItemPickupActor::ShowItemMesh()
@@ -65,40 +105,7 @@ void AOvrlItemPickupActor::OnPickupColliderOverlap(UPrimitiveComponent* Overlapp
 {
 	if (APawn* Pawn = Cast<APawn>(OtherActor))
 	{
-		if (UOvrlInventoryComponent* InventoryComponent = Pawn->GetComponentByClass<UOvrlInventoryComponent>())
-		{
-			// The cached item is valid only when the item was dropped from the player/enemy
-			TSubclassOf<UOvrlItemDefinition> ItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDefClass() : ItemPickupDefinition->ItemDefinition;
-
-			// Search for an item of the same type
-			UOvrlItemInstance* ExistingItem = InventoryComponent->FindFirstItemEntryByDefinition(ItemDefinition).Instance;
-
-			bool bHandled = true;
-			if (ExistingItem) // Duplicated item found
-			{
-				if (bAddDuplicatedItem)
-				{
-					// Add it anyway
-					AddItemToInventory(InventoryComponent);
-				}
-				else
-				{
-					// Let user manage the duplicated item
-					bHandled = ManageDuplicatedItem(ItemDefinition, ExistingItem, Pawn);
-				}
-			}
-			else
-			{
-				// No duplicates found, execute default behavior
-				AddItemToInventory(InventoryComponent);
-			}
-
-			// If the item has been handled successfully, we can destroy this Actor
-			if (bHandled)
-			{
-				Destroy();
-			}
-		}
+		HandlePickup(Pawn);
 	}
 }
 

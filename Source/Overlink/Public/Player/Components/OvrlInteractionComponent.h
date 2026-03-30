@@ -4,61 +4,89 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-//#include "Interactives/Interactable.h"
 #include "OvrlInteractionComponent.generated.h"
 
-USTRUCT(BlueprintType)
-struct FInteractionData
-{
-public:
+class IOvrlInteractable;
 
+USTRUCT(BlueprintType)
+struct FInteractableObjectData
+{
 	GENERATED_USTRUCT_BODY()
 
-public:
-	UPROPERTY(VisibleAnywhere)
-		AActor* HitActor;
+	// Either Component or Actor hit during interaction query
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UObject> OriginalObject = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
-		UPrimitiveComponent* HitComponent;
+	// Just the interface version of OriginalObject
+	UPROPERTY(BlueprintReadOnly)
+	TScriptInterface<IOvrlInteractable> InteractableObject = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
-		bool IsInteractive;
+	// Actor that owns the hit component.
+	// Can be equals to OriginalObject if that's an Actor.
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<AActor> OwningActor = nullptr;
 };
 
-UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+UCLASS(Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
 	UOvrlInteractionComponent();
 
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 public:
-	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FInteractionData FindInteractiveObject();
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Interaction Component")
+	FORCEINLINE void SetInteractionDistance(float InNewDistance) { InteractionDistance = InNewDistance; };
 
-	UFUNCTION(BlueprintCallable)
-		void ChangeRange(float NewRange);
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Interaction Component")
+	FORCEINLINE void SetTraceTypes(const TArray<TEnumAsByte<EObjectTypeQuery>>& InTraceTypes) { TraceTypes = InTraceTypes; };
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Interaction Component")
+	FORCEINLINE void SetTraceComplex(bool bShouldTraceComplex) { bTraceComplex = bShouldTraceComplex; };
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Interaction Component")
+	const FInteractableObjectData& GetCurrentPointedObjectData() const { return CurrentPointedObjData; };
 
 protected:
+	virtual void BeginPlay() override;
 
-	UPROPERTY()
-		class AOvrlCharacterBase* CharacterRef;
+	// Main function that performs the interaction trace, called every tick.
+	// Can be overridden for custom logic.
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Interaction Component")
+	FInteractableObjectData FindInteractableObject() const;
+	virtual FInteractableObjectData FindInteractableObject_Implementation() const;
 
-	UPROPERTY(EditAnywhere, Category = "Item Picker", meta = (ClampMin = 0.1f))
-		float Range;
+	// Returns the locations of where the interaction trace should start/end.
+	// By default, it will use PlayerCameraManager position as start.
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Interaction Component")
+	void GetTraceStartEnd(FVector& OutTraceStart, FVector& OutTraceEnd) const;
+	virtual void GetTraceStartEnd_Implementation(FVector& OutTraceStart, FVector& OutTraceEnd) const;
+
+	// Return true if the passed object is valid and implements UInteractable interface.
+	virtual bool IsInteractableObject(UObject* ObjectToCheck) const;
+
+	// Utility function to create the data struct of the interacted object
+	FInteractableObjectData CreateInteractableData(UObject* OriginalObject, AActor* OwningActor) const;
+
+protected:
+	// Distance from interaction trace start position to where it should end.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Interaction Component", meta = (ClampMin = 0.1f, Units = "cm"))
+	float InteractionDistance;
+
+	// If true, interaction trace query will search for complex collisions.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Interaction Component")
+	bool bTraceComplex;
+
+	// Trace types used during interaction trace query.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Interaction Component")
+	TArray<TEnumAsByte<EObjectTypeQuery>> TraceTypes;
+
+	FInteractableObjectData CurrentPointedObjData;
 
 private:
-
 	UPROPERTY()
-		AActor* LastActorHit;
-
-	FVector StartPoint;
+	TObjectPtr<APawn> OwningPawn;
 };

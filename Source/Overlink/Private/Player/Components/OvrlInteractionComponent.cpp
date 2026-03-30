@@ -1,91 +1,133 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Player/Components/OvrlInteractionComponent.h"
-#include "Player/OvrlCharacterBase.h"
 
+// Internal
+#include "Core/OvrlInteractable.h"
+
+// Engine
+#include "OvrlUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-// Sets default values for this component's properties
 UOvrlInteractionComponent::UOvrlInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.TickInterval = 0.1f;
 
-	Range = 600.f;
+	InteractionDistance = 600.f;
+	
+	TraceTypes.Add(EObjectTypeQuery::ObjectTypeQuery1); // World Static
+	TraceTypes.Add(EObjectTypeQuery::ObjectTypeQuery2); // World Dynamic
 }
 
-// Called when the game starts
 void UOvrlInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterRef = Cast<AOvrlCharacterBase>(GetOwner());
-	LastActorHit = nullptr;
+	OwningPawn = Cast<APawn>(GetOwner());
 }
 
-// Called every frame
 void UOvrlInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	//if (!CharacterRef) return;
+	FInteractableObjectData Data = FindInteractableObject();
 
-	//FInteractionData Data = FindInteractiveObject();
+	// If it's not null, then is an Interactable object for sure
+	const bool bIsInteractable = Data.OriginalObject != nullptr;
+	
+	if (Data.OriginalObject == CurrentPointedObjData.OriginalObject)
+	{
+		if (bIsInteractable && IOvrlInteractable::Execute_ShouldReceiveHoveringUpdate(CurrentPointedObjData.OriginalObject))
+		{
+			IOvrlInteractable::Execute_HoveringUpdate(CurrentPointedObjData.OriginalObject, FHitResult());
+		}
+	}
+	else // If the pointed object changes
+	{
+		// If bIsInteractable is true, then ObjectToGrab is Valid for sure
+		// The check for the Interface should have already been done
+		if (bIsInteractable && IOvrlInteractable::Execute_CanInteract(Data.OriginalObject))
+		{
+			if (CurrentPointedObjData.OriginalObject)
+			{
+				IOvrlInteractable::Execute_EndHover(CurrentPointedObjData.OriginalObject);
+			}
 
-	//if (LastActorHit && (LastActorHit != Data.HitActor || !Data.IsInteractive))
-	//{
-	//	Cast<IInteractable>(LastActorHit)->Execute_OnEndFocus(LastActorHit, CharacterRef->GetController());
-	//	// Stop continuous call of OnEndFocus
-	//	LastActorHit = nullptr;
-	//}
-
-	//if (Data.HitActor)
-	//{
-	//	if (Data.IsInteractive)
-	//	{
-	//		Cast<IInteractable>(Data.HitActor)->Execute_OnBeginFocus(Data.HitActor, CharacterRef->GetController(), Data.HitComponent);
-	//		LastActorHit = Data.HitActor;
-	//	}
-	//}
-	//else
-	//{
-	//	LastActorHit = nullptr;
-	//}
+			// Update PointedObjData reference
+			CurrentPointedObjData = Data;
+			IOvrlInteractable::Execute_BeginHover(CurrentPointedObjData.OriginalObject, OwningPawn);
+		}
+		else
+		{
+			if (CurrentPointedObjData.OriginalObject)
+			{
+				IOvrlInteractable::Execute_EndHover(CurrentPointedObjData.OriginalObject);
+				CurrentPointedObjData = FInteractableObjectData(); // Reset struct data
+			}
+		}
+	}
 }
 
-FInteractionData UOvrlInteractionComponent::FindInteractiveObject()
+FInteractableObjectData UOvrlInteractionComponent::FindInteractableObject_Implementation() const
 {
-	//// Get Player's camera Direction
-	//APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+	FVector TraceStart, TraceEnd;
+	GetTraceStartEnd(TraceStart, TraceEnd);
 
-	//FVector StartLocation = CameraManager->GetCameraLocation();
-	//FVector LineTraceEnd = StartLocation + (CameraManager->GetActorForwardVector() * Range);
+	EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
-	//// Trace a ray that "has" the Visibility channel
-	//FHitResult Hit;
-	//GetWorld()->LineTraceSingleByChannel(Hit, StartLocation, LineTraceEnd, ECollisionChannel::ECC_Visibility);
+#if ENABLE_DRAW_DEBUG
+	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(OwningPawn, "Ovrl.Interactions");
 
-	FInteractionData InteractionData;
-	InteractionData.IsInteractive = false;
+	if (bDebugEnabled)
+		DebugType = EDrawDebugTrace::ForOneFrame;
+#endif
 
-	//if (AActor* HitActor = Hit.GetActor())
-	//{
-	//	InteractionData.HitActor = HitActor;
-	//	InteractionData.HitComponent = Hit.GetComponent();
+	FHitResult OutHit;
+	UKismetSystemLibrary::LineTraceSingleForObjects(this, TraceStart, TraceEnd, TraceTypes, bTraceComplex, { OwningPawn }, DebugType, OutHit, true);
 
-	//	if (HitActor->Implements<UInteractable>())
-	//	{
-	//		InteractionData.IsInteractive = Cast<IInteractable>(HitActor)->Execute_IsComponentInteractive(HitActor, InteractionData.HitComponent);
-	//	}
-	//}
+	if (OutHit.bBlockingHit)
+	{
+		// Search for components first
+		UPrimitiveComponent* ComponentHit = OutHit.GetComponent();
+		if (ComponentHit && ComponentHit->Implements<UOvrlInteractable>())
+		{
+			// Returns the first Component that implements the Interactable interface
+			return CreateInteractableData(ComponentHit, ComponentHit->GetOwner());
+		}
 
-	return InteractionData;
+		// Fallback to Actors
+		AActor* ActorHit = OutHit.GetActor();
+		if (ActorHit && ActorHit->Implements<UOvrlInteractable>())
+		{
+			// Returns the first Actor that implements the Interactable interface
+			return CreateInteractableData(ActorHit, ActorHit);
+		}
+	}
+
+	// No interactable object found
+	return FInteractableObjectData();
 }
 
-void UOvrlInteractionComponent::ChangeRange(float NewRange)
+void UOvrlInteractionComponent::GetTraceStartEnd_Implementation(FVector& OutTraceStart, FVector& OutTraceEnd) const
 {
-	Range = NewRange;
+	// Get Player's camera Direction
+	const APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(this, 0);
+
+	OutTraceStart = CameraManager->GetCameraLocation();
+	OutTraceEnd = OutTraceStart + (CameraManager->GetActorForwardVector() * InteractionDistance);
+}
+
+bool UOvrlInteractionComponent::IsInteractableObject(UObject* ObjectToCheck) const
+{
+	return ObjectToCheck && ObjectToCheck->Implements<UOvrlInteractable>();
+}
+
+FInteractableObjectData UOvrlInteractionComponent::CreateInteractableData(UObject* OriginalObject, AActor* OwningActor) const
+{
+	return FInteractableObjectData(OriginalObject, OriginalObject, OwningActor);
+	// Data.OriginalObject = OriginalObject;
+	// Data.InteractableObject.SetObject(OriginalObject);
+	// Data.OwningActor = OwningActor;
+	//
+	// return Data;
 }

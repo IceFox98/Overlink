@@ -62,6 +62,8 @@ public:
 	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
 
 	bool IsAiming() const;
+
+protected:
 	void PlayLandSound() const;
 	void PlayJumpSound() const;
 
@@ -73,12 +75,12 @@ public:
 	void Input_StartRun(const FInputActionValue& InputActionValue);
 	void Input_EndRun(const FInputActionValue& InputActionValue);
 
+	// ------ INTERACTION ------
+	void Input_StartInteract(const FInputActionValue& InputActionValue);
+	void Input_EndInteract(const FInputActionValue& InputActionValue);
+
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-
-	// ------ INTERACTION ------
-
-	void Interact();
 
 protected:
 	bool CheckWallCollisions(const FVector& Direction);
@@ -117,13 +119,13 @@ public:
 	// Time (in seconds) before bJustLanded is reset.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character")
 	float LandedResetTime;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character|Audio")
 	TObjectPtr<UOvrlFoleyAudioBank> FoleyAudioBank;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
 	float LandSoundMultiplier;
-		
+
 	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
 	float JumpSoundMultiplier;
 
@@ -136,16 +138,16 @@ public:
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 	TObjectPtr<UOvrlInputConfig> InputConfig;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character", Transient)
 	bool bJustLanded;
 
 private:
 	UPROPERTY()
 	TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
-	
+
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> SlidingAudioComponent;
-	
+
 	FTimerHandle TimerHandle_LandReset;
 };

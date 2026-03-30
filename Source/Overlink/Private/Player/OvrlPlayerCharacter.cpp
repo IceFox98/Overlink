@@ -13,6 +13,7 @@
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Audio/OvrlFoleyAudioBank.h"
+#include "Core/OvrlInteractable.h"
 #include "OvrlUtils.h"
 
 // Engine
@@ -122,116 +123,8 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Crouch, ETriggerEvent::Started, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Started, this, &ThisClass::Input_StartRun, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Completed, this, &ThisClass::Input_EndRun, /*bLogIfNotFound=*/ false);
-	}
-}
-
-UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() const
-{
-	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
-}
-
-bool AOvrlPlayerCharacter::IsAiming() const
-{
-	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
-}
-
-void AOvrlPlayerCharacter::PlayLandSound() const
-{
-	if (!FoleyAudioBank) return;
-	
-	const float PlayerVelocityZ = GetCharacterMovement()->GetRelativeLastUpdateVelocity().Z;
-	constexpr float SoundVelocityThreshold = 200.f;
-
-	if (PlayerVelocityZ < -SoundVelocityThreshold)
-	{
-		USoundBase* LandSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Land, SurfaceType_Default);
-		UGameplayStatics::PlaySoundAtLocation(this, LandSound, FullBodyMesh->GetComponentLocation(), LandSoundMultiplier);
-	}
-}
-
-void AOvrlPlayerCharacter::PlayJumpSound() const
-{
-	if (!FoleyAudioBank) return;
-	
-	USoundBase* JumpSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Jump, SurfaceType_Default);
-	UGameplayStatics::PlaySoundAtLocation(this, JumpSound, FullBodyMesh->GetComponentLocation(), JumpSoundMultiplier);
-}
-
-void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
-{
-	if (GetMesh() && FullBodyMesh)
-	{
-		GetMesh()->LinkAnimClassLayers(LayerClass);
-		FullBodyMesh->LinkAnimClassLayers(LayerClass);
-	}
-}
-
-void AOvrlPlayerCharacter::RestoreAnimLayerClass()
-{
-	if (GetMesh() && FullBodyMesh)
-	{
-		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
-		FullBodyMesh->LinkAnimClassLayers(DefaultAnimLayerClass);
-	}
-}
-
-void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
-{
-	Super::EquipObject(ObjectToEquip, MeshToDisplay);
-
-	ensure(MeshToDisplay);
-
-	// Spawn static mesh that is only used to cast shadows
-	if (!IsValid(EquippedObjectMesh))
-	{
-		EquippedObjectMesh = GetWorld()->SpawnActor<AStaticMeshActor>();
-		EquippedObjectMesh->SetMobility(EComponentMobility::Movable);
-		EquippedObjectMesh->SetActorEnableCollision(false);
-		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
-		EquippedObjectMesh->SetActorHiddenInGame(true);
-	}
-
-	if (EquippedObjectMesh)
-	{
-		EquippedObjectMesh->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
-		EquippedObjectMesh->GetStaticMeshComponent()->SetVisibility(false, true);
-
-		// Setup invisible mesh, able to cast shadows
-		EquippedObjectMesh->GetStaticMeshComponent()->CastShadow = true;
-		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = true;
-	}
-}
-
-void AOvrlPlayerCharacter::UnequipObject()
-{
-	Super::UnequipObject();
-
-	if (EquippedObjectMesh)
-	{
-		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = false;
-	}
-}
-
-void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
-{
-	Super::PlayAnimMontage(MontageToPlay, StartTime);
-
-	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
-}
-
-void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
-{
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->AbilityInputTagPressed(InputTag);
-	}
-}
-
-void AOvrlPlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
-{
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Interact, ETriggerEvent::Started, this, &ThisClass::Input_StartInteract, /*bLogIfNotFound=*/ false);
+		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Interact, ETriggerEvent::Completed, this, &ThisClass::Input_EndInteract, /*bLogIfNotFound=*/ false);
 	}
 }
 
@@ -308,6 +201,22 @@ void AOvrlPlayerCharacter::Input_EndRun(const FInputActionValue& InputActionValu
 	GetCharacterMovement()->InputStopRun();
 }
 
+void AOvrlPlayerCharacter::Input_StartInteract(const FInputActionValue& InputActionValue)
+{
+	if (InteractionComponent && InteractionComponent->GetCurrentPointedObjectData().OriginalObject)
+	{
+		IOvrlInteractable::Execute_Interact(InteractionComponent->GetCurrentPointedObjectData().OriginalObject);
+	}
+}
+
+void AOvrlPlayerCharacter::Input_EndInteract(const FInputActionValue& InputActionValue)
+{
+	if (InteractionComponent && InteractionComponent->GetCurrentPointedObjectData().OriginalObject)
+	{
+		IOvrlInteractable::Execute_EndInteract(InteractionComponent->GetCurrentPointedObjectData().OriginalObject);
+	}
+}
+
 void AOvrlPlayerCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
@@ -328,6 +237,106 @@ void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 	}
 }
 
+void AOvrlPlayerCharacter::PlayLandSound() const
+{
+	if (!FoleyAudioBank) return;
+	
+	const float PlayerVelocityZ = GetCharacterMovement()->GetRelativeLastUpdateVelocity().Z;
+	constexpr float SoundVelocityThreshold = 200.f;
+
+	if (PlayerVelocityZ < -SoundVelocityThreshold)
+	{
+		USoundBase* LandSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Land, SurfaceType_Default);
+		UGameplayStatics::PlaySoundAtLocation(this, LandSound, FullBodyMesh->GetComponentLocation(), LandSoundMultiplier);
+	}
+}
+
+void AOvrlPlayerCharacter::PlayJumpSound() const
+{
+	if (!FoleyAudioBank) return;
+	
+	USoundBase* JumpSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Jump, SurfaceType_Default);
+	UGameplayStatics::PlaySoundAtLocation(this, JumpSound, FullBodyMesh->GetComponentLocation(), JumpSoundMultiplier);
+}
+
+void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
+{
+	Super::PlayAnimMontage(MontageToPlay, StartTime);
+
+	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+}
+
+void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
+{
+	if (GetMesh() && FullBodyMesh)
+	{
+		GetMesh()->LinkAnimClassLayers(LayerClass);
+		FullBodyMesh->LinkAnimClassLayers(LayerClass);
+	}
+}
+
+void AOvrlPlayerCharacter::RestoreAnimLayerClass()
+{
+	if (GetMesh() && FullBodyMesh)
+	{
+		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
+		FullBodyMesh->LinkAnimClassLayers(DefaultAnimLayerClass);
+	}
+}
+
+void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
+{
+	Super::EquipObject(ObjectToEquip, MeshToDisplay);
+
+	ensure(MeshToDisplay);
+
+	// Spawn static mesh that is only used to cast shadows
+	if (!IsValid(EquippedObjectMesh))
+	{
+		EquippedObjectMesh = GetWorld()->SpawnActor<AStaticMeshActor>();
+		EquippedObjectMesh->SetMobility(EComponentMobility::Movable);
+		EquippedObjectMesh->SetActorEnableCollision(false);
+		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+		EquippedObjectMesh->SetActorHiddenInGame(true);
+	}
+
+	if (EquippedObjectMesh)
+	{
+		EquippedObjectMesh->GetStaticMeshComponent()->SetStaticMesh(MeshToDisplay);
+		EquippedObjectMesh->GetStaticMeshComponent()->SetVisibility(false, true);
+
+		// Setup invisible mesh, able to cast shadows
+		EquippedObjectMesh->GetStaticMeshComponent()->CastShadow = true;
+		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = true;
+	}
+}
+
+void AOvrlPlayerCharacter::UnequipObject()
+{
+	Super::UnequipObject();
+
+	if (EquippedObjectMesh)
+	{
+		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = false;
+	}
+}
+
+void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AbilityInputTagPressed(InputTag);
+	}
+}
+
+void AOvrlPlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AbilityInputTagReleased(InputTag);
+	}
+}
+
 void AOvrlPlayerCharacter::OnLocomotionActionChanged(const FGameplayTag& OldLocomotionAction, const FGameplayTag& NewLocomotionAction)
 {
 	if (!FoleyAudioBank) return;
@@ -341,20 +350,6 @@ void AOvrlPlayerCharacter::OnLocomotionActionChanged(const FGameplayTag& OldLoco
 	{
 		SlidingAudioComponent->FadeOut(.5f, 0.f);
 	}
-}
-
-void AOvrlPlayerCharacter::Interact()
-{
-	//if (InteractionComponent)
-	//{
-	//	FInteractionData ObjData = InteractionComponent->FindInteractiveObject();
-
-	//	if (ObjData.IsInteractive)
-	//	{
-	//		IInteractable* InteractiveObj = Cast<IInteractable>(ObjData.HitActor);
-	//		InteractiveObj->Execute_OnInteract(ObjData.HitActor, GetController(), ObjData.HitComponent);
-	//	}
-	//}
 }
 
 bool AOvrlPlayerCharacter::CheckWallCollisions(const FVector& Direction)
@@ -384,4 +379,14 @@ bool AOvrlPlayerCharacter::CheckWallCollisions(const FVector& Direction)
 	}
 
 	return false;
+}
+
+UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() const
+{
+	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
+}
+
+bool AOvrlPlayerCharacter::IsAiming() const
+{
+	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
 }
