@@ -1,15 +1,40 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Abilities/OvrlAbilityCost.h"
-
+#include "GameFramework/Character.h"
 
 UOvrlGameplayAbility::UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+}
+
+void UOvrlGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	
+	if (bCancelOnMontagePlay)
+	{
+		if (UAnimInstance* AnimInstance = GetOwnerAnimInstance())
+		{
+			AnimInstance->OnMontageStarted.AddUniqueDynamic(this, &UOvrlGameplayAbility::OnAnimMontageStarted);
+		}
+	}
+}
+
+void UOvrlGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	
+	if (bCancelOnMontagePlay)
+	{
+		if (UAnimInstance* AnimInstance = GetOwnerAnimInstance())
+		{
+			AnimInstance->OnMontageStarted.RemoveDynamic(this, &UOvrlGameplayAbility::OnAnimMontageStarted);
+		}
+	}
 }
 
 void UOvrlGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -61,4 +86,22 @@ void UOvrlGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, co
 	{
 		AdditionalCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
 	}
+}
+
+void UOvrlGameplayAbility::OnAnimMontageStarted(UAnimMontage* Montage)
+{
+	CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+}
+
+UAnimInstance* UOvrlGameplayAbility::GetOwnerAnimInstance() const
+{
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwningActorFromActorInfo()))
+	{
+		if (USkeletalMeshComponent* SkeletalMesh = OwnerCharacter->GetMesh())
+		{
+			return SkeletalMesh->GetAnimInstance();
+		}
+	}
+
+	return nullptr;
 }

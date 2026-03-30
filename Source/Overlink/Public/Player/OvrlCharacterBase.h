@@ -26,40 +26,36 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-
 	virtual UOvrlAbilitySystemComponent* GetOvrlAbilitySystemComponent() const { return AbilitySystemComponent; };
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	//virtual USceneComponent* GetEquipAttachmentComponent() const { return Cast<USceneComponent>(GetMesh()); }
-
 	UFUNCTION()
-		virtual void HandleDeath(AActor* InInstigator);
+	virtual void HandleDeath(AActor* InInstigator);
 
 	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
 	virtual void RestoreAnimLayerClass() { unimplemented(); };
 	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay);
+
 	virtual void UnequipObject() {};
 
 	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
 
 protected:
-
 	/** Components that manages the player abilities */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
+	TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UOvrlHealthComponent* HealthComponent;
+	TObjectPtr<UOvrlHealthComponent> HealthComponent;
 
 public:
-
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
-		TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
+	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
-		FName GripPointName;
+	FName GripPointName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
-		TSubclassOf<UOvrlLinkedAnimInstance> DefaultAnimLayerClass;
+	TSubclassOf<UOvrlLinkedAnimInstance> DefaultAnimLayerClass;
 };

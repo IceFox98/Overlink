@@ -7,6 +7,8 @@
 #include "OvrlGameplayAbility.generated.h"
 
 class UOvrlAbilityCost;
+class UAnimMontage;
+class UAnimInstance;
 
 /**
  * EOvrlAbilityActivationPolicy
@@ -35,26 +37,38 @@ public:
 	UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 public:
+	
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	
+	virtual void OnAbilityInputPressed() {};
+	virtual void OnAbilityInputReleased() {};
+
 	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 
-	virtual void OnAbilityInputPressed() {};
-	virtual void OnAbilityInputReleased(){};
-
 protected:
-	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
 	void TryActivateAbilityOnSpawn(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) const;
 
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 
+	UFUNCTION()
+	void OnAnimMontageStarted(UAnimMontage* Montage);
+	
+	UAnimInstance* GetOwnerAnimInstance() const;
+
 protected:
-	// Defines how this ability is meant to activate.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Gameplay Ability|Ability Activation")
+	// Defines how this ability is meant to activate
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Gameplay Ability")
 	EOvrlAbilityActivationPolicy ActivationPolicy;
 
 	// Additional costs that must be paid to activate this ability
-	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Ovrl Gameplay Ability|Costs")
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Ovrl Gameplay Ability")
 	TArray<TObjectPtr<UOvrlAbilityCost>> AdditionalCosts;
 
+	// Cancel this ability when any montage is played on the skeletal mesh of the owner character of this ability
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Gameplay Ability")
+	bool bCancelOnMontagePlay;
 };
