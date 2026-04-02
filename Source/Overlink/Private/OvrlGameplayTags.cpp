@@ -2,9 +2,9 @@
 
 #include "OvrlGameplayTags.h"
 
-namespace OvrlCoreTags
+namespace OvrlGameplayMessageTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(EnemyKilled, "Ovrl.Core.EnemyKilled");
+	UE_DEFINE_GAMEPLAY_TAG(EnemyKilled, "Ovrl.GameplayMessage.EnemyKilled");
 };
 
 namespace OvrlAbilityTags
@@ -78,6 +78,7 @@ namespace OvrlWeaponTags
 	UE_DEFINE_GAMEPLAY_TAG(FireAuto, "Ovrl.Weapon.FireAuto");
 	UE_DEFINE_GAMEPLAY_TAG(Reload, "Ovrl.Weapon.Reload");
 	UE_DEFINE_GAMEPLAY_TAG(ReloadCompleted, "Ovrl.Weapon.ReloadCompleted");
+	UE_DEFINE_GAMEPLAY_TAG(ReloadFailed, "Ovrl.Weapon.ReloadFailed");
 
 	UE_DEFINE_GAMEPLAY_TAG(MagazineAmmo, "Ovrl.Weapon.MagazineAmmo");
 	UE_DEFINE_GAMEPLAY_TAG(MagazineSize, "Ovrl.Weapon.MagazineSize");

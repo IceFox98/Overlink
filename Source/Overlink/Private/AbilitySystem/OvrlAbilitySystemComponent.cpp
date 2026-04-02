@@ -95,6 +95,16 @@ void UOvrlAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec&
 	PRAGMA_ENABLE_DEPRECATION_WARNINGS;
 }
 
+void UOvrlAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason)
+{
+	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
+	
+	if (const UOvrlGameplayAbility* OvrlAbility = Cast<const UOvrlGameplayAbility>(Ability))
+	{
+		OvrlAbility->OnAbilityFailedToActivate(FailureReason);
+	}	
+}
+
 void UOvrlAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
 {
 	if (InputTag.IsValid())

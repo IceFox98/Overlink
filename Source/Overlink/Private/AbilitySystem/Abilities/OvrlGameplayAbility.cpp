@@ -54,6 +54,10 @@ void UOvrlGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActor
 	}
 }
 
+void UOvrlGameplayAbility::OnAbilityFailedToActivate_Implementation(const FGameplayTagContainer& FailedReason) const
+{
+}
+
 bool UOvrlGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
 	if (!Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags) || !ActorInfo)

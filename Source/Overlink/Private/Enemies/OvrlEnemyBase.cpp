@@ -36,7 +36,7 @@ void AOvrlEnemyBase::HandleDeath(AActor* InInstigator)
 
 	// Notify kill
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(GetWorld());
-	MessageSystem.BroadcastMessage(OvrlCoreTags::EnemyKilled, KillMessage);
+	MessageSystem.BroadcastMessage(OvrlGameplayMessageTags::EnemyKilled, KillMessage);
 
 	Super::HandleDeath(InInstigator);
 }

@@ -42,6 +42,9 @@ public:
 	
 	virtual void OnAbilityInputPressed() {};
 	virtual void OnAbilityInputReleased() {};
+	
+	UFUNCTION(BlueprintNativeEvent)
+	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 
 	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 
