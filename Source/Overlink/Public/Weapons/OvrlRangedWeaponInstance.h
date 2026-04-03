@@ -56,7 +56,7 @@ public:
 	virtual void StartReloading() override;
 	virtual void EndReloading() override;
 
-	FORCEINLINE float GetTimeBetweenShots() const { return 60.f / FireRate; };
+	FORCEINLINE float GetTimeBetweenShots() const { return bIsSingleShot ? 0.f : 60.f / FireRate; };
 	FORCEINLINE float GetMaxDamageRange() const { return MaxDamageRange; };
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
@@ -135,8 +135,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	TObjectPtr<UAnimSequence> ReloadAnimation;
 
+	// If true, the fixed FireRate will be ignored and instead depend on how fast the player can shoot.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	bool bIsSingleShot;
+	
 	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f, EditCondition="!bIsSingleShot"))
 	float FireRate;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")

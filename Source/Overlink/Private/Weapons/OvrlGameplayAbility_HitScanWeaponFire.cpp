@@ -26,9 +26,16 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	{
 		StartRangedWeaponTargeting();
 
-		// The fire rate is managed by GAS: if the ability is still active (weapon firing), it can't be acivate again until you call EndAbility
+		// The fire rate is managed by GAS: if the ability is still active (weapon firing), it can't be activated again until you call EndAbility
 		const float TimeBetweenShots = WeaponInstance->GetTimeBetweenShots();
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_FireCooldown, this, &UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown, TimeBetweenShots, false);
+		if (TimeBetweenShots > 0.f)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_FireCooldown, this, &UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown, TimeBetweenShots, false);
+		}
+		else
+		{
+			ResetFireCooldown();
+		}
 	}
 }
 
