@@ -2,7 +2,6 @@
 
 #include "OvrlUtils.h"
 
-#include "Animations/OvrlAnimNode_OffsetRootBone.h"
 #include "Animation/AnimNodeReference.h"
 #include "GameFramework/HUD.h"
 #include "Core/OvrlPlayerCameraManager.h"
@@ -69,18 +68,6 @@ FTransform UOvrlUtils::ExtractRootTransformFromMontage(const UAnimMontage* Monta
 	}
 
 	return Sequence->ExtractRootTrackTransform(Segment->ConvertTrackPosToAnimPos(Time), nullptr);
-}
-
-FTransform UOvrlUtils::GetOffsetRootTransform(const FAnimNodeReference& Node)
-{
-	FTransform Transform(FTransform::Identity);
-
-	if (FOvrlAnimNode_OffsetRootBone* OffsetRoot = Node.GetAnimNodePtr<FOvrlAnimNode_OffsetRootBone>())
-	{
-		OffsetRoot->GetOffsetRootTransform(Transform);
-	}
-
-	return Transform;
 }
 
 bool UOvrlUtils::ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName)

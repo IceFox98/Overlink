@@ -92,10 +92,6 @@ public:
 
 	static FTransform ExtractRootTransformFromMontage(const UAnimMontage* Montage, float Time);
 
-	// Get the current world space transform from the offset root bone animgraph node
-	UFUNCTION(BlueprintPure, Category = "Ovrl Utils", meta = (BlueprintThreadSafe), DisplayName = "Get Ovrl Offset Root Transform")
-	static FTransform GetOffsetRootTransform(const FAnimNodeReference& Node);
-
 	static bool ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName);
 
 	static void TriggerCameraEvent(UObject* WorldObjectContext, ECameraFeedbackEvent CameraEvent);
