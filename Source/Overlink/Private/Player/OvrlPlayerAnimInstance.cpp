@@ -90,6 +90,8 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	bIsSliding = (LocomotionAction == OvrlLocomotionActionTags::Sliding);
 	bIsWallrunning = CharacterMovementComponent->IsWallrunning();
 	bIsWallClinging = CharacterMovementComponent->IsWallClinging();
+	bIsVerticalWallrun = CharacterMovementComponent->IsVerticalWallrunning();
+	bIsLateralWallrun = CharacterMovementComponent->IsLateralWallrunning();
 	
 	PlayerRotation = UOvrlUtils::GetGravityRelativeRotation(PlayerCharacter->GetActorRotation(), CharacterMovementComponent->GetGravityDirection());
 	bHasJustLanded = PlayerCharacter->bJustLanded;

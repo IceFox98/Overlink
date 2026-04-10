@@ -134,10 +134,16 @@ protected:
 	bool bIsSliding;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
-	bool bIsWallrunning;	
+	bool bIsWallrunning;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
 	bool bIsWallClinging;
+		
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
+	bool bIsVerticalWallrun;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
+	bool bIsLateralWallrun;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
 	bool bHasJustLanded;

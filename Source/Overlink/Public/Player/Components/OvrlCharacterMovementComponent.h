@@ -99,6 +99,12 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
 	FORCEINLINE FVector GetGroundNormal() const { return GroundNormal; };
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
+	FORCEINLINE FVector GetWallrunNormal() const { return WallrunNormal; };	
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
+	FORCEINLINE float GetLastValidWallDirection() const { return LastWallDirection; };
 
 	// ------ TRAVERSALS ------
 
@@ -397,6 +403,8 @@ private:
 	float VerticalWallrunAlpha;
 	float LateralWallrunAlpha;
 
+	float LastWallDirection;
+	
 	// ------ SLIDING VARS ------
 
 	bool bShouldSlideOnLanded;
