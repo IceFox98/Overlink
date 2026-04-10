@@ -41,17 +41,14 @@ class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 	GENERATED_BODY()
 
 public:
-
 	AOvrlWeaponInstance();
 
 protected:
-
 	virtual void BeginPlay() override;
 
 public:
-
-	virtual void OnEquipped() override;
-	virtual void OnUnequipped() override;
+	virtual void OnEquipped_Implementation() override;
+	virtual void OnUnequipped_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 	virtual void Fire(const FHitResult& HitData);
@@ -76,7 +73,6 @@ public:
 	void ToggleWeaponPhysics(bool bEnable);
 
 protected:
-
 	// @TODO: Should not be used here anymore
 	UFUNCTION()
 	void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
@@ -84,18 +80,15 @@ protected:
 	virtual void SpawnImpactVFX(const FHitResult& HitData);
 
 private:
-
 	void SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData);
 
 public:
-
 	// ----- COMPONENTS -----
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Components")
 	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
 public:
-
 	// Used for weapon IK. It's the name of the skeletal mesh IK bone to which this weapon is attached.
 	// NOTE: Don't use the socket name used to attach the actor, since it has different transform than hand.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
@@ -111,12 +104,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnFired OnFired;
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FOnReloaded OnReloaded;
 
 protected:
-
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
 	TMap<TEnumAsByte<EPhysicalSurface>, FBulletImpactEffects> BulletImpactEffects;
 
@@ -125,6 +117,5 @@ protected:
 	TObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
 
 private:
-
 	bool bIsReloading = false;
 };

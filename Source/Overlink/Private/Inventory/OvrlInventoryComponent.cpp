@@ -110,6 +110,11 @@ void UOvrlInventoryComponent::SetActiveSlotIndex(int32 NewIndex)
 		AOvrlEquipmentInstance* NewEquipInstance = EquippedItems[NewIndex];
 		if (ensure(NewEquipInstance))
 		{
+			if (EquippedItem)
+			{
+				EquippedItem->OnBeforeUnequip(); // Prepare current item to unequip (stop firing/attacking...)
+			}
+
 			const float EquipNotifyTime = NewEquipInstance->GetEquipNotifyTime();
 
 			// Simulate weapon switch animation, but actually perform the switch only after specific amount of time

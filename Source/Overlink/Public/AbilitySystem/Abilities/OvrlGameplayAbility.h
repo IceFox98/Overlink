@@ -37,13 +37,15 @@ public:
 	UOvrlGameplayAbility(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 public:
-	
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	
-	virtual void OnAbilityInputPressed() {};
-	virtual void OnAbilityInputReleased() {};
-	
-	UFUNCTION(BlueprintNativeEvent)
+
+	// Called when this ability receives an input pressed event
+	virtual void OnAbilityInputPressed();
+
+	// Called when this ability receives an input released event
+	virtual void OnAbilityInputReleased();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Gameplay Ability")
 	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
 
 	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
@@ -59,7 +61,7 @@ protected:
 
 	UFUNCTION()
 	void OnAnimMontageStarted(UAnimMontage* Montage);
-	
+
 	UAnimInstance* GetOwnerAnimInstance() const;
 
 protected:

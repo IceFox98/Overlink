@@ -46,7 +46,7 @@ protected:
 	// Multiplier applied to the widget fading time when weapon switches from no-ADS to ADS.
 	// Higher values means more time to fade out.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Reticle Widget")
-	float FadeOutTimeMultiplier = 2.f;
+	float FadeOutTimeMultiplier = .5f;
 
 	// Multiplier applied to the widget fading time when weapon switches from ADS to no-ADS.
 	// Higher values means more time to fade in.

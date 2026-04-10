@@ -20,20 +20,25 @@ class OVERLINK_API AOvrlEquipmentInstance : public AActor
 public:
 	AOvrlEquipmentInstance();
 
-public:
 	virtual void Destroyed() override;
+
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	void Initialize(const TSubclassOf<UOvrlEquipmentDefinition>& InEquipmentDefinitionClass, UOvrlItemInstance* InAssociatedItem);
-	
-	virtual void OnEquipped();
-	virtual void OnUnequipped();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Equipment Instance", meta = (DisplayName = "On Equipped"))
-	void K2_OnEquipped();
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Equipment Instance")
+	void OnEquipped();
+	virtual void OnEquipped_Implementation();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Equipment Instance", meta = (DisplayName = "On Unequipped"))
-	void K2_OnUnequipped();
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Equipment Instance")
+	void OnBeforeUnequip();
+	virtual void OnBeforeUnequip_Implementation();
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Equipment Instance")
+	void OnUnequipped();
+	virtual void OnUnequipped_Implementation();
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Instance")
 	FORCEINLINE UOvrlItemInstance* GetAssociatedItem() const { return AssociatedItem; };

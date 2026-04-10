@@ -35,13 +35,13 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 
 	SpreadRecoverySpeed = 1.f;
 
-	// Multipliers
-	SpreadMultiplier = 1.f;
-	SpreadMultiplierWalking = 1.2f;
-	SpreadMultiplierRunning = 1.4f;
-	SpreadMultiplierCrouchStanding = .5f;
-	SpreadMultiplierCrouchWalking = .75f;
-	SpreadMultiplierFalling = 2.f;
+	// Spread Offsets
+	SpreadOffset = 0.f;
+	SpreadOffsetWalking = .8f;
+	SpreadOffsetRunning = 1.2f;
+	SpreadOffsetCrouchIdle = -.5f;
+	SpreadOffsetCrouchWalking = -.2f;
+	SpreadOffsetFalling = 3.f;
 
 	MuzzleSocketName = TEXT("Muzzle");
 	AimSocketName = TEXT("Aim");
@@ -51,9 +51,15 @@ void AOvrlRangedWeaponInstance::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateSpreadMultiplier(DeltaTime);
+	UpdateSpreadOffset(DeltaTime);
 	UpdateRecoil(DeltaTime);
 	UpdateSpread(DeltaTime);
+
+	if (!IsEquipped() && DeltaRotation.IsNearlyZero())
+	{
+		// Disable ticking if the weapon is unequipped and all the recoil has been consumed
+		SetActorTickEnabled(false);
+	}
 }
 
 #if WITH_EDITOR
@@ -61,19 +67,28 @@ void AOvrlRangedWeaponInstance::PostEditChangeProperty(FPropertyChangedEvent& Pr
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
+	// Just for visual information
 	MinSpreadAngle = HeatToSpread.GetRichCurve()->Eval(0.f);
 	MaxSpreadAngle = HeatToSpread.GetRichCurve()->Eval(1.f);
 }
 #endif
 
-void AOvrlRangedWeaponInstance::OnEquipped()
+void AOvrlRangedWeaponInstance::OnEquipped_Implementation()
 {
-	Super::OnEquipped();
+	Super::OnEquipped_Implementation();
 
-	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(0.f);
 	OwnerMovementComp = GetOwner()->GetComponentByClass<UOvrlCharacterMovementComponent>();
+	bCanFire = true;
 
 	UpdateMagazineAmmoCountDisplay();
+}
+
+void AOvrlRangedWeaponInstance::OnBeforeUnequip_Implementation()
+{
+	Super::OnBeforeUnequip_Implementation();
+
+	StopFire();
+	bCanFire = false;
 }
 
 void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
@@ -205,7 +220,7 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(RecoilStep.Yaw);
 		CurrentCameraRecoil -= RecoilStep;
 
-		//OVRL_LOG("%s", *RecoilStep.ToString());
+		// OVRL_LOG("%s", *RecoilStep.ToString());
 
 		LastControllerRotation = PlayerController->GetControlRotation();
 	}
@@ -232,19 +247,18 @@ void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
 {
 	// Fastly smooth the spread, so the weapon reticle spokes don't snap to the spread angle
 	const float NormalizedHeat = UKismetMathLibrary::NormalizeToRange(CurrentHeat, 0.f, 100.f);
-	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat) * SpreadMultiplier;
+	CurrentSpread = HeatToSpread.GetRichCurve()->Eval(NormalizedHeat) + SpreadOffset;
 
 	CurrentHeat = FMath::Clamp(CurrentHeat - SpreadRecoverySpeed * DeltaTime, 0.f, 100.f);
-	//OVRL_LOG("%f", CurrentHeat);
 }
 
-void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
+void AOvrlRangedWeaponInstance::UpdateSpreadOffset(float DeltaTime)
 {
-	float TargetMultiplier = 1.f;
+	float TargetOffset = 0.f;
 
 	if (IsADS())
 	{
-		TargetMultiplier = 0.f;
+		TargetOffset = -MinSpreadAngle;
 	}
 	else
 	{
@@ -258,23 +272,23 @@ void AOvrlRangedWeaponInstance::UpdateSpreadMultiplier(float DeltaTime)
 
 			if (OwnerMovementComp->IsFalling())
 			{
-				TargetMultiplier = SpreadMultiplierFalling;
+				TargetOffset = SpreadOffsetFalling;
 			}
 			else if (OwnerMovementComp->IsCrouching())
 			{
-				TargetMultiplier = bIsMoving ? SpreadMultiplierCrouchWalking : SpreadMultiplierCrouchStanding;
+				TargetOffset = bIsMoving ? SpreadOffsetCrouchWalking : SpreadOffsetCrouchIdle;
 			}
 			else // Standing
 			{
 				if (bIsMoving)
 				{
-					TargetMultiplier = bIsWalking ? SpreadMultiplierWalking : SpreadMultiplierRunning;
+					TargetOffset = bIsWalking ? SpreadOffsetWalking : SpreadOffsetRunning;
 				}
 			}
 		}
 	}
 
-	SpreadMultiplier = FMath::FInterpTo(SpreadMultiplier, TargetMultiplier, DeltaTime, 10.f);
+	SpreadOffset = FMath::FInterpTo(SpreadOffset, TargetOffset, DeltaTime, 10.f);
 }
 
 float AOvrlRangedWeaponInstance::GetMagnifiedFOV(float InFOV) const
@@ -319,17 +333,17 @@ void AOvrlRangedWeaponInstance::PlayWeaponAnimation(UAnimSequence* AnimToPlay)
 	}
 }
 
-UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMaterial() const
+UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMaterial()
 {
-	if (MagazineAmmoCountDisplay)
+	if (!MagazineAmmoCountDisplayMat && MagazineAmmoCountDisplay && MagazineAmmoCountDisplay->GetStaticMesh())
 	{
-		return MagazineAmmoCountDisplay->CreateDynamicMaterialInstance(0, MagazineAmmoCountDisplay->GetMaterial(0));
+		MagazineAmmoCountDisplayMat = MagazineAmmoCountDisplay->CreateDynamicMaterialInstance(0, MagazineAmmoCountDisplay->GetMaterial(0));
 	}
 
-	return nullptr;
+	return MagazineAmmoCountDisplayMat;
 }
 
-void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay() const
+void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay()
 {
 	if (UMaterialInstanceDynamic* Material = GetMagazineAmmoCountMaterial())
 	{

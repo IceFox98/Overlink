@@ -21,7 +21,6 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 
 	const bool bCanActivateAbility = CommitAbility(Handle, ActorInfo, ActivationInfo);
 
-	//if (bCanActivateAbility)
 	if (AOvrlRangedWeaponInstance* WeaponInstance = GetWeaponInstance())
 	{
 		StartRangedWeaponTargeting();
@@ -50,6 +49,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 {
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetCurrentSourceObject(), 0);
 
+	// Useful struct that can handle multiple target hits
 	FGameplayAbilityTargetDataHandle HitTargetData;
 
 	if (PC)
@@ -100,7 +100,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown()
 
 void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputReleased()
 {
-	Super::OnAbilityInputPressed();
+	Super::OnAbilityInputReleased();
 
 	StopWeaponFire();
 }

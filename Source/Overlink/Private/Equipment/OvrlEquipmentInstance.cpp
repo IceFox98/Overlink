@@ -33,37 +33,48 @@ void AOvrlEquipmentInstance::Destroyed()
 	Super::Destroyed();
 }
 
+void AOvrlEquipmentInstance::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	SetActorTickEnabled(false); // Will be enabled when equipped
+}
+
 void AOvrlEquipmentInstance::Initialize(const TSubclassOf<UOvrlEquipmentDefinition>& InEquipmentDefinitionClass, UOvrlItemInstance* InAssociatedItem)
 {
 	EquipmentDefinitionClass = InEquipmentDefinitionClass;
 	AssociatedItem = InAssociatedItem;
-	
+
 	if (ensure(AssociatedItem) && AssociatedItem->GetItemDef())
 	{
 		DisplayMesh = AssociatedItem->GetItemDef()->DisplayMesh;
 	}
 }
 
-void AOvrlEquipmentInstance::OnEquipped()
+void AOvrlEquipmentInstance::OnEquipped_Implementation()
 {
+	bIsEquipped = true;
+
+	SetActorHiddenInGame(false);
+	SetActorTickEnabled(true);
+
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
-		bIsEquipped = true;
-
 		// Attach Display Mesh to 3rd person mesh
 		OwningPawn->EquipObject(this, DisplayMesh.Get());
-
-		SetActorHiddenInGame(false);
-		K2_OnEquipped();
 	}
 }
 
-void AOvrlEquipmentInstance::OnUnequipped()
+void AOvrlEquipmentInstance::OnBeforeUnequip_Implementation()
+{
+}
+
+void AOvrlEquipmentInstance::OnUnequipped_Implementation()
 {
 	bIsEquipped = false;
 
+	// SetActorTickEnabled(false);
 	SetActorHiddenInGame(true);
-	K2_OnUnequipped();
 }
 
 float AOvrlEquipmentInstance::GetEquipNotifyTime() const
@@ -76,7 +87,7 @@ float AOvrlEquipmentInstance::GetEquipNotifyTime() const
 		OVRL_LOG_WARN(LogOverlink, true, "Unable to find equip montage for item %s.", *GetName());
 		return 0.f;
 	}
-	
+
 	// Search if we find an equip notify, returning the time at where the notify is placed in the montage
 	for (const FAnimNotifyEvent& NotifyEvent : EquipmentDefinition->EquipMontage->Notifies)
 	{
@@ -85,14 +96,14 @@ float AOvrlEquipmentInstance::GetEquipNotifyTime() const
 			return NotifyEvent.GetTriggerTime();
 		}
 	}
-	
+
 	// If can't find the notify, return a default value
 	constexpr float DefaultEquipNotifyTime = .5f;
 	OVRL_LOG_WARN(LogOverlink, true, "Unable to find notify named '%s' in the montage '%s'. As default behavior, %f seconds will be used.",
 		*EquipmentDefinition->EquipNotifyName.ToString(),
 		*EquipmentDefinition->EquipMontage->GetName(),
 		DefaultEquipNotifyTime);
-	
+
 	return DefaultEquipNotifyTime;
 }
 
@@ -103,7 +114,7 @@ void AOvrlEquipmentInstance::PlayEquipMontage() const
 		// Play equip montage
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 		OwningPawn->PlayAnimMontage(EquipmentDefinition->EquipMontage);
-		
+
 		// Apply anim layer class of the equip instance, used for 1st person mesh
 		ApplyOverlayAnimInstance();
 	}

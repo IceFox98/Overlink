@@ -25,9 +25,9 @@ void AOvrlWeaponInstance::BeginPlay()
 	WeaponMesh->OnComponentHit.AddDynamic(this, &AOvrlWeaponInstance::OnWeaponHit);
 }
 
-void AOvrlWeaponInstance::OnEquipped()
+void AOvrlWeaponInstance::OnEquipped_Implementation()
 {
-	Super::OnEquipped();
+	Super::OnEquipped_Implementation();
 
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 
@@ -38,9 +38,9 @@ void AOvrlWeaponInstance::OnEquipped()
 	}
 }
 
-void AOvrlWeaponInstance::OnUnequipped()
+void AOvrlWeaponInstance::OnUnequipped_Implementation()
 {
-	Super::OnUnequipped();
+	Super::OnUnequipped_Implementation();
 
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::None;
 }

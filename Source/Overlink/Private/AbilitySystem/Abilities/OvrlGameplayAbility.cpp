@@ -54,6 +54,14 @@ void UOvrlGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActor
 	}
 }
 
+void UOvrlGameplayAbility::OnAbilityInputPressed()
+{
+}
+
+void UOvrlGameplayAbility::OnAbilityInputReleased()
+{
+}
+
 void UOvrlGameplayAbility::OnAbilityFailedToActivate_Implementation(const FGameplayTagContainer& FailedReason) const
 {
 }
