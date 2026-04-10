@@ -60,9 +60,11 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 
+	bEnableCameraStabilization = true;
 	LandedResetTime = .3f;
 	LandSoundMultiplier = .5f;
 	JumpSoundMultiplier = .5f;
+	SlideSoundMultiplier = .5f;
 }
 
 void AOvrlPlayerCharacter::OnJumped_Implementation()
@@ -345,6 +347,7 @@ void AOvrlPlayerCharacter::OnLocomotionActionChanged(const FGameplayTag& OldLoco
 	{
 		USoundBase* SlideSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Slide, SurfaceType_Default);
 		SlidingAudioComponent = UGameplayStatics::SpawnSoundAttached(SlideSound, FullBodyMesh);
+		SlidingAudioComponent->SetVolumeMultiplier(SlideSoundMultiplier);
 	}
 	else if (OldLocomotionAction == OvrlLocomotionActionTags::Sliding && SlidingAudioComponent)
 	{

@@ -116,6 +116,10 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerJumped OnPlayerJumped;
 
+	// If true, the fist player camera will be stabilized, ignoring every player's body movements.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
+	bool bEnableCameraStabilization;
+	
 	// Time (in seconds) before bJustLanded is reset.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character")
 	float LandedResetTime;
@@ -129,6 +133,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
 	float JumpSoundMultiplier;
 
+	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
+	float SlideSoundMultiplier;
+	
 	// ------ INPUT ------
 
 	/** MappingContext */
