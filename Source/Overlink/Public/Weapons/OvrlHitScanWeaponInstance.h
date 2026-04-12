@@ -10,7 +10,7 @@
 /**
  *
  */
-UCLASS(meta = (Category = "Ovrl Hit-Scan Weapon Instance"))
+UCLASS()
 class OVERLINK_API AOvrlHitScanWeaponInstance : public AOvrlRangedWeaponInstance
 {
 	GENERATED_BODY()

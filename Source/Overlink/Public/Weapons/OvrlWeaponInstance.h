@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Equipment/OvrlEquipmentInstance.h"
-#include "NiagaraComponent.h"
-#include "Weapons/AmmoTypes/OvrlItemAmmoBase.h"
 #include "NiagaraFunctionLibrary.h"
 
 #include "OvrlWeaponInstance.generated.h"
@@ -35,7 +33,7 @@ struct FBulletImpactEffects
 /**
  *
  */
-UCLASS(meta = (Category = "Ovrl Weapon Instance"))
+UCLASS()
 class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 {
 	GENERATED_BODY()
@@ -89,17 +87,6 @@ public:
 	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
 public:
-	// Used for weapon IK. It's the name of the skeletal mesh IK bone to which this weapon is attached.
-	// NOTE: Don't use the socket name used to attach the actor, since it has different transform than hand.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
-	FName OwnerAttachBoneName = "hand_r";
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
-	FName LeftHandIKSocketName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
-	TSubclassOf<UGameplayEffect> GE_Damage;
-
 	FOnHitSomething OnHitSomething;
 
 	UPROPERTY(BlueprintAssignable)
@@ -109,12 +96,25 @@ public:
 	FOnReloaded OnReloaded;
 
 protected:
+	// Used for weapon IK. It's the name of the owner skeletal mesh IK bone to which this weapon is attached.
+	// You should not edit this unless you changed something in the owner skeleton hierarchy.
+	// NOTE: Don't use the socket name used to attach the actor, since it has different transform than hand.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	FName OwnerAttachBoneName = TEXT("hand_r");
+
+	// Name of the weapon's skeletal mesh socket used during IK.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	FName LeftHandIKSocketName = TEXT("LeftHandIK");
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
+	TSubclassOf<UGameplayEffect> GE_Damage;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
 	TMap<TEnumAsByte<EPhysicalSurface>, FBulletImpactEffects> BulletImpactEffects;
 
 	// Should be the skeletal mesh of the character holding the weapon
 	UPROPERTY()
-	TObjectPtr<USkeletalMeshComponent> OwningSkeletalMesh;
+	TObjectPtr<USkeletalMeshComponent> OwnerSkeletalMesh;
 
 private:
 	bool bIsReloading = false;

@@ -286,9 +286,9 @@ void AOvrlPlayerCharacter::RestoreAnimLayerClass()
 	}
 }
 
-void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
+void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay)
 {
-	Super::EquipObject(ObjectToEquip, MeshToDisplay);
+	Super::EquipObject(ObjectToEquip, AttachSocketName, MeshToDisplay);
 
 	ensure(MeshToDisplay);
 
@@ -298,7 +298,7 @@ void AOvrlPlayerCharacter::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshT
 		EquippedObjectMesh = GetWorld()->SpawnActor<AStaticMeshActor>();
 		EquippedObjectMesh->SetMobility(EComponentMobility::Movable);
 		EquippedObjectMesh->SetActorEnableCollision(false);
-		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+		EquippedObjectMesh->AttachToComponent(FullBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachSocketName);
 		EquippedObjectMesh->SetActorHiddenInGame(true);
 	}
 

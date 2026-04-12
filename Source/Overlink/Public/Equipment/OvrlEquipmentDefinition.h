@@ -31,6 +31,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
 	bool bShouldSpawnEquipmentInstance = false;
 	
+	// Name of the socket/bone to which the equipment instance will be attached to.
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	FName AttachSocketName;
+	
 	// The Actor class to spawn when this item is equipped
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	TSubclassOf<AOvrlEquipmentInstance> EquipmentClass;

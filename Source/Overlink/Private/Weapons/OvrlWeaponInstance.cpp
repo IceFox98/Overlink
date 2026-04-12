@@ -1,21 +1,20 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Weapons/OvrlWeaponInstance.h"
+
 #include "Core/OvrlDamageable.h"
 
-#include "Components/SphereComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "GameFramework/Character.h"
+#include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 AOvrlWeaponInstance::AOvrlWeaponInstance()
 {
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
-	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 
-	LeftHandIKSocketName = TEXT("LeftHandIK");
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 }
 
 void AOvrlWeaponInstance::BeginPlay()
@@ -34,7 +33,7 @@ void AOvrlWeaponInstance::OnEquipped_Implementation()
 	if (ACharacter* OwningPawn = Cast<ACharacter>(GetOwner()))
 	{
 		// Get First Person skeletal mesh
-		OwningSkeletalMesh = OwningPawn->GetMesh();
+		OwnerSkeletalMesh = OwningPawn->GetMesh();
 	}
 }
 
@@ -70,18 +69,18 @@ void AOvrlWeaponInstance::StartReloading()
 void AOvrlWeaponInstance::EndReloading()
 {
 	bIsReloading = false;
-	
+
 	OnReloaded.Broadcast(this);
 }
 
 FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
 {
-	if (ensure(WeaponMesh && OwningSkeletalMesh))
+	if (ensure(WeaponMesh && OwnerSkeletalMesh))
 	{
 		const FTransform SocketTransform = WeaponMesh->GetSocketTransform(LeftHandIKSocketName);
 		FVector OutPosition;
 		FRotator OutRotation;
-		OwningSkeletalMesh->TransformToBoneSpace(OwnerAttachBoneName, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
+		OwnerSkeletalMesh->TransformToBoneSpace(OwnerAttachBoneName, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
 
 		return { OutRotation, OutPosition, FVector::OneVector };
 	}
@@ -129,10 +128,10 @@ void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor*
 	FVector ZAxis = FVector::CrossProduct(XAxis, NormalizedImpactNormal).GetSafeNormal();
 
 	FMatrix RotationMatrix(
-		XAxis,                  // X-axis: perpendicular to the normal
+		XAxis, // X-axis: perpendicular to the normal
 		NormalizedImpactNormal, // Y-axis: aligned with the impact normal
-		ZAxis,                  // Z-axis: computed for orthogonality
-		FVector::ZeroVector     // Origin (irrelevant for rotation)
+		ZAxis, // Z-axis: computed for orthogonality
+		FVector::ZeroVector // Origin (irrelevant for rotation)
 	);
 
 	SetActorRotation(FQuat(RotationMatrix));

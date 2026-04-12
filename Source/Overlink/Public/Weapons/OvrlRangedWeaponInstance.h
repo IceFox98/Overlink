@@ -24,13 +24,14 @@ class UOvrlCameraModifierBase;
 class UMaterialInstanceDynamic;
 class UAnimMontage;
 class UAnimSequence;
+class UOvrlItemAmmoBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAmmoUpdated);
 
 /**
  *
  */
-UCLASS(meta = (Category = "Ovrl Ranged Weapon Instance"))
+UCLASS()
 class OVERLINK_API AOvrlRangedWeaponInstance : public AOvrlWeaponInstance
 {
 	GENERATED_BODY()

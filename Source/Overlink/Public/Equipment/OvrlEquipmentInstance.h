@@ -12,7 +12,7 @@ class UOvrlInventoryComponent;
 class UOvrlItemInstance;
 class UCurveVector;
 
-UCLASS(meta = (Category = "Ovrl Equipment Instance"))
+UCLASS()
 class OVERLINK_API AOvrlEquipmentInstance : public AActor
 {
 	GENERATED_BODY()

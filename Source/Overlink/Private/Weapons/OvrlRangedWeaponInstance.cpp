@@ -8,7 +8,6 @@
 #include "Player/CameraModifiers/OvrlCameraModifierBase.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Inventory/OvrlItemInstance.h"
-#include "OvrlGameplayTags.h"
 
 #include "GameFramework/PlayerController.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -17,6 +16,7 @@
 
 #include "Overlink.h"
 #include "OvrlUtils.h"
+#include "OvrlGameplayTags.h"
 
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
@@ -365,12 +365,12 @@ FTransform AOvrlRangedWeaponInstance::GetMuzzleTransform() const
 
 FTransform AOvrlRangedWeaponInstance::GetAimTransform() const
 {
-	if (ensure(WeaponMesh && OwningSkeletalMesh))
+	if (ensure(WeaponMesh && OwnerSkeletalMesh))
 	{
 		const FTransform SocketTransform = WeaponMesh->GetSocketTransform(AimSocketName);
 		FVector OutPosition;
 		FRotator OutRotation;
-		OwningSkeletalMesh->TransformToBoneSpace(OwnerAttachBoneName, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
+		OwnerSkeletalMesh->TransformToBoneSpace(OwnerAttachBoneName, SocketTransform.GetLocation(), SocketTransform.GetRotation().Rotator(), OutPosition, OutRotation);
 
 		return { OutRotation, OutPosition, FVector::OneVector };
 	}

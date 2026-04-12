@@ -34,7 +34,7 @@ public:
 
 	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
 	virtual void RestoreAnimLayerClass() { unimplemented(); };
-	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay);
+	virtual void EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay);
 
 	virtual void UnequipObject() {};
 
@@ -52,9 +52,6 @@ public:
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
 	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
-	FName GripPointName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
 	TSubclassOf<UOvrlLinkedAnimInstance> DefaultAnimLayerClass;

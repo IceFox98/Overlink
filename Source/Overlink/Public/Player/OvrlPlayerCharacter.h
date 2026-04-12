@@ -57,7 +57,7 @@ public:
 public:
 	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
 	virtual void RestoreAnimLayerClass() override;
-	virtual void EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay) override;
+	virtual void EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay) override;
 	virtual void UnequipObject() override;
 	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
 

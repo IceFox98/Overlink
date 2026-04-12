@@ -36,7 +36,7 @@ void AOvrlEquipmentInstance::Destroyed()
 void AOvrlEquipmentInstance::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	SetActorTickEnabled(false); // Will be enabled when equipped
 }
 
@@ -60,8 +60,10 @@ void AOvrlEquipmentInstance::OnEquipped_Implementation()
 
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
+		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
+
 		// Attach Display Mesh to 3rd person mesh
-		OwningPawn->EquipObject(this, DisplayMesh.Get());
+		OwningPawn->EquipObject(this, EquipmentDefinition->AttachSocketName, DisplayMesh.Get());
 	}
 }
 

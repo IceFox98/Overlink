@@ -17,8 +17,6 @@ AOvrlCharacterBase::AOvrlCharacterBase(const FObjectInitializer& ObjectInitializ
 
 	HealthComponent = CreateDefaultSubobject<UOvrlHealthComponent>(TEXT("HealthComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UOvrlAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-
-	GripPointName = FName("GripPoint");
 }
 
 // Called when the game starts or when spawned
@@ -45,13 +43,13 @@ void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 	Destroy();
 }
 
-void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, UStaticMesh* MeshToDisplay)
+void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay)
 {
 	// MeshToDisplay is not used here, look at PlayerCharacter
 
 	if (ensure(ObjectToEquip))
 	{
-		ObjectToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, GripPointName);
+		ObjectToEquip->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, AttachSocketName);
 	}
 }
 
