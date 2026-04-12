@@ -20,20 +20,21 @@
 
 UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 {
+	// Legacy vars
 	GetNavAgentPropertiesRef().bCanCrouch = true;
 	GetNavAgentPropertiesRef().bCanJump = true;
-
 	bCanWalkOffLedgesWhenCrouching = true;
-
 	MaxWalkSpeed = 450.f;
+
+	// Locomotion
 	MaxRunSpeed = 800.f;
 	GroundNormalCheckDistance = 200.f;
 
-	// Parkour variables
+	// Wallrun
 	WallrunForwardCheckDistance = 75.f;
 	WallrunStrafeCheckDistance = 75.f;
-	WallrunMinCheckAngle = 0.f;
-	WallrunMaxCheckAngle = 57.f;
+	WallrunMaxOuterCheckAngle = 10.f;
+	WallrunMaxInnerCheckAngle = 57.f;
 	WallrunMinCheckVelocityZ = -500.f;
 	WallrunStickForce = 100.f;
 	WallrunCameraTiltAngle = 15.f;
@@ -42,13 +43,18 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	VerticalWallrunJumpVelocity = FVector(1000.f, 1500.f, 800.f);
 	VerticalWallrunMaxVelocity = 600.f;
 	VerticalWallrunVelocityFalloffSpeed = 1.5f;
+	VerticalWallrunCheckAngle = 30.f;
 
+	// Slide
 	SlideDistanceCheck = 200.f;
+	SlideCancelThreshold = 575.f;
 	SlideForce = 800.f;
 	SlideGroundFriction = 0.f;
 	SlideBraking = 1000.f;
 	SlideMaxWalkSpeedCrouched = 0.f;
 
+	// Traversals
+	bAllowTraversalWhenWallrunning = true;
 	TraversalCheckDistance = FVector2D(100.f, 50.f);
 	TraversalLandingPointDistance = 100.f;
 	TraversalHandOffset = { 17.f, 5.f };
@@ -57,7 +63,6 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	MaxVaultOverLength = 200.f;
 	MaxLandingPointHeight = MaxVaultHeight + 30.f;
 	MinLandingPointHeight = MaxVaultHeight * .5f;
-
 	MinMantleDistance = 90.f;
 }
 
@@ -110,15 +115,16 @@ void UOvrlCharacterMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 
 	if (bHasPlayerJumped)
 	{
-		HandleTraversals();
+		if (bAllowTraversalWhenWallrunning || !IsWallrunning())
+		{
+			HandleTraversals();
+		}
 	}
 
 	HandleWallrun(DeltaTime);
 
 	if (ShouldCancelSliding())
 	{
-		// TODO: Replace with Gameplay Ability
-		//Character->UnCrouch();
 		CancelSliding();
 	}
 }
@@ -540,7 +546,6 @@ bool UOvrlCharacterMovementComponent::HandleTraversals()
 
 	const FTraversalResult TraversalResult = CheckForTraversal();
 
-	//if (false) // Let's overcome the traversal
 	if (TraversalResult.bFound) // Let's overcome the traversal
 	{
 		// Allow the animation's root motion to ignore the gravity.
@@ -563,7 +568,6 @@ bool UOvrlCharacterMovementComponent::HandleTraversals()
 		}
 
 		bHasPlayerJumped = false;
-		//StopRunning();
 		UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StopRun);
 		SetGait(OvrlGaitTags::Idle);
 		ResetWallrun();
@@ -774,7 +778,7 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 		FVector WarpLocation = FVector::ZeroVector;
 		if (TraversalResult.bHasLandingPoint)
 		{
-			// Find mid point of the traversal
+			// Find mid-point of the traversal
 			WarpLocation = (TraversalResult.FrontEdgeLocation + TraversalResult.BackEdgeLocation) * .5f;
 		}
 		else
@@ -878,7 +882,6 @@ void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& Traver
 		Character->PlayAnimMontage(VaultClimbUpMontage);
 	}
 
-	//Character->Crouch();
 	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
 }
 
@@ -902,24 +905,14 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 {
 	if (ShouldHandleWallrun())
 	{
-		//if (IsWallrunning())
-		//{
-		//	if (HandleTraversals()) // Any traversal while wallrunning?
-		//	{
-		//		// Reset wallrun and perform the traversal
-		//		ResetWallrun();
-		//		return;
-		//	}
-		//}
-
 		const bool bIsPlayerMoving = GetLastInputVector().Length() > 0.f;
 
-		//if (bIsPlayerNotGrounded/* && bIsPlayerMovingForward*/)
+		//if (bIsPlayerMovingForward)
 		{
 			bool bHandled = HandleVerticalWallrun(DeltaTime);
 			if (!bHandled /*&& bIsPlayerMoving*/)
 			{
-				const bool bHasVelocity = GetLastUpdateVelocity().Size2D() > 0.f; // @TODO: Adapt to gravity direction?
+				const bool bHasVelocity = GetRelativeLastUpdateVelocity().Z > WallrunMinCheckVelocityZ;
 				if (!bHasVelocity)
 				{
 					EndWallrun();
@@ -937,11 +930,6 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 
 bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 {
-	//if (IsLateralWallrunning())
-	//{
-	//	return false;
-	//}
-
 	const FVector ForwardVector = Character->GetActorForwardVector() * WallrunForwardCheckDistance;
 
 	const FVector StartTrace = Character->GetActorLocation();
@@ -958,8 +946,8 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 	if (OutHit.bBlockingHit)
 	{
-		const bool bShouldPerformWallrun = FVector::DotProduct(Character->GetActorForwardVector(), -OutHit.ImpactNormal) > .85f;
-
+		const float CheckAngle = FMath::Cos(FMath::DegreesToRadians(VerticalWallrunCheckAngle));
+		const bool bShouldPerformWallrun = FVector::DotProduct(Character->GetActorForwardVector(), -OutHit.ImpactNormal) >= CheckAngle;
 		if (bShouldPerformWallrun)
 		{
 			WallrunNormal = OutHit.ImpactNormal;
@@ -1027,14 +1015,14 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 
 		if (!IsLateralWallrunning())
 		{
-			const float MinCheckAngle = FMath::Cos(FMath::DegreesToRadians(90.f - WallrunMinCheckAngle));
-			const float MaxCheckAngle = FMath::Cos(FMath::DegreesToRadians(90.f - WallrunMaxCheckAngle));
+			// Since we're checking the angle considering the "forward" of the wall, we use 90° as starting angle.
+			const float MinCheckAngle = FMath::Cos(FMath::DegreesToRadians(90.f + WallrunMaxOuterCheckAngle));
+			const float MaxCheckAngle = FMath::Cos(FMath::DegreesToRadians(90.f - WallrunMaxInnerCheckAngle));
 
 			const double CheckAngle = FVector::DotProduct(-WallrunNormal, Character->GetActorForwardVector());
 
 			if (CheckAngle < MinCheckAngle || CheckAngle > MaxCheckAngle)
 			{
-				//EndWallrun();
 				return false;
 			}
 		}
@@ -1044,8 +1032,8 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	}
 	else if (IsLateralWallrunning()) // Perform validation trace only if we're actually wallrunning and we're not hitting any walls
 	{
-		// Let's do another trace directly towards the wall, to check if the player is still sticked to the wall.
-		// Using the first trace is unsafe, since it's handled by the player forward vector.
+		// Let's do another trace directly towards the wall, to check if the player is still "sticked" to the wall.
+		// Using the first trace is unsafe, since it's handled by the player's forward vector.
 		const FVector ValidationStartTrace = Character->GetActorLocation();
 		const FVector ValidationEndTrace = Character->GetActorLocation() - WallrunNormal * 100.f;
 
@@ -1111,15 +1099,23 @@ void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
 
 	FVector LaunchVelocity = FVector::ZeroVector;
 
-	// How much the player input is aligned with the wall normal
-	const float InputAlignedDotValue = FVector::DotProduct(GetLastInputVector().GetSafeNormal(), WallrunNormal);
-
-	// How muche the player pointing direction is aligned with the wall normal
+	// How much the player pointing direction is aligned with the wall normal
 	const float PlayerAlignedDotValue = FVector::DotProduct(Character->GetActorForwardVector(), WallrunNormal);
 
-	const bool bHasNoInput = FMath::IsNearlyZero(GetLastInputVector().Length());
+	const bool bHasInput = !FMath::IsNearlyZero(GetLastInputVector().Length());
 
-	if (bHasNoInput)
+	if (bHasInput)
+	{
+		if (PlayerAlignedDotValue < 0.f) // Facing the wall (angle < 90°), has input --> up jump
+		{
+			LaunchVelocity = -GetGravityDirection() * UpwardVelocity;
+		}
+		else // Facing out of the wall (angle > 90°), has input --> jump toward the input direction
+		{
+			LaunchVelocity = (Character->GetActorForwardVector() * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
+		}
+	}
+	else
 	{
 		if (PlayerAlignedDotValue < 0.f) // Facing the wall, no input --> back jump
 		{
@@ -1130,17 +1126,6 @@ void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
 			LaunchVelocity = (WallrunNormal * AwayVelocity) + (-GetGravityDirection() * UpwardVelocity);
 		}
 	}
-	else
-	{
-		if (PlayerAlignedDotValue < 0.f) // Facing the wall, has input --> up jump
-		{
-			LaunchVelocity = /*(Character->GetActorForwardVector() * ForwardVelocity) + */(-GetGravityDirection() * UpwardVelocity);
-		}
-		else // Facing out of the wall, has input --> jump toward the input direction
-		{
-			LaunchVelocity = (Character->GetActorForwardVector() * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
-		}
-	}
 
 	EndWallrun();
 	Character->LaunchCharacter(LaunchVelocity, true, true);
@@ -1148,12 +1133,9 @@ void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
 
 void UOvrlCharacterMovementComponent::ResetWallrun()
 {
-	//if (LocomotionAction == FGameplayTag::EmptyTag)
-	{
-		bIsWallrunInCooldown = false;
-		VerticalWallrunAlpha = 1.f;
-		LateralWallrunAlpha = 1.f;
-	}
+	bIsWallrunInCooldown = false;
+	VerticalWallrunAlpha = 1.f;
+	LateralWallrunAlpha = 1.f;
 }
 
 void UOvrlCharacterMovementComponent::EndWallrun()
@@ -1212,17 +1194,14 @@ void UOvrlCharacterMovementComponent::HandleSliding()
 	}
 }
 
-bool UOvrlCharacterMovementComponent::ShouldCancelSliding()
+bool UOvrlCharacterMovementComponent::ShouldCancelSliding() const
 {
 	if (!IsSliding())
 	{
 		return false;
 	}
 
-	//OvrlLOG("%f", GetLastUpdateVelocity().Length());
-
-	return GetLastUpdateVelocity().Length() <= 575.f;
-	//return false;
+	return GetLastUpdateVelocity().Length() < SlideCancelThreshold;
 }
 
 void UOvrlCharacterMovementComponent::CancelSliding()
@@ -1234,7 +1213,7 @@ void UOvrlCharacterMovementComponent::CancelSliding()
 	SetLocomotionAction(FGameplayTag::EmptyTag);
 }
 
-double UOvrlCharacterMovementComponent::GetDesiredCameraRoll()
+double UOvrlCharacterMovementComponent::GetDesiredCameraRoll() const
 {
 	double TargetRoll = 0;
 
@@ -1307,7 +1286,7 @@ void UOvrlCharacterMovementComponent::JumpFromLateralWallrun(const FVector& Laun
 	FinalVel.X += LastVelocity.X;
 	FinalVel.Y += LastVelocity.Y;
 	FinalVel.Z += LastVelocity.Z;
-	
+
 	// Transform back to world space velocity, since Launch() function works with that
 	FinalVel = Character->GetActorTransform().TransformVector(FinalVel);
 

@@ -24,7 +24,6 @@ enum class EWallrunType : uint8
 	Right
 };
 
-
 struct FTraversalResult
 {
 	// Set to true if any traversal has been detected.
@@ -46,7 +45,7 @@ struct FTraversalResult
 
 	// Where the player should land and end its animation
 	FVector LandingPoint;
-	
+
 	// The height of the traversal, considering the player's feet position as starting point 
 	float Height;
 
@@ -57,8 +56,8 @@ USTRUCT()
 struct FCameraLimits
 {
 	GENERATED_BODY()
-public:
 
+public:
 	UPROPERTY(EditAnywhere)
 	float ViewPitchMin = -89.9f;
 
@@ -85,24 +84,21 @@ class OVERLINK_API UOvrlCharacterMovementComponent : public UCharacterMovementCo
 	GENERATED_BODY()
 
 public:
-
 	UOvrlCharacterMovementComponent();
 
 public:
-
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void Crouch(bool bClientSimulation = false) override;
 	virtual void UnCrouch(bool bClientSimulation = false) override;
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
-	
+
 public:
-	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
 	FORCEINLINE FVector GetGroundNormal() const { return GroundNormal; };
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
-	FORCEINLINE FVector GetWallrunNormal() const { return WallrunNormal; };	
-	
+	FORCEINLINE FVector GetWallrunNormal() const { return WallrunNormal; };
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
 	FORCEINLINE float GetLastValidWallDirection() const { return LastWallDirection; };
 
@@ -113,7 +109,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void ResetTraversal();
 
-	FORCEINLINE bool IsTraversing() const {
+	FORCEINLINE bool IsTraversing() const
+	{
 		return LocomotionAction == OvrlLocomotionActionTags::Mantling || LocomotionAction == OvrlLocomotionActionTags::Vaulting;
 	};
 
@@ -127,14 +124,15 @@ public:
 
 	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
 	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
-	FORCEINLINE bool IsLateralWallrunning() const {
+	FORCEINLINE bool IsLateralWallrunning() const
+	{
 		return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight;
 	};
 
 	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
 	FORCEINLINE bool IsWallClinging() const { return LocomotionAction == OvrlLocomotionActionTags::WallClinging; };
 
-	double GetDesiredCameraRoll();
+	double GetDesiredCameraRoll() const;
 	void ApplyCameraPitchLimits(float& ViewPitchMin, float& ViewPitchMax);
 	void ApplyCameraYawLimits(float& ViewYawMin, float& ViewYawMax);
 
@@ -161,7 +159,6 @@ public:
 	void SetGait(const FGameplayTag& NewGait);
 
 protected:
-
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 	virtual void BeginPlay() override;
 
@@ -169,7 +166,6 @@ protected:
 	void StopRunning();
 
 private:
-
 	void ComputeGroundNormal();
 	void UpdateGaitStatus();
 	bool ShouldRun() const;
@@ -211,17 +207,16 @@ private:
 	// ------ SLIDE ------
 
 	void HandleSliding();
-	bool ShouldCancelSliding();
+	bool ShouldCancelSliding() const;
 	void CancelSliding();
 
 public:
-
 	UPROPERTY(BlueprintAssignable)
 	FOnStanceChanged OnStanceChanged;
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FOnGaitChanged OnGaitChanged;
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FOnLocomotionActionChanged OnLocomotionActionChanged;
 
@@ -230,7 +225,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
 	float GroundNormalCheckDistance;
-	
+
 	// -----------------------------
 	// ------ PARKOUR SECTION ------
 	// -----------------------------
@@ -292,44 +287,54 @@ public:
 
 	// ------ WALLRUN VARS ------
 
-	// The forward distance, from the player center, from where the wallrun check will end
+	// If true, the system will check for traversals during any wallrun.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunForwardCheckDistance;
+	bool bAllowTraversalWhenWallrunning;
 
-	// The lateral distance, from the player center, from where the wallrun check will end
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunStrafeCheckDistance;
-
-	// The minimum angle (in degrees) between the wall forward vector and the player forward vector
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunMinCheckAngle;
-
-	// The maximum angle (in degrees) between the wall forward vector and the player forward vector
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunMaxCheckAngle;
-
-	// The minimum Z velocity the player must have to start lateral wallrun
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunMinCheckVelocityZ;
-
-	// The force applied to keep the player sticked to the wall during wallrun
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunStickForce;
-
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	FCameraLimits WallrunCameraLimits;
-
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
-	float WallrunCameraTiltAngle;
-
+	// Cooldown time before any wallrun can be performed again.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 	float WallrunCooldown;
 
+	// The forward distance, from the player center, from where the wallrun check will end
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	float WallrunForwardCheckDistance;
+	
+	// The minimum Z velocity the player must have to start lateral wallrun.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	float WallrunMinCheckVelocityZ;
+
+	// The lateral distance, from the player center, from where the wallrun check will end
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	float WallrunStrafeCheckDistance;
+
+	// The maximum outward angle from the wall’s forward vector within which wallrun is allowed.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0))
+	float WallrunMaxOuterCheckAngle;
+
+	// The maximum inward angle from the wall’s forward vector within which wallrun is allowed.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0))
+	float WallrunMaxInnerCheckAngle;
+
+	// The force applied to keep the player sticked to the wall during lateral wallrun.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0))
+	float WallrunStickForce;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	FCameraLimits WallrunCameraLimits;
+
+	// The roll applied to the camera during wallrun.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	float WallrunCameraTiltAngle;
+
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
 	FVector WallrunJumpVelocity;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
 	FCameraLimits VerticalWallrunCameraLimits;
+
+	// The minimum angle (in degrees) the player’s forward vector and the wall, to perform a lateral wallrun
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	float VerticalWallrunCheckAngle;
 
 	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
@@ -348,15 +353,23 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 	float SlideDistanceCheck;
 
+	// If the player velocity vector length is lower than this value, the slide will be canceled.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
+	float SlideCancelThreshold;
+
+	// The force of the impulse applied to the player when starts sliding.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 	float SlideForce;
 
+	// The ground friction applied to the movement component (see GroundFriction) when player is sliding.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 	float SlideGroundFriction;
 
+	// The braking deceleration applied to the movement component (see BrakingDecelerationWalking) when player is sliding.
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 	float SlideBraking;
 
+	// The max movement speed when player is sliding (see MaxWalkSpeedCrouched of movement component)
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Sliding")
 	float SlideMaxWalkSpeedCrouched;
 
@@ -375,7 +388,6 @@ public:
 	FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
 
 private:
-
 	// ------ DEFAULT VALUES ------
 
 	UPROPERTY()
@@ -404,7 +416,7 @@ private:
 	float LateralWallrunAlpha;
 
 	float LastWallDirection;
-	
+
 	// ------ SLIDING VARS ------
 
 	bool bShouldSlideOnLanded;
