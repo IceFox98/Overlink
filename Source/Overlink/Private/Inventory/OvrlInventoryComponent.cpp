@@ -18,12 +18,13 @@
 
 UOvrlInventoryComponent::UOvrlInventoryComponent()
 {
+	SelectedIndex = -1;
 }
 
 void UOvrlInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	for (const FOvrlInitialItemData& InitialItem : InitialItems)
 	{
 		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.PickupClass, InitialItem.Count);
@@ -105,6 +106,12 @@ UOvrlAbilitySystemComponent* UOvrlInventoryComponent::GetAbilitySystemComponent(
 
 void UOvrlInventoryComponent::SetActiveSlotIndex(int32 NewIndex)
 {
+	if (SelectedIndex == NewIndex || TimerHandle_EquipItem.IsValid())
+	{
+		// Do nothing if index is the same.
+		return;
+	}
+		
 	if (EquippedItems.IsValidIndex(NewIndex))
 	{
 		AOvrlEquipmentInstance* NewEquipInstance = EquippedItems[NewIndex];
@@ -194,6 +201,8 @@ void UOvrlInventoryComponent::AddItemCountByDefinition(TSubclassOf<UOvrlItemDefi
 
 void UOvrlInventoryComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
 {
+	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_EquipItem);
+	
 	UnequipItemInSlot();
 
 	SelectedIndex = NewIndex;
