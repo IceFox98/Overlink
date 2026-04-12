@@ -104,8 +104,8 @@ FRotator UOvrlPlayerAnimInstance::GetSlideSlopeRotation() const
 		return FRotator::ZeroRotator;
 	}
 	
-	const FVector PlayerRightVector = UKismetMathLibrary::GetRightVector(PlayerRotation);
-	const FVector PlayerUpVector = UKismetMathLibrary::GetUpVector(PlayerRotation);
+	const FVector PlayerRightVector = PlayerCharacter->GetActorRightVector();
+	const FVector PlayerUpVector = PlayerCharacter->GetActorUpVector();
 	const FVector GroundNormal = CharacterMovementComponent->GetGroundNormal();
 	
 	float OutSlopePitchAngle;

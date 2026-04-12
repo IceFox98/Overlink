@@ -201,9 +201,9 @@ private:
 
 	bool HandleVerticalWallrun(float DeltaTime);
 	bool HandleLateralWallrun(float DeltaTime, bool bIsLeftSide);
-	void HandleWallrunCameraTilt(float DeltaTime);
 	void HandleLateralWallrunJump();
 	void HandleVerticalWallrunJump();
+	void JumpFromLateralWallrun(const FVector& LaunchVelocity);
 
 	void ResetWallrun();
 	void EndWallrun();

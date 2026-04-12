@@ -160,13 +160,13 @@ void UOvrlCharacterMovementComponent::ComputeGroundNormal()
 {
 	const FVector StartTrace = Character->GetActorLocation();
 	const FVector EndTrace = StartTrace + GetGravityDirection() * GroundNormalCheckDistance;
-	
+
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Character);
-	
+
 	FHitResult OutHit;
 	GetWorld()->LineTraceSingleByChannel(OutHit, StartTrace, EndTrace, ECC_Visibility, QueryParams);
-	
+
 	if (OutHit.bBlockingHit)
 	{
 		GroundNormal = OutHit.ImpactNormal;
@@ -426,12 +426,12 @@ bool UOvrlCharacterMovementComponent::DoJump(bool bReplayingMoves, float DeltaTi
 	{
 		return false; // Avoid jump
 	}
-	
+
 	// Do the default jump
 	bool bSuccess = Super::DoJump(bReplayingMoves, DeltaTime);
 
 	OnPlayerJumped();
-	
+
 	return bSuccess;
 }
 
@@ -662,10 +662,10 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	// Projection of top edge location along the gravity direction. It actually 'filters out' the gravity-relative up component
 	const float TopLocationAlongGravity = FVector::DotProduct(TraversalTopLocation, GetGravityDirection());
 	const float ForwardPointAlongGravity = FVector::DotProduct(ForwardImpactPoint, GetGravityDirection());
-	
+
 	// Subtract top Z position to forward point Z, to get a delta
 	const FVector FrontEdgeLocation = ForwardImpactPoint - GetGravityDirection() * (ForwardPointAlongGravity - TopLocationAlongGravity);
-	
+
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
 		DrawDebugPoint(GetWorld(), FrontEdgeLocation, 20.f, FColor::Purple, false, 1.f);
@@ -725,10 +725,10 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 	{
 		const float TopLocationAlongGravity = FVector::DotProduct(OutTraversalResult.FrontEdgeLocation, GetGravityDirection());
 		const float BackPointAlongGravity = FVector::DotProduct(BackEdgeHit.ImpactPoint, GetGravityDirection());
-	
+
 		// Cache back edge location
 		OutTraversalResult.BackEdgeLocation = BackEdgeHit.ImpactPoint - GetGravityDirection() * (BackPointAlongGravity - TopLocationAlongGravity);
-		
+
 #if ENABLE_DRAW_DEBUG
 		if (bDebugEnabled)
 			DrawDebugPoint(GetWorld(), OutTraversalResult.BackEdgeLocation, 20.f, FColor::Purple, false, 1.f);
@@ -933,9 +933,6 @@ void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
 			}
 		}
 	}
-
-	// The tilting is now managed in the PlayerController class
-	//HandleWallrunCameraTilt(DeltaTime);
 }
 
 bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
@@ -1066,7 +1063,7 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	if (IsLateralWallrunning())
 	{
 		LastWallDirection = WallDirection;
-		
+
 		// Let's give the player an upward push when it starts wallrunning, that will decrease over time.
 		constexpr float CurveExponent = .5f; // How fast the velocity should decrease at the end
 		const FVector UpVelocity = -GetGravityDirection() * FMath::InterpEaseOut(0.f, VerticalWallrunMaxVelocity, LateralWallrunAlpha, CurveExponent);
@@ -1087,25 +1084,6 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 	return false;
 }
 
-void UOvrlCharacterMovementComponent::HandleWallrunCameraTilt(float DeltaTime)
-{
-	//FRotator TargetRotation = Character->GetControlRotation();
-
-	//if (IsWallrunning())
-	//{
-	//	// Tilt camera depending on which wall the player is on.
-	//	TargetRotation.Roll = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? WallrunCameraTiltAngle : -WallrunCameraTiltAngle;
-	//}
-	//else
-	//{
-	//	TargetRotation.Roll = 0.f;
-	//}
-
-	//// Lerp and apply rotation
-	//const FRotator FinalRotation = UKismetMathLibrary::RInterpTo(Character->GetControlRotation(), TargetRotation, DeltaTime, 10.f);
-	//Character->GetController()->SetControlRotation(FinalRotation);
-}
-
 void UOvrlCharacterMovementComponent::HandleLateralWallrunJump()
 {
 	const float WallDirection = LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft ? -1.f : 1.f;
@@ -1119,10 +1097,10 @@ void UOvrlCharacterMovementComponent::HandleLateralWallrunJump()
 	// Combine all directions together
 	const FVector LaunchVelocity = (WallrunNormal * AwayVelocity) + (ForwardDirection * ForwardVelocity) + (-GetGravityDirection() * UpwardVelocity);
 
-	//UKismetSystemLibrary::DrawDebugArrow(this, Character->GetActorLocation(), Character->GetActorLocation() + LaunchVelocity, 4.f, FLinearColor::Green, 10.f, 5.f);
+	// UKismetSystemLibrary::DrawDebugArrow(this, Character->GetActorLocation(), Character->GetActorLocation() + LaunchVelocity, 4.f, FLinearColor::Green, 10.f, 5.f);
 
 	EndWallrun();
-	Character->LaunchCharacter(LaunchVelocity, false, true);
+	JumpFromLateralWallrun(LaunchVelocity);
 }
 
 void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
@@ -1319,6 +1297,25 @@ bool UOvrlCharacterMovementComponent::IsMovingForward(float AngleFromForwardVect
 	return FVector::DotProduct(GetLastInputVector(), Character->GetActorForwardVector()) >= NormalizedAngle;
 }
 
+void UOvrlCharacterMovementComponent::JumpFromLateralWallrun(const FVector& LaunchVelocity)
+{
+	// Transform launch velocity relative to the player
+	FVector FinalVel = Character->GetActorTransform().InverseTransformVector(LaunchVelocity);
+	const FVector LastVelocity = GetRelativeLastUpdateVelocity();
+
+	// Add our current velocity
+	FinalVel.X += LastVelocity.X;
+	FinalVel.Y += LastVelocity.Y;
+	FinalVel.Z += LastVelocity.Z;
+	
+	// Transform back to world space velocity, since Launch() function works with that
+	FinalVel = Character->GetActorTransform().TransformVector(FinalVel);
+
+	Launch(FinalVel);
+
+	Character->OnLaunched(LaunchVelocity, false, false);
+}
+
 void UOvrlCharacterMovementComponent::SetLocomotionAction(const FGameplayTag& NewLocomotionAction)
 {
 	if (LocomotionAction == NewLocomotionAction)
@@ -1326,7 +1323,7 @@ void UOvrlCharacterMovementComponent::SetLocomotionAction(const FGameplayTag& Ne
 
 	const FGameplayTag OldLocomotionAction = LocomotionAction;
 	LocomotionAction = NewLocomotionAction;
-	
+
 	OnLocomotionActionChanged.Broadcast(OldLocomotionAction, LocomotionAction);
 }
 
