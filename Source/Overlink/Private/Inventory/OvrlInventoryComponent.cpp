@@ -266,7 +266,10 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 		FOvrlItemEntry& Entry = *EntryIt;
 		if (Entry.Instance == ItemToRemove)
 		{
+			// Decrease the item count
 			Entry.Count -= FMath::Max(1, Count);
+			
+			// If equal/lower than 0, remove the item
 			if (Entry.Count <= 0)
 			{
 				EntryIt.RemoveCurrent();
@@ -296,21 +299,8 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 
 			// Remove from equipped item list
 			It.RemoveCurrent();
-
-			if (EquippedInstances.Num() > 0)
-			{
-				if (!EquippedInstances.IsValidIndex(QuickSlotIndex))
-				{
-					QuickSlotIndex -= 1;
-				}
-
-				SetActiveSlotIndex(QuickSlotIndex, true);
-			}
-			else
-			{
-				QuickSlotIndex = -1; // Set to -1 since we don't have any equipped items left
-			}
-
+			
+			RefreshQuickSlot();
 			break;
 		}
 	}
@@ -321,6 +311,23 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 	}
 }
 
+void UOvrlInventoryComponent::RefreshQuickSlot()
+{
+	if (EquippedInstances.Num() > 0)
+	{
+		if (!EquippedInstances.IsValidIndex(QuickSlotIndex))
+		{
+			QuickSlotIndex -= 1;
+		}
+
+		SetActiveSlotIndex(QuickSlotIndex, true);
+	}
+	else
+	{
+		QuickSlotIndex = -1; // Set to -1 since we don't have any equipped items left
+	}
+}
+
 void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop)
 {
 	if (!ItemToDrop)
@@ -328,15 +335,13 @@ void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop)
 		return;
 	}
 
-	FTransform Offset;
-	Offset.SetLocation(FVector(300.f, 300.f, 20.f));
-	Offset.SetScale3D(FVector::ZeroVector);
-
 	// Deferred spawn so we can set cached item before BeginPlay is called
-	AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(ItemToDrop->PickupClass, GetOwner()->GetActorTransform() + Offset);
+	AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(ItemToDrop->PickupClass, GetOwner()->GetActorTransform());
 	ItemPickupActor->SetCachedItemInstance(ItemToDrop);
+	UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform());
 
-	UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform() + Offset);
+	// Let pickup actor handle the drop logic
+	ItemPickupActor->Drop();
 
 	RemoveItem(ItemToDrop);
 }

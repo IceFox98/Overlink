@@ -93,28 +93,13 @@ public:
 	virtual bool DoJump(bool bReplayingMoves, float DeltaTime) override;
 
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
-	FORCEINLINE FVector GetGroundNormal() const { return GroundNormal; };
+	// ------ LOCOMOTION ------
+	
+	// Returns the last update velocity, but relative to the player
+	FVector GetRelativeLastUpdateVelocity() const;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
-	FORCEINLINE FVector GetWallrunNormal() const { return WallrunNormal; };
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
-	FORCEINLINE float GetLastValidWallDirection() const { return LastWallDirection; };
-
-	// ------ TRAVERSALS ------
-
-	void OnPlayerJumped();
-
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-	void ResetTraversal();
-
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
-	FORCEINLINE bool IsTraversing() const
-	{
-		return LocomotionAction == OvrlLocomotionActionTags::Mantling || LocomotionAction == OvrlLocomotionActionTags::Vaulting;
-	};
-
+	bool IsMovingForward(float AngleFromForwardVector = 90.f);
+	
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void OnPlayerLanded();
 
@@ -124,31 +109,6 @@ public:
 	void HandleCrouching(bool bInWantsToCrouch);
 
 	FORCEINLINE bool IsRunning() const { return Gait == OvrlGaitTags::Running; };
-	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
-	FORCEINLINE bool IsLateralWallrunning() const
-	{
-		return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight;
-	};
-
-	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
-	FORCEINLINE bool IsWallClinging() const { return LocomotionAction == OvrlLocomotionActionTags::WallClinging; };
-
-	double GetDesiredCameraRoll() const;
-	void ApplyCameraPitchLimits(float& ViewPitchMin, float& ViewPitchMax);
-	void ApplyCameraYawLimits(float& ViewYawMin, float& ViewYawMax);
-
-	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
-
-	FORCEINLINE FVector GetRightHandIKLocation() const { return RightHandIKLocation; };
-	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
-
-	// Returns the last update velocity, but relative to the player
-	FVector GetRelativeLastUpdateVelocity() const;
-
-	bool IsMovingForward(float AngleFromForwardVector = 90.f);
-
-	// ------ LOCOMOTION ------
-
 	FORCEINLINE const FGameplayTag& GetLocomotionAction() const { return LocomotionAction; }
 	FORCEINLINE const FGameplayTag& GetLocomotionMode() const { return LocomotionMode; }
 	FORCEINLINE const FGameplayTag& GetStance() const { return Stance; }
@@ -158,6 +118,44 @@ public:
 	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
 	void SetStance(const FGameplayTag& NewStance);
 	void SetGait(const FGameplayTag& NewGait);
+	
+	// ------ GENERAL ------
+	
+	void OnPlayerJumped();
+	double GetDesiredCameraRoll() const;
+	void ApplyCameraPitchLimits(float& ViewPitchMin, float& ViewPitchMax);
+	void ApplyCameraYawLimits(float& ViewYawMin, float& ViewYawMax);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
+	FORCEINLINE FVector GetGroundNormal() const { return GroundNormal; };
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
+	FORCEINLINE FVector GetWallrunNormal() const { return WallrunNormal; };
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
+	FORCEINLINE float GetLastValidWallDirection() const { return LastWallDirection; };
+
+	FORCEINLINE FVector GetRightHandIKLocation() const { return RightHandIKLocation; };
+	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
+	
+	// ------ TRAVERSALS ------
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
+	void ResetTraversal();
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
+	FORCEINLINE bool IsTraversing() const
+	{
+		return LocomotionAction == OvrlLocomotionActionTags::Mantling || LocomotionAction == OvrlLocomotionActionTags::Vaulting;
+	};
+	FORCEINLINE bool IsWallrunning() const { return IsLateralWallrunning() || IsVerticalWallrunning(); };
+	FORCEINLINE bool IsLateralWallrunning() const
+	{
+		return LocomotionAction == OvrlLocomotionActionTags::WallrunningLeft || LocomotionAction == OvrlLocomotionActionTags::WallrunningRight;
+	};
+	FORCEINLINE bool IsVerticalWallrunning() const { return LocomotionAction == OvrlLocomotionActionTags::WallrunningVertical; };
+	FORCEINLINE bool IsWallClinging() const { return LocomotionAction == OvrlLocomotionActionTags::WallClinging; };
+	FORCEINLINE bool IsSliding() const { return LocomotionAction == OvrlLocomotionActionTags::Sliding; };
 
 protected:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;

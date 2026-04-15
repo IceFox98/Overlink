@@ -109,6 +109,7 @@ private:
 	void UnequipItemInSlot();
 	void UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const;
 
+	void RefreshQuickSlot();
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemEquipped OnItemEquipped;

@@ -17,8 +17,8 @@ AOvrlItemPickupActor::AOvrlItemPickupActor()
 	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ItemMesh->SetGenerateOverlapEvents(false);
 	
-	PickupColliderTest = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PickupColliderTest"));
-	PickupColliderTest->SetupAttachment(ItemMesh);
+	PickupCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PickupCollider"));
+	PickupCollider->SetupAttachment(ItemMesh);
 }
 
 void AOvrlItemPickupActor::OnConstruction(const FTransform& Transform)
@@ -32,9 +32,14 @@ void AOvrlItemPickupActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PickupColliderTest->OnComponentBeginOverlap.AddDynamic(this, &AOvrlItemPickupActor::OnPickupColliderOverlap);
+	PickupCollider->OnComponentBeginOverlap.AddDynamic(this, &AOvrlItemPickupActor::OnPickupColliderOverlap);
 
 	ShowItemMesh();
+}
+
+void AOvrlItemPickupActor::Drop_Implementation()
+{
+	// No base logic
 }
 
 void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)

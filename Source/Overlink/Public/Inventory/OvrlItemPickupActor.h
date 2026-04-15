@@ -45,6 +45,9 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor", meta=(ReturnDisplayName="Handled"))
 	bool ManageDuplicatedItem(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn);
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor")
+	void Drop();
 
 protected:
 	UFUNCTION()
@@ -57,7 +60,7 @@ public:
 	// ------ COMPONENTS ------
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UCapsuleComponent> PickupColliderTest;
+	TObjectPtr<UCapsuleComponent> PickupCollider;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> ItemMesh;
