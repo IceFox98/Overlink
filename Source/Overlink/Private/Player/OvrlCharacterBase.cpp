@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlHealthComponent.h"
 #include "AbilitySystem/OvrlAbilitySet.h"
@@ -10,7 +9,7 @@
 
 // Sets default values
 AOvrlCharacterBase::AOvrlCharacterBase(const FObjectInitializer& ObjectInitializer)
-	:Super(ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -53,9 +52,16 @@ void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, FName AttachSocketNa
 	}
 }
 
-void AOvrlCharacterBase::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime)
+// Overridden in Player Character, to play full body animation
+void AOvrlCharacterBase::OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime)
 {
 	GetMesh()->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+}
+
+// Overridden in Player Character, to play full body animation
+void AOvrlCharacterBase::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
+{
+	GetMesh()->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
 }
 
 UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const

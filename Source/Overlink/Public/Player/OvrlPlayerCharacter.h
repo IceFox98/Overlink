@@ -59,7 +59,8 @@ public:
 	virtual void RestoreAnimLayerClass() override;
 	virtual void EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay) override;
 	virtual void UnequipObject() override;
-	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
+	virtual void OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
+	virtual void OvrlStopAnimMontage(UAnimMontage* MontageToStop) override;
 
 	bool IsAiming() const;
 

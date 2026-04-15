@@ -9,13 +9,14 @@ UOvrlGameplayAbility::UOvrlGameplayAbility(const FObjectInitializer& ObjectIniti
 	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	bAllowOnMontagePlay = true;
 }
 
 void UOvrlGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	if (bCancelOnMontagePlay)
+	if (!bAllowOnMontagePlay)
 	{
 		if (UAnimInstance* AnimInstance = GetOwnerAnimInstance())
 		{
@@ -28,13 +29,28 @@ void UOvrlGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 	
-	if (bCancelOnMontagePlay)
+	if (!bAllowOnMontagePlay)
 	{
 		if (UAnimInstance* AnimInstance = GetOwnerAnimInstance())
 		{
 			AnimInstance->OnMontageStarted.RemoveDynamic(this, &UOvrlGameplayAbility::OnAnimMontageStarted);
 		}
 	}
+}
+
+bool UOvrlGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	const bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+	
+	if (!bAllowOnMontagePlay)
+	{
+		if (UAnimInstance* AnimInstance = GetOwnerAnimInstance())
+		{
+			return bCanActivate && !AnimInstance->IsAnyMontagePlaying();
+		}
+	}
+	
+	return bCanActivate;
 }
 
 void UOvrlGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)

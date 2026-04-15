@@ -115,7 +115,7 @@ void AOvrlEquipmentInstance::PlayEquipMontage() const
 	{
 		// Play equip montage
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-		OwningPawn->PlayAnimMontage(EquipmentDefinition->EquipMontage);
+		OwningPawn->OvrlPlayAnimMontage(EquipmentDefinition->EquipMontage);
 
 		// Apply anim layer class of the equip instance, used for 1st person mesh
 		ApplyOverlayAnimInstance();

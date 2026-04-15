@@ -73,10 +73,10 @@ public:
 	void RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
-	FORCEINLINE AOvrlEquipmentInstance* GetEquippedItem() const { return EquippedItem; }
+	FORCEINLINE AOvrlEquipmentInstance* GetEquippedInstance() const { return CurrentEquippedInstance; }
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
-	void SetActiveSlotIndex(int32 NewIndex);
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta=(AdvancedDisplay="bForceSet"))
+	void SetActiveSlotIndex(int32 NewIndex, bool bForceSet = false);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FOvrlItemEntry FindFirstItemEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
@@ -97,7 +97,8 @@ public:
 	static int32 GetDefaultStatFromItemDef(const TSubclassOf<UOvrlItemDefinition> WeaponItemClass, FGameplayTag StatTag);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
-	FORCEINLINE TArray<AOvrlEquipmentInstance*> GetEquippedItems() const { return EquippedItems; };
+	FORCEINLINE TArray<AOvrlEquipmentInstance*> GetEquippedInstances() const { return EquippedInstances; };
+
 private:
 	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
 
@@ -114,7 +115,7 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemUpdated OnItemUpdated;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemRemoved OnItemRemoved;
 
@@ -127,13 +128,13 @@ protected:
 	TArray<FOvrlItemEntry> ItemEntries;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TArray<AOvrlEquipmentInstance*> EquippedItems;
+	TArray<AOvrlEquipmentInstance*> EquippedInstances;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TObjectPtr<AOvrlEquipmentInstance> EquippedItem;
+	TObjectPtr<AOvrlEquipmentInstance> CurrentEquippedInstance;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	int32 SelectedIndex;
+	int32 QuickSlotIndex;
 
 private:
 	FTimerHandle TimerHandle_EquipItem;

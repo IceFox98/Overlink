@@ -38,7 +38,8 @@ public:
 
 	virtual void UnequipObject() {};
 
-	virtual void PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
+	virtual void OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
+	virtual void OvrlStopAnimMontage(UAnimMontage* MontageToStop);
 
 protected:
 	/** Components that manages the player abilities */

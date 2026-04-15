@@ -532,9 +532,12 @@ void UOvrlCharacterMovementComponent::HandleCrouching(bool bInWantsToCrouch)
 
 void UOvrlCharacterMovementComponent::ResetTraversal()
 {
-	Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	SetMovementMode(EMovementMode::MOVE_Falling);
-	SetLocomotionAction(FGameplayTag::EmptyTag);
+	if (IsTraversing())
+	{
+		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		SetMovementMode(EMovementMode::MOVE_Falling);
+		SetLocomotionAction(FGameplayTag::EmptyTag);
+	}
 }
 
 bool UOvrlCharacterMovementComponent::HandleTraversals()
@@ -875,11 +878,11 @@ void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& Traver
 	{
 		// Disable collision just in this case, to avoid jerky movements
 		Character->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Character->PlayAnimMontage(VaultOverMontage);
+		Character->OvrlPlayAnimMontage(VaultOverMontage);
 	}
 	else
 	{
-		Character->PlayAnimMontage(VaultClimbUpMontage);
+		Character->OvrlPlayAnimMontage(VaultClimbUpMontage);
 	}
 
 	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
@@ -891,7 +894,7 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 
 	const float StartTime = FindMontageStartForDeltaZ(MantleMontage, TraversalResult.Height);
 
-	Character->PlayAnimMontage(MantleMontage, StartTime);
+	Character->OvrlPlayAnimMontage(MantleMontage, StartTime);
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
 }
 

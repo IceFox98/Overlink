@@ -97,6 +97,16 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	bHasJustLanded = PlayerCharacter->bJustLanded;
 }
 
+void UOvrlPlayerAnimInstance::OnMontageInstanceStopped(FAnimMontageInstance& StoppedMontageInstance)
+{
+	Super::OnMontageInstanceStopped(StoppedMontageInstance);
+	
+	if (CharacterMovementComponent)
+	{
+		CharacterMovementComponent->ResetTraversal();
+	}
+}
+
 FRotator UOvrlPlayerAnimInstance::GetSlideSlopeRotation() const
 {
 	if (!CharacterMovementComponent)

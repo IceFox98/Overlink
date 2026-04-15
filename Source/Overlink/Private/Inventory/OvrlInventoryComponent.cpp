@@ -18,13 +18,13 @@
 
 UOvrlInventoryComponent::UOvrlInventoryComponent()
 {
-	SelectedIndex = -1;
+	QuickSlotIndex = -1;
 }
 
 void UOvrlInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	for (const FOvrlInitialItemData& InitialItem : InitialItems)
 	{
 		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.PickupClass, InitialItem.Count);
@@ -89,9 +89,9 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Count/* = 1
 				AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->EquipmentClass, SpawnParams);
 				EquipmentInstance->Initialize(EquipDefClass, Item);
 
-				EquippedItems.Emplace(EquipmentInstance);
+				EquippedInstances.Emplace(EquipmentInstance);
 
-				SetActiveSlotIndex(EquippedItems.Num() - 1);
+				SetActiveSlotIndex(EquippedInstances.Num() - 1);
 			}
 		}
 	}
@@ -104,22 +104,25 @@ UOvrlAbilitySystemComponent* UOvrlInventoryComponent::GetAbilitySystemComponent(
 	return Cast<UOvrlAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
 }
 
-void UOvrlInventoryComponent::SetActiveSlotIndex(int32 NewIndex)
+void UOvrlInventoryComponent::SetActiveSlotIndex(int32 NewIndex, bool bForceSet /* = false*/)
 {
-	if (SelectedIndex == NewIndex || TimerHandle_EquipItem.IsValid())
+	if (!bForceSet)
 	{
-		// Do nothing if index is the same.
-		return;
+		if (QuickSlotIndex == NewIndex || TimerHandle_EquipItem.IsValid())
+		{
+			// Do nothing if index is the same.
+			return;
+		}
 	}
-		
-	if (EquippedItems.IsValidIndex(NewIndex))
+
+	if (EquippedInstances.IsValidIndex(NewIndex))
 	{
-		AOvrlEquipmentInstance* NewEquipInstance = EquippedItems[NewIndex];
+		AOvrlEquipmentInstance* NewEquipInstance = EquippedInstances[NewIndex];
 		if (ensure(NewEquipInstance))
 		{
-			if (EquippedItem)
+			if (CurrentEquippedInstance)
 			{
-				EquippedItem->OnBeforeUnequip(); // Prepare current item to unequip (stop firing/attacking...)
+				CurrentEquippedInstance->OnBeforeUnequip(); // Prepare current item to unequip (stop firing/animations...)
 			}
 
 			const float EquipNotifyTime = NewEquipInstance->GetEquipNotifyTime();
@@ -149,7 +152,7 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByDefinition(TSubclass
 
 AOvrlEquipmentInstance* UOvrlInventoryComponent::FindFirstEquipmentInstanceByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const
 {
-	for (AOvrlEquipmentInstance* EquipmentInstance : EquippedItems)
+	for (AOvrlEquipmentInstance* EquipmentInstance : EquippedInstances)
 	{
 		if (EquipmentInstance && EquipmentInstance->GetAssociatedItem()->GetItemDefClass() == ItemDefinition)
 		{
@@ -202,10 +205,10 @@ void UOvrlInventoryComponent::AddItemCountByDefinition(TSubclassOf<UOvrlItemDefi
 void UOvrlInventoryComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
 {
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandle_EquipItem);
-	
+
 	UnequipItemInSlot();
 
-	SelectedIndex = NewIndex;
+	QuickSlotIndex = NewIndex;
 
 	EquipItemInSlot();
 }
@@ -214,9 +217,9 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 {
 	// You can equip a new Item only if there's no current equipped item.
 	// Be sure to call UnequipCurrentItem first
-	if (!EquippedItem && EquippedItems.IsValidIndex(SelectedIndex))
+	if (!CurrentEquippedInstance && EquippedInstances.IsValidIndex(QuickSlotIndex))
 	{
-		AOvrlEquipmentInstance* EquipInstance = EquippedItems[SelectedIndex];
+		AOvrlEquipmentInstance* EquipInstance = EquippedInstances[QuickSlotIndex];
 		EquipInstance->OnEquipped();
 
 		const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipInstance->EquipmentDefinitionClass);
@@ -230,15 +233,15 @@ void UOvrlInventoryComponent::EquipItemInSlot()
 			}
 		}
 
-		EquippedItem = EquipInstance;
-		OnItemEquipped.Broadcast(EquippedItem);
+		CurrentEquippedInstance = EquipInstance;
+		OnItemEquipped.Broadcast(CurrentEquippedInstance);
 	}
 }
 
 void UOvrlInventoryComponent::UnequipItemInSlot()
 {
-	UnequipItem(EquippedItem);
-	EquippedItem = nullptr;
+	UnequipItem(CurrentEquippedInstance);
+	CurrentEquippedInstance = nullptr;
 }
 
 void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const
@@ -252,13 +255,12 @@ void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip)
 			// When unequip the item, remove all given abilities/effects/attributes from player's ASC
 			ItemToUnequip->GrantedHandles.TakeFromAbilitySystem(ASC);
 		}
-
-		//ItemToUnequip = nullptr;
 	}
 }
 
 void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Count/* = 1*/)
 {
+	bool bItemRemoved = false;
 	for (auto EntryIt = ItemEntries.CreateIterator(); EntryIt; ++EntryIt)
 	{
 		FOvrlItemEntry& Entry = *EntryIt;
@@ -268,25 +270,54 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 			if (Entry.Count <= 0)
 			{
 				EntryIt.RemoveCurrent();
-				OnItemRemoved.Broadcast();
+				bItemRemoved = true;
 				break;
 			}
 		}
 	}
 
 	// Search if the item is also an equipment, in that case unequip it
-	for (auto It = EquippedItems.CreateIterator(); It; ++It)
+	for (auto It = EquippedInstances.CreateIterator(); It; ++It)
 	{
 		AOvrlEquipmentInstance*& EquipInstance = *It;
 
 		if (EquipInstance && EquipInstance->GetAssociatedItem() == ItemToRemove)
 		{
+			EquipInstance->OnBeforeUnequip();
 			UnequipItem(EquipInstance);
+
+			// If the item we want to remove is currently equipped, set it to null.
+			if (EquipInstance == CurrentEquippedInstance)
+			{
+				CurrentEquippedInstance = nullptr;
+			}
+
 			EquipInstance->Destroy();
 
+			// Remove from equipped item list
 			It.RemoveCurrent();
-			// TODO: Set EquippedItem = nullptr?
+
+			if (EquippedInstances.Num() > 0)
+			{
+				if (!EquippedInstances.IsValidIndex(QuickSlotIndex))
+				{
+					QuickSlotIndex -= 1;
+				}
+
+				SetActiveSlotIndex(QuickSlotIndex, true);
+			}
+			else
+			{
+				QuickSlotIndex = -1; // Set to -1 since we don't have any equipped items left
+			}
+
+			break;
 		}
+	}
+
+	if (bItemRemoved)
+	{
+		OnItemRemoved.Broadcast();
 	}
 }
 

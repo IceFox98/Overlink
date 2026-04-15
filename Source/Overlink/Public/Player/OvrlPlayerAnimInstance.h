@@ -30,6 +30,7 @@ public:
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
+	virtual void OnMontageInstanceStopped(FAnimMontageInstance & StoppedMontageInstance) override;
 
 public:
 	

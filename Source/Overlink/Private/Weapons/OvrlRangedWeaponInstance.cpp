@@ -89,6 +89,18 @@ void AOvrlRangedWeaponInstance::OnBeforeUnequip_Implementation()
 
 	StopFire();
 	bCanFire = false;
+	
+	if (WeaponMesh)
+	{
+		// Stop weapon ongoing animation
+		WeaponMesh->Stop();
+		
+		// Stop player reload animation
+		if (AOvrlCharacterBase* Character = Cast<AOvrlCharacterBase>(GetOwner()))
+		{
+			Character->OvrlStopAnimMontage(PlayerReloadMontage.LoadSynchronous());
+		}
+	}
 }
 
 void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
@@ -123,7 +135,7 @@ void AOvrlRangedWeaponInstance::StartReloading()
 	{
 		if (AOvrlCharacterBase* Character = Cast<AOvrlCharacterBase>(GetOwner()))
 		{
-			Character->PlayAnimMontage(PlayerReloadAnimMontage);
+			Character->OvrlPlayAnimMontage(PlayerReloadAnimMontage);
 			PlayWeaponAnimation(ReloadAnimation);
 		}
 	}

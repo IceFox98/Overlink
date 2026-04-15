@@ -38,6 +38,7 @@ public:
 
 public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	// Called when this ability receives an input pressed event
 	virtual void OnAbilityInputPressed();
@@ -65,15 +66,15 @@ protected:
 	UAnimInstance* GetOwnerAnimInstance() const;
 
 protected:
-	// Defines how this ability is meant to activate
+	// Defines how this ability is meant to activate.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Gameplay Ability")
 	EOvrlAbilityActivationPolicy ActivationPolicy;
 
-	// Additional costs that must be paid to activate this ability
+	// Additional costs that must be paid to activate this ability.
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Ovrl Gameplay Ability")
 	TArray<TObjectPtr<UOvrlAbilityCost>> AdditionalCosts;
 
-	// Cancel this ability when any montage is played on the skeletal mesh of the owner character of this ability
+	// If false, this ability will be canceled/not activated when any montage is played on the skeletal mesh of the owner character of this ability.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Gameplay Ability")
-	bool bCancelOnMontagePlay;
+	bool bAllowOnMontagePlay;
 };

@@ -261,11 +261,18 @@ void AOvrlPlayerCharacter::PlayJumpSound() const
 	UGameplayStatics::PlaySoundAtLocation(this, JumpSound, FullBodyMesh->GetComponentLocation(), JumpSoundMultiplier);
 }
 
-void AOvrlPlayerCharacter::PlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
+void AOvrlPlayerCharacter::OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime/* = 0.f*/)
 {
-	Super::PlayAnimMontage(MontageToPlay, StartTime);
+	Super::OvrlPlayAnimMontage(MontageToPlay, StartTime);
 
 	FullBodyMesh->GetAnimInstance()->Montage_Play(MontageToPlay, 1.f, EMontagePlayReturnType::Duration, StartTime);
+}
+
+void AOvrlPlayerCharacter::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
+{
+	Super::OvrlStopAnimMontage(MontageToStop);
+	
+	FullBodyMesh->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
 }
 
 void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
@@ -320,6 +327,7 @@ void AOvrlPlayerCharacter::UnequipObject()
 	if (EquippedObjectMesh)
 	{
 		EquippedObjectMesh->GetStaticMeshComponent()->bCastHiddenShadow = false;
+		EquippedObjectMesh->MarkComponentsRenderStateDirty();
 	}
 }
 
