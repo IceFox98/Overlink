@@ -109,6 +109,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void ResetTraversal();
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	FORCEINLINE bool IsTraversing() const
 	{
 		return LocomotionAction == OvrlLocomotionActionTags::Mantling || LocomotionAction == OvrlLocomotionActionTags::Vaulting;

@@ -31,6 +31,11 @@ public class Overlink : ModuleRules
 			"AnimGraphRuntime",
 		});
 
+		if (Target.bBuildEditor)
+		{
+			PublicDependencyModuleNames.Add("AnimGraph");
+		}
+
 		OptimizeCode = CodeOptimization.InShippingBuildsOnly;
 	}
 }

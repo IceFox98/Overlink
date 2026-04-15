@@ -339,7 +339,7 @@ float AOvrlRangedWeaponInstance::GetMagnifiedFOV(float InFOV) const
 
 void AOvrlRangedWeaponInstance::PlayWeaponAnimation(UAnimSequence* AnimToPlay)
 {
-	if (ensure(WeaponMesh && AnimToPlay))
+	if (WeaponMesh)
 	{
 		WeaponMesh->PlayAnimation(AnimToPlay, false);
 	}

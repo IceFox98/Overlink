@@ -53,6 +53,7 @@ public:
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
 	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
+	USkeletalMeshComponent* GetFullBodyMesh() const { return FullBodyMesh; };
 
 public:
 	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) override;
