@@ -27,6 +27,9 @@ struct FInteractableObjectData
 	TObjectPtr<AActor> OwningActor = nullptr;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnObjectBeginHovered, UObject*, HoveredObject);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnObjectEndHovered, UObject*, PrevHoveredObject);
+
 UCLASS(Blueprintable, BlueprintType, meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInteractionComponent : public UActorComponent
 {
@@ -70,6 +73,14 @@ protected:
 
 	// Utility function to create the data struct of the interacted object
 	FInteractableObjectData CreateInteractableData(UObject* OriginalObject, AActor* OwningActor) const;
+	
+public:
+	
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Interaction Component")
+	FOnObjectBeginHovered OnObjectBeginHovered;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Interaction Component")
+	FOnObjectEndHovered OnObjectEndHovered;
 
 protected:
 	// Distance from interaction trace start position to where it should end.

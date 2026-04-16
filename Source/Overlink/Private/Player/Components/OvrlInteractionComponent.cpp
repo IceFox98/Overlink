@@ -51,17 +51,20 @@ void UOvrlInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			if (CurrentPointedObjData.OriginalObject)
 			{
 				IOvrlInteractable::Execute_EndHover(CurrentPointedObjData.OriginalObject);
+				OnObjectEndHovered.Broadcast(CurrentPointedObjData.OriginalObject);
 			}
 
 			// Update PointedObjData reference
 			CurrentPointedObjData = Data;
 			IOvrlInteractable::Execute_BeginHover(CurrentPointedObjData.OriginalObject, OwningPawn);
+			OnObjectBeginHovered.Broadcast(CurrentPointedObjData.OriginalObject);
 		}
 		else
 		{
 			if (CurrentPointedObjData.OriginalObject)
 			{
 				IOvrlInteractable::Execute_EndHover(CurrentPointedObjData.OriginalObject);
+				OnObjectEndHovered.Broadcast(CurrentPointedObjData.OriginalObject);
 				CurrentPointedObjData = FInteractableObjectData(); // Reset struct data
 			}
 		}
@@ -125,9 +128,4 @@ bool UOvrlInteractionComponent::IsInteractableObject(UObject* ObjectToCheck) con
 FInteractableObjectData UOvrlInteractionComponent::CreateInteractableData(UObject* OriginalObject, AActor* OwningActor) const
 {
 	return FInteractableObjectData(OriginalObject, OriginalObject, OwningActor);
-	// Data.OriginalObject = OriginalObject;
-	// Data.InteractableObject.SetObject(OriginalObject);
-	// Data.OwningActor = OwningActor;
-	//
-	// return Data;
 }
