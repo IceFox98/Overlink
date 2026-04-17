@@ -25,8 +25,11 @@ void AOvrlHitScanWeaponInstance::Fire(const FHitResult& HitData)
 
 		if (InstigatorASC)
 		{
+			FGameplayEffectContextHandle ContextHandle = InstigatorASC->MakeEffectContext();
+			ContextHandle.AddHitResult(HitData);
+			
 			UGameplayEffect* GameplayEffect = GE_Damage->GetDefaultObject<UGameplayEffect>();
-			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, InstigatorASC->MakeEffectContext());
+			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, ContextHandle);
 		}
 	}
 

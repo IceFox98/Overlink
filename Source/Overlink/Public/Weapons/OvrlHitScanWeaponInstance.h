@@ -16,19 +16,15 @@ class OVERLINK_API AOvrlHitScanWeaponInstance : public AOvrlRangedWeaponInstance
 	GENERATED_BODY()
 
 public:
-
 	AOvrlHitScanWeaponInstance();
 
 public:
-
 	virtual void Fire(const FHitResult& HitData) override;
 
 protected:
-
 	virtual void SpawnTrailVFX(const FHitResult& HitData);
 
 protected:
-
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Hit-Scan Weapon Instance", meta = (AllowPrivateAccess = true))
 	TObjectPtr<UNiagaraSystem> BulletTrailVFX;
 };

@@ -1,7 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
+
 #include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
+
+#include "Overlink.h"
 
 void UOvrlAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGamePaused)
 {
@@ -61,6 +64,33 @@ void UOvrlAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGam
 	InputReleasedSpecHandles.Reset();
 }
 
+void UOvrlAbilitySystemComponent::AddDynamicTagGameplayEffect(const FGameplayTag& Tag)
+{
+	const TSubclassOf<UGameplayEffect> DynamicTagGE = UOvrlDynamicGameplayEffect::StaticClass();
+	const FGameplayEffectSpecHandle SpecHandle = MakeOutgoingSpec(DynamicTagGE, 1.0f, MakeEffectContext());
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+	if (!Spec)
+	{
+		UE_LOG(LogOverlink, Warning, TEXT("AddDynamicTagGameplayEffect: Unable to make outgoing spec for [%s]."), *GetNameSafe(DynamicTagGE));
+		return;
+	}
+
+	Spec->DynamicGrantedTags.AddTag(Tag);
+
+	ApplyGameplayEffectSpecToSelf(*Spec);
+}
+
+void UOvrlAbilitySystemComponent::RemoveDynamicTagGameplayEffect(const FGameplayTag& Tag)
+{
+	const TSubclassOf<UGameplayEffect> DynamicTagGE = UGameplayEffect::StaticClass();
+
+	FGameplayEffectQuery Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(FGameplayTagContainer(Tag));
+	Query.EffectDefinition = DynamicTagGE;
+
+	RemoveActiveEffects(Query);
+}
+
 void UOvrlAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Spec)
 {
 	Super::AbilitySpecInputPressed(Spec);
@@ -73,7 +103,7 @@ void UOvrlAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& 
 		{
 			OvrlAbilityInstance->OnAbilityInputPressed();
 		}
-		
+
 		FPredictionKey OriginalPredictionKey = Instance ? Instance->GetCurrentActivationInfo().GetActivationPredictionKey() : Spec.ActivationInfo.GetActivationPredictionKey();
 		PRAGMA_ENABLE_DEPRECATION_WARNINGS
 

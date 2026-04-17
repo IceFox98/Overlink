@@ -79,6 +79,10 @@ public:
 #endif
 	}
 
+	/** Draw a debug string at a 3d world location. */
+	UFUNCTION(BlueprintCallable, Category="Ovrl Utils", meta=(WorldContext="WorldContextObject", DevelopmentOnly))
+	static void OvrlDrawDebugString(const UObject* WorldContextObject, const FVector TextLocation, const FString& Text, class AActor* TestBaseActor = NULL, FLinearColor TextColor = FLinearColor::White, float Duration = 0.f, float FontScale = 1.f);
+
 	// Converts a rotation from world space to gravity relative space.
 	UFUNCTION(BlueprintPure, Category = "Ovrl Utils", meta = (BlueprintThreadSafe))
 	static FRotator GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection);
@@ -94,8 +98,9 @@ public:
 
 	static bool ShouldDisplayDebugForActor(const AActor* Actor, const FName& DisplayName);
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Utils", meta=(AutoCreateRefTerm="WorldObjectContext"))
 	static void TriggerCameraEvent(UObject* WorldObjectContext, ECameraFeedbackEvent CameraEvent);
-	
+
 	// Looks for an Inventory Component and retrieve the first item matching the passed definition.
 	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
 	static UPARAM(DisplayName="Item") FOvrlItemEntry GetFirstItemEntry(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);

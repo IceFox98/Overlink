@@ -9,6 +9,8 @@
 #include "GameplayEffectExtension.h"
 
 #include "OvrlUtils.h"
+#include "Overlink.h"
+#include "OvrlGameplayTags.h"
 
 // Sets default values for this component's properties
 UOvrlHealthComponent::UOvrlHealthComponent()
@@ -36,22 +38,27 @@ void UOvrlHealthComponent::InitializeWithASC(UOvrlAbilitySystemComponent* ASC)
 
 	if (AbilitySystemComponent)
 	{
-		OVRL_LOG_ERR(LogTemp, true, "Health component for owner [%s] has already been initialized with an ability system.", *GetNameSafe(Owner));
+		OVRL_LOG_ERR(LogOverlink, true, "Health component for owner [%s] has already been initialized with an ability system.", *GetNameSafe(Owner));
 		return;
 	}
 
 	AbilitySystemComponent = ASC;
 	if (!AbilitySystemComponent)
 	{
-		OVRL_LOG_ERR(LogTemp, true, "Cannot initialize health component for owner [%s] with NULL ability system.", *GetNameSafe(Owner));
+		OVRL_LOG_ERR(LogOverlink, true, "Cannot initialize health component for owner [%s] with NULL ability system.", *GetNameSafe(Owner));
 		return;
 	}
 
 	HealthSet = AbilitySystemComponent->AddSet<UOvrlHealthSet>();
 	if (!HealthSet)
 	{
-		OVRL_LOG_ERR(LogTemp, true, "Cannot initialize health component for owner [%s] with NULL health set on the ability system.", *GetNameSafe(Owner));
+		OVRL_LOG_ERR(LogOverlink, true, "Cannot initialize health component for owner [%s] with NULL health set on the ability system.", *GetNameSafe(Owner));
 		return;
+	}
+	
+	if (bHasUnlimitedHealth)
+	{
+		AbilitySystemComponent->AddDynamicTagGameplayEffect(OvrlCheatTags::UnlimitedHealth);
 	}
 
 	// Register ASC delegates
@@ -61,6 +68,11 @@ void UOvrlHealthComponent::InitializeWithASC(UOvrlAbilitySystemComponent* ASC)
 
 void UOvrlHealthComponent::HandleHealthChanged(const FOnAttributeChangeData& Data)
 {
+	if (Data.OldValue == Data.NewValue)
+	{
+		return;
+	}
+
 	OnHealthChanged.Broadcast(this, Data.OldValue, Data.NewValue);
 
 	if (Data.NewValue <= 0.f)

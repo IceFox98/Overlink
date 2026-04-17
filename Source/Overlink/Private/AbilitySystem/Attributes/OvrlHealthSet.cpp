@@ -1,8 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Net/UnrealNetwork.h"
+#include "GameplayEffectExtension.h"
+
+#include "OvrlGameplayTags.h"
 
 void UOvrlHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -14,7 +16,7 @@ void UOvrlHealthSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 UOvrlHealthSet::UOvrlHealthSet()
 	: Health(100.0f)
-	, MaxHealth(100.0f)
+	  , MaxHealth(100.0f)
 {
 }
 
@@ -39,12 +41,18 @@ void UOvrlHealthSet::PreAttributeChange(const FGameplayAttribute& Attribute, flo
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	ClampAttribute(Attribute, NewValue);
-}
+	if (Attribute == GetHealthAttribute())
+	{
+		UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+		if (ASC && ASC->HasMatchingGameplayTag(OvrlCheatTags::UnlimitedHealth))
+		{
+			// In this way, the gameplay effect will still be applied, but the health will not change.
+			NewValue = GetHealth();
+			return;
+		}
+	}
 
-void UOvrlHealthSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
-{
-	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+	ClampAttribute(Attribute, NewValue);
 }
 
 void UOvrlHealthSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const

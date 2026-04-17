@@ -778,7 +778,7 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 	{
 		const FRotator WarpRotation = Character->GetActorRotation();
 
-		FVector WarpLocation = FVector::ZeroVector;
+		FVector WarpLocation;
 		if (TraversalResult.bHasLandingPoint)
 		{
 			// Find mid-point of the traversal
@@ -1100,7 +1100,7 @@ void UOvrlCharacterMovementComponent::HandleVerticalWallrunJump()
 	const float ForwardVelocity = VerticalWallrunJumpVelocity.Y;
 	const float UpwardVelocity = VerticalWallrunJumpVelocity.Z;
 
-	FVector LaunchVelocity = FVector::ZeroVector;
+	FVector LaunchVelocity;
 
 	// How much the player pointing direction is aligned with the wall normal
 	const float PlayerAlignedDotValue = FVector::DotProduct(Character->GetActorForwardVector(), WallrunNormal);

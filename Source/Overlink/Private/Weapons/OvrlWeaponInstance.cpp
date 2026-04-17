@@ -2,7 +2,7 @@
 
 #include "Weapons/OvrlWeaponInstance.h"
 
-#include "Core/OvrlDamageable.h"
+#include "Core/Interfaces/OvrlDamageable.h"
 
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "GameFramework/Character.h"
@@ -151,22 +151,22 @@ void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
 	FBulletImpactEffects ImpactEffects = BulletImpactEffects.FindRef(SurfaceType);
 
 	// Spawn impact decal effect
-	ensureAlwaysMsgf(ImpactEffects.ImpactDecal, TEXT("Did you forget to set the Effect in the map?"));
+	ensureMsgf(ImpactEffects.ImpactDecal, TEXT("Did you forget to set the Effect in the map?"));
 	SpawnEffect(ImpactEffects.ImpactDecal, SurfaceType, HitData);
 
 	// Spawn bullet impact effect
-	ensureAlwaysMsgf(ImpactEffects.ImpactEffect, TEXT("Did you forget to set the Effect in the map?"));
+	ensureMsgf(ImpactEffects.ImpactEffect, TEXT("Did you forget to set the Effect in the map?"));
 	SpawnEffect(ImpactEffects.ImpactEffect, SurfaceType, HitData);
 
 	// Play impact sound
-	ensureAlwaysMsgf(ImpactEffects.ImpactSound, TEXT("Did you forget to set the Effect in the map?"));
+	ensureMsgf(ImpactEffects.ImpactSound, TEXT("Did you forget to set the Effect in the map?"));
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactEffects.ImpactSound, HitData.ImpactPoint);
 }
 
 void AOvrlWeaponInstance::SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData)
 {
 	UNiagaraComponent* EffectNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, HitData.ImpactPoint, FRotator::ZeroRotator, FVector::OneVector);
-	if (ensureAlways(EffectNiagaraComp))
+	if (ensure(EffectNiagaraComp))
 	{
 		// Update Niagara FX params
 		TArray<FVector> HitPositions;

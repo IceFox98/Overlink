@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Pawn/OvrlPawnBase.h"
-#include "Core//OvrlDamageable.h"
+#include "Core/Interfaces/OvrlDamageable.h"
 
 #include "OvrlEnemyBase.generated.h"
 

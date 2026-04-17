@@ -7,6 +7,16 @@
 #include "Core/OvrlPlayerCameraManager.h"
 #include "Inventory/OvrlInventoryComponent.h"
 
+void UOvrlUtils::OvrlDrawDebugString(const UObject* WorldContextObject, const FVector TextLocation, const FString& Text, class AActor* TestBaseActor, FLinearColor TextColor, float Duration, float FontScale/* = 1.f*/)
+{
+#if ENABLE_DRAW_DEBUG
+	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		::DrawDebugString(World, TextLocation, Text, TestBaseActor, TextColor.ToFColor(true), Duration, false, FontScale);
+	}
+#endif
+}
+
 FRotator UOvrlUtils::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
 {
 	if (!GravityDirection.Equals(FVector::DownVector))

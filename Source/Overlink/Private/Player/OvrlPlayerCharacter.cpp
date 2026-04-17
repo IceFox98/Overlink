@@ -13,7 +13,7 @@
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Audio/OvrlFoleyAudioBank.h"
-#include "Core/OvrlInteractable.h"
+#include "Core/Interfaces/OvrlInteractable.h"
 #include "OvrlUtils.h"
 
 // Engine

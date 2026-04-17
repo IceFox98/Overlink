@@ -65,6 +65,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(WeaponInstance);
 			Params.AddIgnoredActor(WeaponInstance->GetOwner());
+			Params.bReturnPhysicalMaterial = true;
 
 			EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 

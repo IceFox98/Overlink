@@ -16,35 +16,29 @@ UCLASS()
 class OVERLINK_API AOvrlPlayerCameraManager : public APlayerCameraManager
 {
 	GENERATED_BODY()
-	
-public:
 
+public:
 	static AOvrlPlayerCameraManager* Get(const UObject* WorldContextObject);
 
-	template<typename T>
+	template <typename T>
 	T* GetOrAddCameraModifier(TSubclassOf<UCameraModifier> ModifierClass)
 	{
 		if (UCameraModifier* FoundModifier = FindCameraModifierByClass(ModifierClass))
 		{
 			return Cast<T>(FoundModifier);
 		}
-		else
-		{
-			return Cast<T>(AddNewCameraModifier(ModifierClass));
-		}
+
+		return Cast<T>(AddNewCameraModifier(ModifierClass));
 	};
 
 public:
-
 	void HandleCameraEvent(ECameraFeedbackEvent Event, float Strength);
 
 public:
-
 	UPROPERTY(EditAnywhere, Category = "Ovrl Camera Event Definition")
 	TObjectPtr<UOvrlCameraEventsDefinition> CameraEventsDefinition;
 
 private:
-
 	UPROPERTY()
 	TObjectPtr<UOvrlCameraModifierBase> CameraModifier;
 

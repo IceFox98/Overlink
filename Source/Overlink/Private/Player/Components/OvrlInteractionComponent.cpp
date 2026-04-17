@@ -1,7 +1,7 @@
 #include "Player/Components/OvrlInteractionComponent.h"
 
 // Internal
-#include "Core/OvrlInteractable.h"
+#include "Core/Interfaces/OvrlInteractable.h"
 
 // Engine
 #include "OvrlUtils.h"

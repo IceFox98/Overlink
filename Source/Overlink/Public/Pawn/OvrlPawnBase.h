@@ -17,36 +17,26 @@ class OVERLINK_API AOvrlPawnBase : public APawn, public IAbilitySystemInterface
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
 	AOvrlPawnBase();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-public:
-
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION()
 	virtual void HandleDeath(AActor* InInstigator);
 
 protected:
-
-	/** Components that manages the player abilities */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl|Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UOvrlHealthComponent> HealthComponent;
 
 public:
-
 	// Ability sets to grant to this pawn's ability system.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Abilities")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Pawn Base")
 	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySets;
 };
