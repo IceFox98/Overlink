@@ -9,6 +9,11 @@ namespace OvrlGameplayMessageTags
 	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(EnemyKilled);
 };
 
+namespace OvrlDataTags
+{
+	OVERLINK_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(Damage);
+}
+
 namespace OvrlAbilityTags
 {
 	// Declare all of the custom native tags that Overlink will use

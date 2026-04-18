@@ -41,9 +41,6 @@ class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 public:
 	AOvrlWeaponInstance();
 
-protected:
-	virtual void BeginPlay() override;
-
 public:
 	virtual void OnEquipped_Implementation() override;
 	virtual void OnUnequipped_Implementation() override;
@@ -68,14 +65,9 @@ public:
 
 	virtual FTransform GetLeftHandIKTransform() const override;
 
-	void ToggleWeaponPhysics(bool bEnable);
-
 protected:
-	// @TODO: Should not be used here anymore
-	UFUNCTION()
-	void OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 	virtual void SpawnImpactVFX(const FHitResult& HitData);
+	virtual float ComputeDamage(const FHitResult& HitData) const;
 
 private:
 	void SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData);
@@ -106,13 +98,26 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
 	FName LeftHandIKSocketName = TEXT("LeftHandIK");
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance")
-	TSubclassOf<UGameplayEffect> GE_Damage;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Weapon Instance")
 	TMap<TEnumAsByte<EPhysicalSurface>, FBulletImpactEffects> BulletImpactEffects;
+	
+	// Damage that will be set to the Gameplay Effect.
+	// This value will be subtracted to the target Health.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Damage")
+	float BaseDamage = 1.f;
 
-	// Should be the skeletal mesh of the character holding the weapon
+	// Gameplay Effect that will be applied to the target hit by this weapon.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Damage")
+	TSubclassOf<UGameplayEffect> GE_Damage;
+	
+	// Tag used to set the damage magnitude in the Gameplay Effect.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Damage")
+	FGameplayTag DamageMagnitudeTag;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Damage")
+	TMap<TEnumAsByte<EPhysicalSurface>, float> DamageSurfaceMultipliers;
+	
+	// Should be the skeletal mesh of the character holding the weapon.
 	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> OwnerSkeletalMesh;
 

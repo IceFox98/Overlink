@@ -5,7 +5,12 @@
 namespace OvrlGameplayMessageTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(EnemyKilled, "Ovrl.GameplayMessage.EnemyKilled");
-};
+}
+
+namespace OvrlDataTags
+{
+	UE_DEFINE_GAMEPLAY_TAG(Damage, "Ovrl.Data.Damage");
+}
 
 namespace OvrlAbilityTags
 {

@@ -3,6 +3,7 @@
 #include "Weapons/OvrlWeaponInstance.h"
 
 #include "Core/Interfaces/OvrlDamageable.h"
+#include "OvrlGameplayTags.h"
 
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "GameFramework/Character.h"
@@ -15,13 +16,9 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 	SetRootComponent(WeaponMesh);
 
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
-}
 
-void AOvrlWeaponInstance::BeginPlay()
-{
-	Super::BeginPlay();
-
-	WeaponMesh->OnComponentHit.AddDynamic(this, &AOvrlWeaponInstance::OnWeaponHit);
+	DamageMagnitudeTag = OvrlDataTags::Damage;
+	DamageSurfaceMultipliers.Add(EPhysicalSurface::SurfaceType4, 2.f); // Weak Spot
 }
 
 void AOvrlWeaponInstance::OnEquipped_Implementation()
@@ -73,6 +70,21 @@ void AOvrlWeaponInstance::EndReloading()
 	OnReloaded.Broadcast(this);
 }
 
+float AOvrlWeaponInstance::ComputeDamage(const FHitResult& HitData) const
+{
+	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType_Default;
+
+	if (HitData.PhysMaterial.IsValid())
+	{
+		SurfaceType = HitData.PhysMaterial->SurfaceType;
+	}
+
+	// Get damage multiplier based on surface type hit.
+	// If surface type is not in the list, set multiplier to 1 as default.
+	const float DamageMultiplier = DamageSurfaceMultipliers.FindRef(SurfaceType, 1.f);
+	return BaseDamage * DamageMultiplier;
+}
+
 FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
 {
 	if (ensure(WeaponMesh && OwnerSkeletalMesh))
@@ -86,55 +98,6 @@ FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
 	}
 
 	return FTransform::Identity;
-}
-
-void AOvrlWeaponInstance::ToggleWeaponPhysics(bool bEnable)
-{
-	if (bEnable)
-	{
-		WeaponMesh->SetSimulatePhysics(true);
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		WeaponMesh->SetNotifyRigidBodyCollision(true);
-	}
-	else
-	{
-		WeaponMesh->SetSimulatePhysics(false);
-		WeaponMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
-		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		WeaponMesh->SetNotifyRigidBodyCollision(false);
-	}
-}
-
-// Move this to weapon-specific class?
-void AOvrlWeaponInstance::OnWeaponHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	ToggleWeaponPhysics(false);
-
-	SetActorLocation(Hit.ImpactPoint);
-
-	FVector NormalizedImpactNormal = Hit.ImpactNormal.GetSafeNormal();
-
-	// Define an arbitrary vector (ensure it is not parallel to the normal)
-	FVector ArbitraryVector = FVector::UpVector;
-	if (FMath::Abs(NormalizedImpactNormal | ArbitraryVector) > 0.99f) // Check if nearly parallel
-	{
-		ArbitraryVector = FVector::RightVector;
-	}
-
-	// X-axis perpendicular to the impact normal
-	FVector XAxis = FVector::CrossProduct(NormalizedImpactNormal, ArbitraryVector).GetSafeNormal();
-
-	// Z-axis perpendicular to both Y-axis and X-axis
-	FVector ZAxis = FVector::CrossProduct(XAxis, NormalizedImpactNormal).GetSafeNormal();
-
-	FMatrix RotationMatrix(
-		XAxis, // X-axis: perpendicular to the normal
-		NormalizedImpactNormal, // Y-axis: aligned with the impact normal
-		ZAxis, // Z-axis: computed for orthogonality
-		FVector::ZeroVector // Origin (irrelevant for rotation)
-	);
-
-	SetActorRotation(FQuat(RotationMatrix));
 }
 
 void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)

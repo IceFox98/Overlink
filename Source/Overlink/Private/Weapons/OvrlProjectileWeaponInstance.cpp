@@ -12,9 +12,6 @@
 
 AOvrlProjectileWeaponInstance::AOvrlProjectileWeaponInstance()
 {
-	//PickupSphere = CreateDefaultSubobject<USphereComponent>(TEXT("PickupSphere"));
-	//PickupSphere->SetupAttachment(RootComponent);
-
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ThrowForce = 3200.f;
@@ -80,8 +77,6 @@ void AOvrlProjectileWeaponInstance::StartReloading()
 		// Detach weapon from player
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 
-		ToggleWeaponPhysics(true);
-
 		//WeaponMesh->SetNotifyRigidBodyCollision(true);
 		//WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		//WeaponMesh->SetSimulatePhysics(true);
@@ -126,9 +121,6 @@ void AOvrlProjectileWeaponInstance::StartReloading()
 		}
 
 		// TODO: Play VFX
-
-		// Reset physics
-		ToggleWeaponPhysics(false);
 
 		//WeaponMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
 		//WeaponMesh->SetNotifyRigidBodyCollision(false);
