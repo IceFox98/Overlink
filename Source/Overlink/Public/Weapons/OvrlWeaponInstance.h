@@ -116,10 +116,6 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Weapon Instance|Damage")
 	TMap<TEnumAsByte<EPhysicalSurface>, float> DamageSurfaceMultipliers;
-	
-	// Should be the skeletal mesh of the character holding the weapon.
-	UPROPERTY()
-	TObjectPtr<USkeletalMeshComponent> OwnerSkeletalMesh;
 
 private:
 	bool bIsReloading = false;

@@ -31,6 +31,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	GroundNormalCheckDistance = 200.f;
 
 	// Wallrun
+	bCanCheckWallrun = true;
 	WallrunForwardCheckDistance = 75.f;
 	WallrunStrafeCheckDistance = 75.f;
 	WallrunMaxOuterCheckAngle = 10.f;
@@ -54,6 +55,7 @@ UOvrlCharacterMovementComponent::UOvrlCharacterMovementComponent()
 	SlideMaxWalkSpeedCrouched = 0.f;
 
 	// Traversals
+	bCanCheckTraversals = true;
 	bAllowTraversalWhenWallrunning = true;
 	TraversalCheckDistance = FVector2D(100.f, 50.f);
 	TraversalLandingPointDistance = 100.f;
@@ -94,7 +96,10 @@ void UOvrlCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Character = Cast<AOvrlPlayerCharacter>(GetCharacterOwner());
+	Character = Cast<AOvrlCharacterBase>(GetCharacterOwner());
+	check(Character);
+	
+	CharacterWarpingComponent = Character->GetComponentByClass<UMotionWarpingComponent>();
 
 	// Save original character values due to reset them after applying parkour movement.
 	DefaultGravity = GravityScale;
@@ -542,7 +547,7 @@ void UOvrlCharacterMovementComponent::ResetTraversal()
 
 bool UOvrlCharacterMovementComponent::HandleTraversals()
 {
-	if (IsTraversing())
+	if (!bCanCheckTraversals || IsTraversing())
 	{
 		return false;
 	}
@@ -774,7 +779,7 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 
 void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult& TraversalResult) const
 {
-	if (UMotionWarpingComponent* MotionWarping = Character->GetMotionWarpingComponent())
+	if (CharacterWarpingComponent.IsValid())
 	{
 		const FRotator WarpRotation = Character->GetActorRotation();
 
@@ -800,19 +805,19 @@ void UOvrlCharacterMovementComponent::SetVaultWarpingData(const FTraversalResult
 		StartWarpTarget.Name = StartTraversalWarpTargetName;
 		StartWarpTarget.Location = WarpLocation;
 		StartWarpTarget.Rotation = WarpRotation;
-		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
+		CharacterWarpingComponent->AddOrUpdateWarpTarget(StartWarpTarget);
 
 		FMotionWarpingTarget EndWarpTarget;
 		EndWarpTarget.Name = EndTraversalWarpTargetName;
 		EndWarpTarget.Location = TraversalResult.LandingPoint;
 		EndWarpTarget.Rotation = WarpRotation;
-		MotionWarping->AddOrUpdateWarpTarget(EndWarpTarget);
+		CharacterWarpingComponent->AddOrUpdateWarpTarget(EndWarpTarget);
 	}
 }
 
 void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResult& TraversalResult) const
 {
-	if (UMotionWarpingComponent* MotionWarping = Character->GetMotionWarpingComponent())
+	if (CharacterWarpingComponent.IsValid())
 	{
 		const FRotator WarpRotation = Character->GetActorRotation();
 
@@ -821,7 +826,7 @@ void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResul
 		StartWarpTarget.Rotation = WarpRotation;
 		StartWarpTarget.Location = TraversalResult.FrontEdgeLocation;
 
-		MotionWarping->AddOrUpdateWarpTarget(StartWarpTarget);
+		CharacterWarpingComponent->AddOrUpdateWarpTarget(StartWarpTarget);
 	}
 }
 
@@ -901,7 +906,7 @@ void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& Trave
 bool UOvrlCharacterMovementComponent::ShouldHandleWallrun() const
 {
 	const FVector LastVelocity = GetRelativeLastUpdateVelocity();
-	return IsFalling() && bHasPlayerJumped && !bIsWallrunInCooldown && LastVelocity.Z > WallrunMinCheckVelocityZ;
+	return bCanCheckWallrun && IsFalling() && bHasPlayerJumped && !bIsWallrunInCooldown && LastVelocity.Z > WallrunMinCheckVelocityZ;
 }
 
 void UOvrlCharacterMovementComponent::HandleWallrun(float DeltaTime)
@@ -978,6 +983,7 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 
 		const FVector LaunchVelocity = -GetGravityDirection() * VelocityZ;
 		Character->LaunchCharacter(LaunchVelocity + StickVelocity, true, true);
+		StopRunning();
 
 		return true;
 	}

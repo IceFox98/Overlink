@@ -60,6 +60,8 @@ void AOvrlEquipmentInstance::OnEquipped_Implementation()
 
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
+		OwnerSkeletalMesh = OwningPawn->GetMesh();
+		
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 
 		// Attach Display Mesh to 3rd person mesh

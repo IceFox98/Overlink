@@ -25,18 +25,15 @@ class OVERLINK_API UOvrlEquipmentAnimInstance : public UOvrlLinkedAnimInstance
 	GENERATED_BODY()
 
 public:
-
 	UOvrlEquipmentAnimInstance();
 
 public:
-
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaTime) override;
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 
 protected:
-
 	UFUNCTION()
 	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem);
 
@@ -44,13 +41,11 @@ protected:
 	void GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation);
 
 private:
-
 	void UpdateLookingSway(float DeltaTime);
 	void UpdateJumpSway(float DeltaTime);
 	void UpdateLeftHandIKAplha(float DeltaTime);
 
 protected:
-
 	// ------- CONFIG VARIABLES -------
 
 	// The maximum sway looking rotation limit the equipped item can reach on both axis X and Y.
@@ -79,14 +74,14 @@ protected:
 	// Multiplier applied when player jumps while moving right/left
 	UPROPERTY(EditAnywhere, Category = "Ovrl Equipment Anim Instance|Jump Sway")
 	FVector JumpSwayRotationMultiplier;
-	
+
 	UPROPERTY(EditAnywhere, Category = "Ovrl Linked Anim Instance")
 	TArray<TSoftObjectPtr<UOvrlAnimManagerData>> ManagersData;
 
 	// ------- RUNTIME VALUES -------
-	
+
 	// Hands
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	FVector RightHandInitialLocation;
 
@@ -95,16 +90,16 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	float InitialTransformAlpha;
-	
+
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	FTransform LeftHandIKTransform;
-	
+
 	// How much of the Left Hand IK is applied
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance", Transient)
 	float LeftHandIKAlpha;
 
 	// Looking sway
-	
+
 	// How much of the looking sway is applied
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float LookingSwayAlpha;
@@ -118,7 +113,7 @@ protected:
 	FRotator LookingSwayRotation;
 
 	// Jump sway
-	
+
 	// How much of the jump sway is applied
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Equipment Anim Instance|Sway", Transient)
 	float JumpSwayAlpha;
@@ -132,13 +127,12 @@ protected:
 	FRotator JumpSwayRotation;
 
 protected:
-
 	UPROPERTY()
 	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
 
 	UPROPERTY()
 	TObjectPtr<AOvrlEquipmentInstance> EquippedItem = nullptr;
-	
+
 	UPROPERTY()
 	TArray<TObjectPtr<UOvrlStanceStatesAnimManager>> Managers;
 

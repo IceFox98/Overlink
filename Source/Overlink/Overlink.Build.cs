@@ -28,7 +28,13 @@ public class Overlink : ModuleRules
 			"Niagara",
 			"GameplayMessageRuntime",
 			"AnimationWarpingRuntime",
-			"AnimGraphRuntime",
+			"AnimGraphRuntime"
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"MotionTrajectory",
+			"PoseSearch"
 		});
 
 		if (Target.bBuildEditor)

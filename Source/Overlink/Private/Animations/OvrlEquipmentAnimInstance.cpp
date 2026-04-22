@@ -1,19 +1,17 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Animations/OvrlEquipmentAnimInstance.h"
 
 // Internal
-#include "Player/OvrlPlayerCharacter.h"	
+#include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Inventory/OvrlInventoryComponent.h"
 #include "Weapons/OvrlRangedWeaponInstance.h"
-#include "Player/Components/OvrlCameraComponent.h"
 #include "Player/OvrlPlayerAnimInstance.h"
-#include "OvrlUtils.h"
-#include "Overlink.h"
 #include "Animations/Procedural/OvrlStanceStatesAnimManager.h"
 #include "Animations/Procedural/OvrlAnimModifiers.h"
+#include "OvrlUtils.h"
+#include "Overlink.h"
 
 // Engine
 #include "Animations/Procedural/OvrlAnimManagerData.h"
@@ -26,7 +24,7 @@ UOvrlEquipmentAnimInstance::UOvrlEquipmentAnimInstance()
 
 	LookingSwayRotationLimit = FVector2D::One();
 	LookingSwayMovementMultiplier = FVector::One();
-	
+
 	InitialTransformAlpha = 1.f;
 }
 
@@ -42,10 +40,13 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 	Super::NativeBeginPlay();
 
 	check(PlayerCharacter);
-	PlayerCharacter->GetInventoryComponent()->OnItemEquipped.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnNewItemEquipped);
+	if (UOvrlInventoryComponent* InventoryComponent = PlayerCharacter->GetComponentByClass<UOvrlInventoryComponent>())
+	{
+		InventoryComponent->OnItemEquipped.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnNewItemEquipped);
+	}
 
 	ensure(JumpSwayCurve);
-	LastPlayerCameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+	LastPlayerCameraRotation = PlayerCharacter->GetControlRotation();
 	Managers.Empty();
 
 	for (const TSoftObjectPtr<UOvrlAnimManagerData>& ManagerDataPtr : ManagersData)
@@ -98,27 +99,27 @@ void UOvrlEquipmentAnimInstance::UpdateLookingSway(float DeltaTime)
 	// Get camera delta movement, relative to the current gravity
 	const FRotator LocalCameraRotation = UOvrlUtils::GetGravityRelativeRotation(PlayerCharacter->GetControlRotation(), CharacterMovementComponent->GetGravityDirection());
 	const FRotator DeltaSwayRotation = UKismetMathLibrary::NormalizedDeltaRotator(LastPlayerCameraRotation, LocalCameraRotation);
-	
+
 	const float SwayPitch = FMath::Clamp(DeltaSwayRotation.Pitch, -LookingSwayRotationLimit.Y, LookingSwayRotationLimit.Y);
 	const float SwayYaw = FMath::Clamp(-DeltaSwayRotation.Yaw, -LookingSwayRotationLimit.X, LookingSwayRotationLimit.X);
 	const FRotator TargetSwayRotation = FRotator(SwayPitch, SwayYaw, 0.f);
-	
+
 	// Speed = 3.5
 	LastLookingSwayRotation = UKismetMathLibrary::RInterpTo(LastLookingSwayRotation, TargetSwayRotation, DeltaTime, 3.5f);
-	
+
 	// Apply weapon sway looking to Anim BP
 	LookingSwayTranslation = FVector(
 		LastLookingSwayRotation.Yaw * LookingSwayMovementMultiplier.X,
 		LastLookingSwayRotation.Yaw * LookingSwayMovementMultiplier.Z,
 		LastLookingSwayRotation.Pitch * LookingSwayMovementMultiplier.Y
 	);
-	
+
 	LookingSwayRotation = FRotator(
 		LastLookingSwayRotation.Pitch * LookingSwayRotationMultiplier.Y,
 		LastLookingSwayRotation.Yaw * LookingSwayRotationMultiplier.Z,
 		LastLookingSwayRotation.Yaw * LookingSwayRotationMultiplier.X
 	);
-	
+
 	// Save the last sway rotation
 	LastPlayerCameraRotation = LocalCameraRotation;
 }
@@ -155,7 +156,7 @@ void UOvrlEquipmentAnimInstance::UpdateLeftHandIKAplha(float DeltaTime)
 	const bool bIsPlayerWallrunning = CharacterMovementComponent->IsWallrunning();
 	const float TargetLeftHandIKAlpha = bIsPlayerWallrunning ? 0.f : 1.f;
 	LeftHandIKAlpha = FMath::FInterpTo(LeftHandIKAlpha, TargetLeftHandIKAlpha, DeltaTime, 15.f);
-	
+
 	if (EquippedItem)
 	{
 		LeftHandIKTransform = EquippedItem->GetLeftHandIKTransform();

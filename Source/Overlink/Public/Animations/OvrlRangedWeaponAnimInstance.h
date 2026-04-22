@@ -18,25 +18,20 @@ class OVERLINK_API UOvrlRangedWeaponAnimInstance : public UOvrlEquipmentAnimInst
 	GENERATED_BODY()
 
 public:
-
 	UOvrlRangedWeaponAnimInstance();
 
 public:
-
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaTime) override;
 
 	AOvrlRangedWeaponInstance* GetEquippedWeapon() const { return EquippedWeapon; };
 
 protected:
-
 	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem) override;
 
 private:
-
 	void UpdateAim(float DeltaTime);
 
 protected:
-
 	// ------- CONFIG VARIABLES -------
 
 	// How much of the looking sway should be applied during ADS
@@ -70,7 +65,6 @@ protected:
 	FRotator WeaponAimRotation;
 
 protected:
-
 	UPROPERTY()
 	AOvrlRangedWeaponInstance* EquippedWeapon = nullptr;
 

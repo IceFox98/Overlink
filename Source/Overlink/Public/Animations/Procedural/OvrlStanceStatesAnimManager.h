@@ -8,7 +8,7 @@
 
 class UOvrlAnimModifierBase;
 class UOvrlAnimManagerData;
-class AOvrlPlayerCharacter;
+class AOvrlCharacterBase;
 
 /**
  *
@@ -20,7 +20,7 @@ class OVERLINK_API UOvrlStanceStatesAnimManager : public UObject
 
 public:
 
-	void Initialize(AOvrlPlayerCharacter* PlayerCharacter, const UOvrlAnimManagerData* ManagerData);
+	void Initialize(AOvrlCharacterBase* PlayerCharacter, const UOvrlAnimManagerData* ManagerData);
 
 	FORCEINLINE bool IsActive() { return bShouldUpdateStartPosition; };
 	FORCEINLINE TArray<UOvrlAnimModifierBase*> GetModifiers() const { return Modifiers; };

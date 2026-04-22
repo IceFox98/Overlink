@@ -7,7 +7,7 @@
 #include "OvrlAnimModifiers.generated.h"
 
 class UOvrlCharacterMovementComponent;
-class AOvrlPlayerCharacter;
+class AOvrlCharacterBase;
 class UCurveVector;
 class UOvrlAnimAlphaModifierBase;
 
@@ -17,7 +17,6 @@ struct FModifierData
 	GENERATED_BODY()
 
 public:
-
 	UPROPERTY(EditAnywhere)
 	float Frequency = 1.f;
 
@@ -27,7 +26,7 @@ public:
 	// Z -> Up/Down 
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UCurveVector> TranslationCurve;
-	
+
 	// Translation curve that the modifier will apply (component space)
 	// X -> Pitch
 	// Y -> Roll
@@ -60,8 +59,7 @@ class OVERLINK_API UOvrlAnimModifierBase : public UObject
 	GENERATED_BODY()
 
 public:
-	
-	void Initialize(AOvrlPlayerCharacter* InPlayerCharacter);
+	void Initialize(AOvrlCharacterBase* InPlayerCharacter);
 	void Toggle(bool bEnable);
 
 	void Update(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
@@ -71,14 +69,14 @@ public:
 	bool HasTag(const FGameplayTag& Tag);
 
 protected:
-
-	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) {};
+	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation)
+	{
+	};
 
 	void ComputeAlpha(float DeltaTime);
 	float GetAlpha();
 
 protected:
-
 	// Used just for debugging purposes
 	UPROPERTY(EditAnywhere, Category = "Ovrl Anim Modifier Base")
 	bool bEnabled = true;
@@ -101,7 +99,6 @@ protected:
 	TArray<TObjectPtr<UOvrlAnimAlphaModifierBase>> AlphaModifiers;
 
 protected:
-
 	// Don't use this directly, use GetAlpha() instead.
 	float Alpha = 0.f;
 	bool bShouldUpdateAlpha = false;
@@ -109,7 +106,7 @@ protected:
 	FGameplayTag CurrentTag;
 
 	UPROPERTY()
-	TWeakObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
+	TWeakObjectPtr<AOvrlCharacterBase> PlayerCharacter;
 
 	UPROPERTY()
 	TWeakObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
@@ -124,7 +121,6 @@ class OVERLINK_API UOvrlSimpleAnimModifier : public UOvrlAnimModifierBase
 	GENERATED_BODY()
 
 public:
-
 	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
 
 };
@@ -138,17 +134,14 @@ class OVERLINK_API UOvrlLocomotionActionsAnimModifier : public UOvrlAnimModifier
 	GENERATED_BODY()
 
 public:
-
 	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
 
 public:
-
 	// The speed of the walk sway interpolation
 	UPROPERTY(EditAnywhere, Category = "Ovrl Locomotion Actions Anim Modifier")
 	float InterpSpeed;
 
 protected:
-
 	FVector LastTranslation;
 	FRotator LastRotation;
 };
@@ -159,6 +152,5 @@ class OVERLINK_API UOvrlMovementAnimModifier : public UOvrlLocomotionActionsAnim
 	GENERATED_BODY()
 
 public:
-
 	virtual void UpdateImpl(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation) override;
 };

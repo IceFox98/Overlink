@@ -59,6 +59,7 @@ class APawn;
 enum class ECameraFeedbackEvent : uint8;
 struct FAnimNodeReference;
 struct FOvrlItemEntry;
+struct FCharacterTrajectoryData;
 
 /**
  *
@@ -108,4 +109,11 @@ public:
 	// Looks for an Inventory Component and retrieve the first equipment instance matching the passed definition.
 	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
 	static UPARAM(DisplayName="Equipment Instance") AOvrlEquipmentInstance* GetFirstEquipmentInstance(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Utils", meta = (BlueprintThreadSafe, DisplayName = "Ovrl Generate Character Trajectory"))
+	static void GenerateCharacterTrajectory(const UObject* InCharacter, 
+		FCharacterTrajectoryData InTrajectoryData, float InDeltaTime,
+		UPARAM(ref) FPoseSearchQueryTrajectory& InOutTrajectory,
+		UPARAM(ref) TArray<FVector>& OutTranslationHistory, FPoseSearchQueryTrajectory& OutTrajectory,
+		float InHistorySamplingInterval = 0.04f, int32 InTrajectoryHistoryCount = 10, float InPredictionSamplingInterval = 0.2f, int32 InTrajectoryPredictionCount = 8);
 };

@@ -2,20 +2,24 @@
 
 #include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlHealthComponent.h"
+#include "Animations/OvrlLinkedAnimInstance.h"
 #include "AbilitySystem/OvrlAbilitySet.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "Player/Components/OvrlCharacterMovementComponent.h"
 
 #include "OvrlUtils.h"
 
 // Sets default values
 AOvrlCharacterBase::AOvrlCharacterBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOvrlCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	HealthComponent = CreateDefaultSubobject<UOvrlHealthComponent>(TEXT("HealthComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UOvrlAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	
+	LandedResetTime = .3f;
 }
 
 // Called when the game starts or when spawned
@@ -35,6 +39,38 @@ void AOvrlCharacterBase::BeginPlay()
 	}
 }
 
+void AOvrlCharacterBase::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	
+	bJustLanded = true;
+	
+	GetWorldTimerManager().ClearTimer(TimerHandle_LandReset);
+	GetWorldTimerManager().SetTimer(TimerHandle_LandReset, [this]() {
+		bJustLanded = false;
+	}, LandedResetTime, false);
+}
+
+void AOvrlCharacterBase::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
+{
+	if (GetMesh())
+	{
+		GetMesh()->LinkAnimClassLayers(LayerClass);
+	}
+	
+	bHasDefaultAnimLayerClass = false;
+}
+
+void AOvrlCharacterBase::RestoreAnimLayerClass()
+{
+	if (GetMesh())
+	{
+		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
+	}
+	
+	bHasDefaultAnimLayerClass = true;
+}
+
 void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 {
 	OVRL_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
@@ -52,6 +88,10 @@ void AOvrlCharacterBase::EquipObject(AActor* ObjectToEquip, FName AttachSocketNa
 	}
 }
 
+void AOvrlCharacterBase::UnequipObject()
+{
+}
+
 // Overridden in Player Character, to play full body animation
 void AOvrlCharacterBase::OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime)
 {
@@ -64,7 +104,17 @@ void AOvrlCharacterBase::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
 	GetMesh()->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
 }
 
+bool AOvrlCharacterBase::IsAiming() const
+{
+	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
+}
+
 UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const
 {
 	return GetOvrlAbilitySystemComponent();
+}
+
+UOvrlCharacterMovementComponent* AOvrlCharacterBase::GetCharacterMovement() const
+{
+	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
 }

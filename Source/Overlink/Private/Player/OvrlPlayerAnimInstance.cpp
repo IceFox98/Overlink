@@ -4,7 +4,7 @@
 #include "Player/OvrlPlayerAnimInstance.h"
 
 // Internal
-#include "Player/OvrlPlayerCharacter.h"	
+#include "Player/OvrlCharacterBase.h"	
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Player/Components/OvrlCameraComponent.h"
 
@@ -23,7 +23,7 @@ void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 
-	PlayerCharacter = Cast<AOvrlPlayerCharacter>(GetOwningActor());
+	PlayerCharacter = Cast<AOvrlCharacterBase>(GetOwningActor());
 
 #if WITH_EDITOR
 	const UWorld* World = GetWorld();
@@ -31,7 +31,7 @@ void UOvrlPlayerAnimInstance::NativeInitializeAnimation()
 	if (IsValid(World) && !World->IsGameWorld() && !IsValid(PlayerCharacter))
 	{
 		// Use default objects for editor preview.
-		PlayerCharacter = GetMutableDefault<AOvrlPlayerCharacter>();
+		PlayerCharacter = GetMutableDefault<AOvrlCharacterBase>();
 	}
 #endif
 
@@ -95,6 +95,7 @@ void UOvrlPlayerAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaTime)
 	
 	PlayerRotation = UOvrlUtils::GetGravityRelativeRotation(PlayerCharacter->GetActorRotation(), CharacterMovementComponent->GetGravityDirection());
 	bHasJustLanded = PlayerCharacter->bJustLanded;
+	bHasDefaultAnimLayerClass = PlayerCharacter->HasDefaultAnimLayerClass();
 }
 
 void UOvrlPlayerAnimInstance::OnMontageInstanceStopped(FAnimMontageInstance& StoppedMontageInstance)
@@ -105,6 +106,11 @@ void UOvrlPlayerAnimInstance::OnMontageInstanceStopped(FAnimMontageInstance& Sto
 	{
 		CharacterMovementComponent->ResetTraversal();
 	}
+}
+
+bool UOvrlPlayerAnimInstance::IsPlayerAnimInstance() const
+{
+	return PlayerCharacter && PlayerCharacter->IsPlayerControlled();
 }
 
 FRotator UOvrlPlayerAnimInstance::GetSlideSlopeRotation() const
@@ -158,7 +164,8 @@ FRotator UOvrlPlayerAnimInstance::GetWallrunCameraTiltRotation() const
 {
 	if (PlayerCharacter && CharacterMovementComponent)
 	{
-		FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+		// FRotator CameraRotation = PlayerCharacter->GetCameraComponent()->GetComponentRotation();
+		FRotator CameraRotation = PlayerCharacter->GetControlRotation();
 		CameraRotation = UOvrlUtils::GetGravityRelativeRotation(CameraRotation, CharacterMovementComponent->GetGravityDirection());
 		return FRotator(CameraRotation.Roll, 0.f, 0.f);
 	}

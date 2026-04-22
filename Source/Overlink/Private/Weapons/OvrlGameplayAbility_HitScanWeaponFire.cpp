@@ -70,7 +70,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 			EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
 
 			FHitResult HitResult;
-			GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, Params);
+			GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, TraceCollisionChannel, Params);
 
 #if ENABLE_DRAW_DEBUG
 			const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(WeaponInstance->GetOwner(), "Ovrl.Weapons");

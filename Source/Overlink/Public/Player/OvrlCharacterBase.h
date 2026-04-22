@@ -8,6 +8,7 @@
 #include "OvrlCharacterBase.generated.h"
 
 class UOvrlHealthComponent;
+class UOvrlCharacterMovementComponent;
 class UOvrlAbilitySystemComponent;
 class UOvrlAbilitySet;
 class UOvrlLinkedAnimInstance;
@@ -26,23 +27,30 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Base")
+	UOvrlCharacterMovementComponent* GetCharacterMovement() const;
 	virtual UOvrlAbilitySystemComponent* GetOvrlAbilitySystemComponent() const { return AbilitySystemComponent; };
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION()
 	virtual void HandleDeath(AActor* InInstigator);
+	virtual void Landed(const FHitResult& Hit) override;
 
-	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass) { unimplemented(); };
-	virtual void RestoreAnimLayerClass() { unimplemented(); };
+	virtual void ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass);
+	virtual void RestoreAnimLayerClass();
 	virtual void EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay);
-
-	virtual void UnequipObject() {};
-
+	virtual void UnequipObject();
 	virtual void OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
 	virtual void OvrlStopAnimMontage(UAnimMontage* MontageToStop);
 
+	bool IsAiming() const;
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Base")
+	FORCEINLINE bool HasDefaultAnimLayerClass() const { return bHasDefaultAnimLayerClass; };
+
 protected:
-	/** Components that manages the player abilities */
+	// ------ COMPONENTS ------
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UOvrlAbilitySystemComponent> AbilitySystemComponent;
 
@@ -56,4 +64,18 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Character Base")
 	TSubclassOf<UOvrlLinkedAnimInstance> DefaultAnimLayerClass;
+
+	// Time (in seconds) before bJustLanded is reset.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Base")
+	float LandedResetTime;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Base", Transient)
+	bool bJustLanded;
+
+protected:
+	bool bHasDefaultAnimLayerClass;
+
+private:
+	FTimerHandle TimerHandle_LandReset;
+
 };

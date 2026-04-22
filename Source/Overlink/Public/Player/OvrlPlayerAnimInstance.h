@@ -9,7 +9,7 @@
 
 #include "OvrlPlayerAnimInstance.generated.h"
 
-class AOvrlPlayerCharacter;
+class AOvrlCharacterBase;
 class UOvrlCharacterMovementComponent;
 class AOvrlEquipmentInstance;
 class AOvrlRangedWeaponInstance;
@@ -35,6 +35,9 @@ public:
 public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Anim Instance", meta=(BlueprintThreadSafe))
+	bool IsPlayerAnimInstance() const;
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Anim Instance", meta=(BlueprintThreadSafe))
 	FRotator GetSlideSlopeRotation() const;
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Anim Instance", meta=(BlueprintThreadSafe))
@@ -54,7 +57,7 @@ public:
 protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
-	TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
+	TObjectPtr<AOvrlCharacterBase> PlayerCharacter;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
 	TObjectPtr<UOvrlCharacterMovementComponent> CharacterMovementComponent;
@@ -89,6 +92,9 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
 	bool bIsPlayerValid;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
+	bool bHasDefaultAnimLayerClass;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance", Transient)
 	FRotator PlayerRotation;
@@ -147,7 +153,7 @@ protected:
 	bool bIsLateralWallrun;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Locomotion Data", Transient)
-	bool bHasJustLanded;
+	bool bHasJustLanded;	
 
 	// ------ IK ------
 

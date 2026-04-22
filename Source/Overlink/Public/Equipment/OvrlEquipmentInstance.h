@@ -61,6 +61,10 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Equipment Instance")
 	TObjectPtr<UOvrlItemInstance> AssociatedItem;
+	
+	// Should be the skeletal mesh of the character holding the equipment.
+	UPROPERTY()
+	TObjectPtr<USkeletalMeshComponent> OwnerSkeletalMesh;
 
 private:
 	friend class UOvrlInventoryComponent;

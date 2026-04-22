@@ -4,14 +4,13 @@
 
 // Internal
 #include "Player/Components/OvrlCameraComponent.h"
-#include "Player/Components/OvrlHealthComponent.h"
 #include "Player/Components/OvrlInteractionComponent.h"
 #include "Player/Input/OvrlInputComponent.h"
 #include "Player/Input/OvrlInputConfig.h"
+#include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Inventory/OvrlInventoryComponent.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
-#include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Audio/OvrlFoleyAudioBank.h"
 #include "Core/Interfaces/OvrlInteractable.h"
 #include "OvrlUtils.h"
@@ -30,7 +29,7 @@
 #include "Components/AudioComponent.h"
 
 AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UOvrlCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -61,7 +60,6 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 
 	bEnableCameraStabilization = true;
-	LandedResetTime = .3f;
 	LandSoundMultiplier = .5f;
 	JumpSoundMultiplier = .5f;
 	SlideSoundMultiplier = .5f;
@@ -79,13 +77,7 @@ void AOvrlPlayerCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 
-	bJustLanded = true;
 	PlayLandSound();
-
-	GetWorldTimerManager().ClearTimer(TimerHandle_LandReset);
-	GetWorldTimerManager().SetTimer(TimerHandle_LandReset, [this]() {
-		bJustLanded = false;
-	}, LandedResetTime, false);
 }
 
 void AOvrlPlayerCharacter::BeginPlay()
@@ -277,18 +269,20 @@ void AOvrlPlayerCharacter::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
 
 void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
 {
-	if (GetMesh() && FullBodyMesh)
+	Super::ApplyAnimLayerClass(LayerClass);
+	
+	if (FullBodyMesh)
 	{
-		GetMesh()->LinkAnimClassLayers(LayerClass);
 		FullBodyMesh->LinkAnimClassLayers(LayerClass);
 	}
 }
 
 void AOvrlPlayerCharacter::RestoreAnimLayerClass()
 {
-	if (GetMesh() && FullBodyMesh)
+	Super::RestoreAnimLayerClass();
+	
+	if (FullBodyMesh)
 	{
-		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
 		FullBodyMesh->LinkAnimClassLayers(DefaultAnimLayerClass);
 	}
 }
@@ -390,14 +384,4 @@ bool AOvrlPlayerCharacter::CheckWallCollisions(const FVector& Direction)
 	}
 
 	return false;
-}
-
-UOvrlCharacterMovementComponent* AOvrlPlayerCharacter::GetCharacterMovement() const
-{
-	return Cast<UOvrlCharacterMovementComponent>(GetMovementComponent());
-}
-
-bool AOvrlPlayerCharacter::IsAiming() const
-{
-	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
 }

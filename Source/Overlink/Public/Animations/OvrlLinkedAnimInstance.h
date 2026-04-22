@@ -7,7 +7,7 @@
 #include "OvrlLinkedAnimInstance.generated.h"
 
 class UOvrlPlayerAnimInstance;
-class AOvrlPlayerCharacter;
+class AOvrlCharacterBase;
 class UOvrlStanceStatesAnimManager;
 
 /**
@@ -40,5 +40,5 @@ protected:
 	TWeakObjectPtr<UOvrlPlayerAnimInstance> Parent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", Transient)
-	TObjectPtr<AOvrlPlayerCharacter> PlayerCharacter;
+	TObjectPtr<AOvrlCharacterBase> PlayerCharacter;
 };

@@ -9,7 +9,6 @@
 #include "OvrlPlayerCharacter.generated.h"
 
 class UOvrlCameraComponent;
-class UOvrlCharacterMovementComponent;
 class UOvrlInteractionComponent;
 class UOvrlInventoryComponent;
 class UMotionWarpingComponent;
@@ -48,8 +47,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Player Character")
-	UOvrlCharacterMovementComponent* GetCharacterMovement() const;
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
 	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
@@ -62,8 +59,6 @@ public:
 	virtual void UnequipObject() override;
 	virtual void OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f) override;
 	virtual void OvrlStopAnimMontage(UAnimMontage* MontageToStop) override;
-
-	bool IsAiming() const;
 
 protected:
 	void PlayLandSound() const;
@@ -121,10 +116,6 @@ public:
 	// If true, the fist player camera will be stabilized, ignoring every player's body movements.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character")
 	bool bEnableCameraStabilization;
-	
-	// Time (in seconds) before bJustLanded is reset.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character")
-	float LandedResetTime;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character|Audio")
 	TObjectPtr<UOvrlFoleyAudioBank> FoleyAudioBank;
@@ -137,7 +128,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Player Character|Audio")
 	float SlideSoundMultiplier;
-	
+
 	// ------ INPUT ------
 
 	/** MappingContext */
@@ -148,15 +139,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Player Character|Input")
 	TObjectPtr<UOvrlInputConfig> InputConfig;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Player Character", Transient)
-	bool bJustLanded;
-
 private:
 	UPROPERTY()
 	TObjectPtr<AStaticMeshActor> EquippedObjectMesh;
 
 	UPROPERTY()
 	TObjectPtr<UAudioComponent> SlidingAudioComponent;
-
-	FTimerHandle TimerHandle_LandReset;
 };

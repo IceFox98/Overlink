@@ -2,13 +2,13 @@
 
 #include "Animations/Procedural/OvrlStanceStatesAnimManager.h"
 
-#include "Player/OvrlPlayerCharacter.h"
+#include "Player/OvrlCharacterBase.h"
 #include "Player/OvrlPlayerAnimInstance.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Animations/Procedural/OvrlAnimModifiers.h"
 #include "Animations/Procedural/OvrlAnimManagerData.h"
 
-void UOvrlStanceStatesAnimManager::Initialize(AOvrlPlayerCharacter* PlayerCharacter, const UOvrlAnimManagerData* ManagerData)
+void UOvrlStanceStatesAnimManager::Initialize(AOvrlCharacterBase* PlayerCharacter, const UOvrlAnimManagerData* ManagerData)
 {
 	// Bind Stance and Gait delegates
 	UOvrlCharacterMovementComponent* CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());

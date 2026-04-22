@@ -3,7 +3,7 @@
 #include "Animations/Procedural/OvrlAnimModifiers.h"
 #include "Animations/Procedural/OvrlAnimAlphaModifiers.h"
 
-#include "Player/OvrlPlayerCharacter.h"
+#include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 
 // Engine
@@ -11,7 +11,7 @@
 
 #include "OvrlUtils.h"
 
-void UOvrlAnimModifierBase::Initialize(AOvrlPlayerCharacter* InPlayerCharacter)
+void UOvrlAnimModifierBase::Initialize(AOvrlCharacterBase* InPlayerCharacter)
 {
 	PlayerCharacter = InPlayerCharacter;
 	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(PlayerCharacter->GetCharacterMovement());

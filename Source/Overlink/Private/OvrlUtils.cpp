@@ -2,10 +2,14 @@
 
 #include "OvrlUtils.h"
 
+#include "MotionTrajectoryLibrary.h"
 #include "Animation/AnimNodeReference.h"
 #include "GameFramework/HUD.h"
 #include "Core/OvrlPlayerCameraManager.h"
+#include "GameFramework/Character.h"
 #include "Inventory/OvrlInventoryComponent.h"
+#include "MotionTrajectory.h"
+#include "PoseSearch/PoseSearchTrajectoryLibrary.h"
 
 void UOvrlUtils::OvrlDrawDebugString(const UObject* WorldContextObject, const FVector TextLocation, const FString& Text, class AActor* TestBaseActor, FLinearColor TextColor, float Duration, float FontScale/* = 1.f*/)
 {
@@ -121,4 +125,41 @@ AOvrlEquipmentInstance* UOvrlUtils::GetFirstEquipmentInstance(AActor* InventoryO
 	}
 	
 	return nullptr;
+}
+
+void UOvrlUtils::GenerateCharacterTrajectory(const UObject* InCharacter, FCharacterTrajectoryData InTrajectoryData, float InDeltaTime, FPoseSearchQueryTrajectory& InOutTrajectory, TArray<FVector>& OutTranslationHistory, FPoseSearchQueryTrajectory& OutTrajectory, float InHistorySamplingInterval, int32 InTrajectoryHistoryCount, float InPredictionSamplingInterval, int32 InTrajectoryPredictionCount)
+{
+	if (InDeltaTime <= 0.f)
+	{
+		return;
+	}
+
+	const ACharacter* Character = Cast<ACharacter>(InCharacter);
+	if (!ensure(Character))
+	{
+		return;
+	}
+	
+	FTrajectorySamplingData SamplingData;
+	SamplingData.NumHistorySamples = InTrajectoryHistoryCount;
+	SamplingData.SecondsPerHistorySample = InHistorySamplingInterval;
+	SamplingData.NumPredictionSamples = InTrajectoryPredictionCount;
+	SamplingData.SecondsPerPredictionSample = InPredictionSamplingInterval;
+	
+	if (OutTranslationHistory.IsEmpty())
+	{
+		OutTranslationHistory.Init(FVector::ZeroVector, SamplingData.NumHistorySamples);
+		
+		if (const USkeletalMeshComponent* MeshComp = Character->GetMesh())
+		{
+			const FVector Position = MeshComp->GetComponentLocation();
+			const FQuat Facing = MeshComp->GetComponentRotation().Quaternion();
+
+			FMotionTrajectoryLibrary::InitTrajectorySamples(InOutTrajectory, SamplingData, Position, Facing);
+		}
+	}
+	
+	InTrajectoryData.UpdateDataFromCharacter(InDeltaTime, Character);
+	FMotionTrajectoryLibrary::UpdateHistory_TransformHistory(InOutTrajectory, OutTranslationHistory, InTrajectoryData, SamplingData, InDeltaTime);
+	FMotionTrajectoryLibrary::UpdatePrediction_SimulateCharacterMovement(InOutTrajectory, InTrajectoryData, SamplingData);
 }

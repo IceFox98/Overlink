@@ -8,7 +8,8 @@
 
 #include "OvrlCharacterMovementComponent.generated.h"
 
-class AOvrlPlayerCharacter;
+class AOvrlCharacterBase;
+class UMotionWarpingComponent;
 
 enum class ETraversalType : uint8
 {
@@ -94,12 +95,12 @@ public:
 
 public:
 	// ------ LOCOMOTION ------
-	
+
 	// Returns the last update velocity, but relative to the player
 	FVector GetRelativeLastUpdateVelocity() const;
 
 	bool IsMovingForward(float AngleFromForwardVector = 90.f);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void OnPlayerLanded();
 
@@ -118,14 +119,14 @@ public:
 	void SetLocomotionMode(const FGameplayTag& NewLocomotionMode);
 	void SetStance(const FGameplayTag& NewStance);
 	void SetGait(const FGameplayTag& NewGait);
-	
+
 	// ------ GENERAL ------
-	
+
 	void OnPlayerJumped();
 	double GetDesiredCameraRoll() const;
 	void ApplyCameraPitchLimits(float& ViewPitchMin, float& ViewPitchMax);
 	void ApplyCameraYawLimits(float& ViewYawMin, float& ViewYawMax);
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Movement Component")
 	FORCEINLINE FVector GetGroundNormal() const { return GroundNormal; };
 
@@ -137,7 +138,7 @@ public:
 
 	FORCEINLINE FVector GetRightHandIKLocation() const { return RightHandIKLocation; };
 	FORCEINLINE FVector GetLeftHandIKLocation() const { return LeftHandIKLocation; };
-	
+
 	// ------ TRAVERSALS ------
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
@@ -231,119 +232,127 @@ public:
 
 	// ------ TRAVERSAL VARS ------
 
+	// If true, the component will check for traversals every tick.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+	bool bCanCheckTraversals;
+
 	// The distance (forward and upward) to check if there are any traversals in front of us.
 	// The forward check starts from the center of the player, whereas the upward check starts from the top of the player capsule
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	FVector2D TraversalCheckDistance;
 
 	// The offset between the front edge and the player right hand.
 	// The value will be mirrored for the left hand.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	FVector2D TraversalHandOffset;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	FName StartTraversalWarpTargetName;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Warping", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	FName EndTraversalWarpTargetName;
 
 	// The minimum height of the wall for which vault can be performed
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float MinVaultHeight;
 
 	// The maximum height of the wall for which vault can be performed
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float MaxVaultHeight;
 
 	// The maximum traversal length for which a vault over animation can be performed
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float MaxVaultOverLength;
 
 	// The distance between the back edge traversal and where the player should land
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float TraversalLandingPointDistance;
 
 	// The minimum distance from back edge to floor level, for the landing point to be considered valid
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float MinLandingPointHeight;
 
 	// The maximum distance from back edge to floor level, for the landing point to be considered valid
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float MaxLandingPointHeight;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	TObjectPtr<UAnimMontage> VaultOverMontage;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Vault", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	TObjectPtr<UAnimMontage> VaultClimbUpMontage;
 
 	// The minimum distance between the player and the front traversal, for the mantle to be performed
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	float MinMantleDistance;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal|Mantle", meta=(EditCondition="bCanCheckTraversals", ConditionHides))
 	TObjectPtr<UAnimMontage> MantleMontage;
 
 	// ------ WALLRUN VARS ------
 
+	// If true, the component will check for wallrun when player jumps
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+	bool bCanCheckWallrun;
+
 	// If true, the system will check for traversals during any wallrun.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	bool bAllowTraversalWhenWallrunning;
 
 	// Cooldown time before any wallrun can be performed again.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunCooldown;
 
 	// The forward distance, from the player center, from where the wallrun check will end
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunForwardCheckDistance;
-	
+
 	// The minimum Z velocity the player must have to start lateral wallrun.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunMinCheckVelocityZ;
 
 	// The lateral distance, from the player center, from where the wallrun check will end
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunStrafeCheckDistance;
 
 	// The maximum outward angle from the wall’s forward vector within which wallrun is allowed.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0))
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0, EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunMaxOuterCheckAngle;
 
 	// The maximum inward angle from the wall’s forward vector within which wallrun is allowed.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0))
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0, EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunMaxInnerCheckAngle;
 
 	// The force applied to keep the player sticked to the wall during lateral wallrun.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0))
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(ClampMin = 0, EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunStickForce;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	FCameraLimits WallrunCameraLimits;
 
 	// The roll applied to the camera during wallrun.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float WallrunCameraTiltAngle;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Lateral", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	FVector WallrunJumpVelocity;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	FCameraLimits VerticalWallrunCameraLimits;
 
 	// The minimum angle (in degrees) the player’s forward vector and the wall, to perform a lateral wallrun
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float VerticalWallrunCheckAngle;
 
 	// The vertical velocity when the player start to wallrun vertically. It will decrease over time.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float VerticalWallrunMaxVelocity;
 
 	// How fast the vertical velocity of the wallrun decrease.
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	float VerticalWallrunVelocityFalloffSpeed;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun|Vertical", meta=(EditCondition="bCanCheckWallrun", ConditionHides))
 	FVector VerticalWallrunJumpVelocity;
 
 	// ------ SLIDING VARS ------
@@ -385,12 +394,17 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
 	FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
+	
+protected:
+	
+	UPROPERTY()
+	TWeakObjectPtr<UMotionWarpingComponent> CharacterWarpingComponent;
 
 private:
 	// ------ DEFAULT VALUES ------
 
 	UPROPERTY()
-	TObjectPtr<AOvrlPlayerCharacter> Character;
+	TObjectPtr<AOvrlCharacterBase> Character;
 
 	float DefaultGravity;
 	float DefaultMaxWalkSpeed;

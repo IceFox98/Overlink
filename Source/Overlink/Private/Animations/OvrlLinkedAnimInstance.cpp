@@ -15,7 +15,7 @@ void UOvrlLinkedAnimInstance::NativeInitializeAnimation()
 	Super::NativeInitializeAnimation();
 
 	Parent = Cast<UOvrlPlayerAnimInstance>(GetSkelMeshComponent()->GetAnimInstance());
-	PlayerCharacter = Cast<AOvrlPlayerCharacter>(GetOwningActor());
+	PlayerCharacter = Cast<AOvrlCharacterBase>(GetOwningActor());
 
 #if WITH_EDITOR
 	const auto* World{ GetWorld() };
@@ -31,7 +31,7 @@ void UOvrlLinkedAnimInstance::NativeInitializeAnimation()
 
 		if (!IsValid(PlayerCharacter))
 		{
-			PlayerCharacter = GetMutableDefault<AOvrlPlayerCharacter>();
+			PlayerCharacter = GetMutableDefault<AOvrlCharacterBase>();
 		}
 	}
 #endif

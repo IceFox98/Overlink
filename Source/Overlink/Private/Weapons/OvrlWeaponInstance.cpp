@@ -4,6 +4,8 @@
 
 #include "Core/Interfaces/OvrlDamageable.h"
 #include "OvrlGameplayTags.h"
+#include "OvrlUtils.h"
+#include "Overlink.h"
 
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "GameFramework/Character.h"
@@ -15,7 +17,7 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
 
-	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::None;
 
 	DamageMagnitudeTag = OvrlDataTags::Damage;
 	DamageSurfaceMultipliers.Add(EPhysicalSurface::SurfaceType4, 2.f); // Weak Spot
@@ -25,12 +27,11 @@ void AOvrlWeaponInstance::OnEquipped_Implementation()
 {
 	Super::OnEquipped_Implementation();
 
-	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
-
-	if (ACharacter* OwningPawn = Cast<ACharacter>(GetOwner()))
+	ACharacter* OwningPawn = Cast<ACharacter>(GetOwner());
+	if (OwningPawn->IsPlayerControlled())
 	{
-		// Get First Person skeletal mesh
-		OwnerSkeletalMesh = OwningPawn->GetMesh();
+		// Set First Person view just for locally controlled players
+		WeaponMesh->SetFirstPersonPrimitiveType(EFirstPersonPrimitiveType::FirstPerson);
 	}
 }
 
@@ -38,7 +39,7 @@ void AOvrlWeaponInstance::OnUnequipped_Implementation()
 {
 	Super::OnUnequipped_Implementation();
 
-	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::None;
+	WeaponMesh->SetFirstPersonPrimitiveType(EFirstPersonPrimitiveType::None);
 }
 
 void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
@@ -102,7 +103,7 @@ FTransform AOvrlWeaponInstance::GetLeftHandIKTransform() const
 
 void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
 {
-	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType1; // 1 -> Concrete
+	EPhysicalSurface SurfaceType = EPhysicalSurface::SurfaceType2; // 2 -> Concrete
 
 	// Get impact surface
 	if (HitData.PhysMaterial.IsValid())
@@ -114,22 +115,19 @@ void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
 	FBulletImpactEffects ImpactEffects = BulletImpactEffects.FindRef(SurfaceType);
 
 	// Spawn impact decal effect
-	ensureMsgf(ImpactEffects.ImpactDecal, TEXT("Did you forget to set the Effect in the map?"));
 	SpawnEffect(ImpactEffects.ImpactDecal, SurfaceType, HitData);
 
 	// Spawn bullet impact effect
-	ensureMsgf(ImpactEffects.ImpactEffect, TEXT("Did you forget to set the Effect in the map?"));
 	SpawnEffect(ImpactEffects.ImpactEffect, SurfaceType, HitData);
 
 	// Play impact sound
-	ensureMsgf(ImpactEffects.ImpactSound, TEXT("Did you forget to set the Effect in the map?"));
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactEffects.ImpactSound, HitData.ImpactPoint);
 }
 
 void AOvrlWeaponInstance::SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData)
 {
 	UNiagaraComponent* EffectNiagaraComp = UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, HitData.ImpactPoint, FRotator::ZeroRotator, FVector::OneVector);
-	if (ensure(EffectNiagaraComp))
+	if (EffectNiagaraComp)
 	{
 		// Update Niagara FX params
 		TArray<FVector> HitPositions;
