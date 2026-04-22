@@ -127,15 +127,14 @@ AOvrlEquipmentInstance* UOvrlUtils::GetFirstEquipmentInstance(AActor* InventoryO
 	return nullptr;
 }
 
-void UOvrlUtils::GenerateCharacterTrajectory(const UObject* InCharacter, FCharacterTrajectoryData InTrajectoryData, float InDeltaTime, FPoseSearchQueryTrajectory& InOutTrajectory, TArray<FVector>& OutTranslationHistory, FPoseSearchQueryTrajectory& OutTrajectory, float InHistorySamplingInterval, int32 InTrajectoryHistoryCount, float InPredictionSamplingInterval, int32 InTrajectoryPredictionCount)
+void UOvrlUtils::GenerateCharacterTrajectory(const ACharacter* InCharacter, FCharacterTrajectoryData InTrajectoryData, float InDeltaTime, FPoseSearchQueryTrajectory& InOutTrajectory, TArray<FVector>& OutTranslationHistory, FPoseSearchQueryTrajectory& OutTrajectory, float InHistorySamplingInterval, int32 InTrajectoryHistoryCount, float InPredictionSamplingInterval, int32 InTrajectoryPredictionCount)
 {
 	if (InDeltaTime <= 0.f)
 	{
 		return;
 	}
 
-	const ACharacter* Character = Cast<ACharacter>(InCharacter);
-	if (!ensure(Character))
+	if (!ensure(InCharacter))
 	{
 		return;
 	}
@@ -150,7 +149,7 @@ void UOvrlUtils::GenerateCharacterTrajectory(const UObject* InCharacter, FCharac
 	{
 		OutTranslationHistory.Init(FVector::ZeroVector, SamplingData.NumHistorySamples);
 		
-		if (const USkeletalMeshComponent* MeshComp = Character->GetMesh())
+		if (const USkeletalMeshComponent* MeshComp = InCharacter->GetMesh())
 		{
 			const FVector Position = MeshComp->GetComponentLocation();
 			const FQuat Facing = MeshComp->GetComponentRotation().Quaternion();
@@ -159,7 +158,7 @@ void UOvrlUtils::GenerateCharacterTrajectory(const UObject* InCharacter, FCharac
 		}
 	}
 	
-	InTrajectoryData.UpdateDataFromCharacter(InDeltaTime, Character);
+	InTrajectoryData.UpdateDataFromCharacter(InDeltaTime, InCharacter);
 	FMotionTrajectoryLibrary::UpdateHistory_TransformHistory(InOutTrajectory, OutTranslationHistory, InTrajectoryData, SamplingData, InDeltaTime);
 	FMotionTrajectoryLibrary::UpdatePrediction_SimulateCharacterMovement(InOutTrajectory, InTrajectoryData, SamplingData);
 }

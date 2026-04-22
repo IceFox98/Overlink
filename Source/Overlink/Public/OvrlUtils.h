@@ -56,6 +56,7 @@
 #define OVRL_LOG_WARN(LogCat, PrintScreen, FormatString, ...) OVRL_LOG_INTERNAL(LogCat, PrintScreen, Warning, FColor::Orange, FormatString, ##__VA_ARGS__)
 
 class APawn;
+class ACharacter;
 enum class ECameraFeedbackEvent : uint8;
 struct FAnimNodeReference;
 struct FOvrlItemEntry;
@@ -111,7 +112,7 @@ public:
 	static UPARAM(DisplayName="Equipment Instance") AOvrlEquipmentInstance* GetFirstEquipmentInstance(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);
 	
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Utils", meta = (BlueprintThreadSafe, DisplayName = "Ovrl Generate Character Trajectory"))
-	static void GenerateCharacterTrajectory(const UObject* InCharacter, 
+	static void GenerateCharacterTrajectory(const ACharacter* InCharacter, 
 		FCharacterTrajectoryData InTrajectoryData, float InDeltaTime,
 		UPARAM(ref) FPoseSearchQueryTrajectory& InOutTrajectory,
 		UPARAM(ref) TArray<FVector>& OutTranslationHistory, FPoseSearchQueryTrajectory& OutTrajectory,

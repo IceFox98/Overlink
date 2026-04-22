@@ -28,7 +28,8 @@ public class Overlink : ModuleRules
 			"Niagara",
 			"GameplayMessageRuntime",
 			"AnimationWarpingRuntime",
-			"AnimGraphRuntime"
+			"AnimGraphRuntime",
+			"AIModule"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

@@ -112,14 +112,14 @@ protected:
 	float RootYawOffset;
 	
 	// Minimum root yaw angle required to trigger turn-in-place animations when standing.
-	// X -> Angle limit when player is looking left (negative)
-	// Y -> Angle limit when player is looking right (positive)
+	// X -> Angle limit when player is looking right (negative)
+	// Y -> Angle limit when player is looking left (positive)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Turn-In-Place")
 	FVector2D StandingRootYawThreshold;
 	
 	// Minimum root yaw angle required to trigger turn-in-place animations when crouching.
-	// X -> Angle limit when player is looking left (negative)
-	// Y -> Angle limit when player is looking right (positive)
+	// X -> Angle limit when player is looking right (negative)
+	// Y -> Angle limit when player is looking left (positive)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Player Anim Instance|Turn-In-Place")
 	FVector2D CrouchingRootYawThreshold;
 
