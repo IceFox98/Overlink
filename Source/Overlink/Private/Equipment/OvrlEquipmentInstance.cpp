@@ -10,8 +10,7 @@
 
 #include "Player/OvrlCharacterBase.h"
 
-#include "OvrlUtils.h"
-#include "Overlink.h"
+#include "OvrlLogUtils.h"
 
 // Sets default values
 AOvrlEquipmentInstance::AOvrlEquipmentInstance()

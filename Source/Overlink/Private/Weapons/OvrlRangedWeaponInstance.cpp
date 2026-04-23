@@ -8,15 +8,14 @@
 #include "Player/CameraModifiers/OvrlCameraModifierBase.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Inventory/OvrlItemInstance.h"
+#include "OvrlLogUtils.h"
+#include "OvrlGameplayTags.h"
 
+// Engine
 #include "GameFramework/PlayerController.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Curves/CurveFloat.h"
 #include "Animation/AnimMontage.h"
-
-#include "Overlink.h"
-#include "OvrlUtils.h"
-#include "OvrlGameplayTags.h"
 
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
@@ -89,12 +88,12 @@ void AOvrlRangedWeaponInstance::OnBeforeUnequip_Implementation()
 
 	StopFire();
 	bCanFire = false;
-	
+
 	if (WeaponMesh)
 	{
 		// Stop weapon ongoing animation
 		WeaponMesh->Stop();
-		
+
 		// Stop player reload animation
 		if (AOvrlCharacterBase* Character = Cast<AOvrlCharacterBase>(GetOwner()))
 		{

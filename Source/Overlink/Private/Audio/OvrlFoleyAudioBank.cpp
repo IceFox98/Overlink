@@ -3,8 +3,7 @@
 
 #include "Audio/OvrlFoleyAudioBank.h"
 
-#include "OvrlUtils.h"
-#include "Overlink.h"
+#include "OvrlLogUtils.h"
 
 USoundBase* UOvrlFoleyAudioBank::GetSound(const FGameplayTag& Event, EPhysicalSurface SurfaceType) const
 {

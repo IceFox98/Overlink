@@ -69,8 +69,6 @@ protected:
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_LookMouse(const FInputActionValue& InputActionValue);
 	void Input_Crouch(const FInputActionValue& InputActionValue);
-	void Input_StartRun(const FInputActionValue& InputActionValue);
-	void Input_EndRun(const FInputActionValue& InputActionValue);
 
 	// ------ INTERACTION ------
 	void Input_StartInteract(const FInputActionValue& InputActionValue);

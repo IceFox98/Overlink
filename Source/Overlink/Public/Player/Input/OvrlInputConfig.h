@@ -10,7 +10,7 @@
 class UInputAction;
 
 /**
- * FLyraInputAction
+ * FOvrlInputAction
  *
  *	Struct used to map a input action to a gameplay input tag.
  */

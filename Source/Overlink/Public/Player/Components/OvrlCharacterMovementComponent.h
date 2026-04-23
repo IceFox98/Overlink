@@ -75,6 +75,7 @@ public:
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStanceChanged, const FGameplayTag&, OldStance, const FGameplayTag&, NewStance);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGaitChanged, const FGameplayTag&, OldGait, const FGameplayTag&, NewGait);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLocomotionActionChanged, const FGameplayTag&, OldLocomotionAction, const FGameplayTag&, NewLocomotionAction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayMontageRequested, UAnimMontage*, MontageToPlay, float, StartTime);
 
 /**
  *
@@ -104,7 +105,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void OnPlayerLanded();
 
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void InputStartRun();
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Character Movement Component|Traversal")
 	void InputStopRun();
 
 	void HandleCrouching(bool bInWantsToCrouch);
@@ -219,6 +223,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLocomotionActionChanged OnLocomotionActionChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayMontageRequested OnPlayMontageRequested;
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component")
 	float MaxRunSpeed;
@@ -394,17 +401,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ovrl Character Movement Component|States", Transient)
 	FGameplayTag LocomotionAction = FGameplayTag::EmptyTag;
-	
+
 protected:
-	
 	UPROPERTY()
 	TWeakObjectPtr<UMotionWarpingComponent> CharacterWarpingComponent;
 
 private:
 	// ------ DEFAULT VALUES ------
-
-	UPROPERTY()
-	TObjectPtr<AOvrlCharacterBase> Character;
 
 	float DefaultGravity;
 	float DefaultMaxWalkSpeed;
@@ -416,6 +419,7 @@ private:
 	FVector GroundNormal;
 
 	// ------ HAND IK ------
+	
 	FVector RightHandIKLocation;
 	FVector LeftHandIKLocation;
 

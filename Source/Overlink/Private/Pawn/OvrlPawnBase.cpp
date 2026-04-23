@@ -2,13 +2,11 @@
 
 #include "Pawn/OvrlPawnBase.h"
 #include "AbilitySystem/OvrlAbilitySet.h"
-#include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "Player/Components/OvrlHealthComponent.h"
+#include "OvrlLogUtils.h"
 
 #include "UObject/UObjectBaseUtility.h"
-
-#include "OvrlUtils.h"
 
 AOvrlPawnBase::AOvrlPawnBase()
 {
@@ -41,7 +39,7 @@ UAbilitySystemComponent* AOvrlPawnBase::GetAbilitySystemComponent() const
 
 void AOvrlPawnBase::HandleDeath(AActor* InInstigator)
 {
-	OVRL_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
+	OVRL_LOG_INFO(LogOverlink, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
 
 	Destroy();
 }

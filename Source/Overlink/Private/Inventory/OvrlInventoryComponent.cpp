@@ -1,7 +1,6 @@
 #include "Inventory/OvrlInventoryComponent.h"
 
 #include "Inventory/OvrlItemInstance.h"
-#include "Inventory/OvrlPickupDefinition.h"
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
 #include "Inventory/OvrlItemFragment_SetStats.h"
 #include "Inventory/OvrlItemPickupActor.h"
@@ -13,8 +12,7 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "AbilitySystemGlobals.h"
-#include "Overlink.h"
-#include "OvrlUtils.h"
+#include "OvrlLogUtils.h"
 
 UOvrlInventoryComponent::UOvrlInventoryComponent()
 {

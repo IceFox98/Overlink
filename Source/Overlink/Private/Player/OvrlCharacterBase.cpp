@@ -6,8 +6,7 @@
 #include "AbilitySystem/OvrlAbilitySet.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-
-#include "OvrlUtils.h"
+#include "OvrlLogUtils.h"
 
 // Sets default values
 AOvrlCharacterBase::AOvrlCharacterBase(const FObjectInitializer& ObjectInitializer)
@@ -37,6 +36,8 @@ void AOvrlCharacterBase::BeginPlay()
 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
 		}
 	}
+	
+	GetCharacterMovement()->OnPlayMontageRequested.AddDynamic(this, &AOvrlCharacterBase::OvrlPlayAnimMontage);
 }
 
 void AOvrlCharacterBase::Landed(const FHitResult& Hit)
@@ -73,7 +74,7 @@ void AOvrlCharacterBase::RestoreAnimLayerClass()
 
 void AOvrlCharacterBase::HandleDeath(AActor* InInstigator)
 {
-	OVRL_LOG_INFO(LogTemp, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
+	OVRL_LOG_INFO(LogOverlink, false, "%s is out of health, destroying. Killer: %s", *GetName(), *GetNameSafe(InInstigator));
 
 	Destroy();
 }
@@ -102,11 +103,6 @@ void AOvrlCharacterBase::OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float 
 void AOvrlCharacterBase::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
 {
 	GetMesh()->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
-}
-
-bool AOvrlCharacterBase::IsAiming() const
-{
-	return GetAbilitySystemComponent()->HasMatchingGameplayTag(OvrlViewModeTags::ADS);
 }
 
 UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const

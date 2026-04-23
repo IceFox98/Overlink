@@ -40,13 +40,13 @@ public:
 	virtual void RestoreAnimLayerClass();
 	virtual void EquipObject(AActor* ObjectToEquip, FName AttachSocketName, UStaticMesh* MeshToDisplay);
 	virtual void UnequipObject();
-	virtual void OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
-	virtual void OvrlStopAnimMontage(UAnimMontage* MontageToStop);
 
-	bool IsAiming() const;
-	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Character Base")
 	FORCEINLINE bool HasDefaultAnimLayerClass() const { return bHasDefaultAnimLayerClass; };
+
+	UFUNCTION()
+	virtual void OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float StartTime = 0.f);
+	virtual void OvrlStopAnimMontage(UAnimMontage* MontageToStop);
 
 protected:
 	// ------ COMPONENTS ------

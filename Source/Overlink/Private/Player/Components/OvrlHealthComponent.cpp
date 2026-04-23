@@ -1,16 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Player/Components/OvrlHealthComponent.h"
-
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "OvrlLogUtils.h"
+#include "OvrlGameplayTags.h"
+
 #include "GameplayEffectTypes.h"
 #include "GameplayEffectExtension.h"
-
-#include "OvrlUtils.h"
-#include "Overlink.h"
-#include "OvrlGameplayTags.h"
 
 // Sets default values for this component's properties
 UOvrlHealthComponent::UOvrlHealthComponent()
@@ -55,7 +52,7 @@ void UOvrlHealthComponent::InitializeWithASC(UOvrlAbilitySystemComponent* ASC)
 		OVRL_LOG_ERR(LogOverlink, true, "Cannot initialize health component for owner [%s] with NULL health set on the ability system.", *GetNameSafe(Owner));
 		return;
 	}
-	
+
 	if (bHasUnlimitedHealth)
 	{
 		AbilitySystemComponent->AddDynamicTagGameplayEffect(OvrlCheatTags::UnlimitedHealth);
@@ -85,4 +82,3 @@ void UOvrlHealthComponent::HandleMaxHealthChanged(const FOnAttributeChangeData& 
 {
 	OnMaxHealthChanged.Broadcast(this, Data.OldValue, Data.NewValue);
 }
-

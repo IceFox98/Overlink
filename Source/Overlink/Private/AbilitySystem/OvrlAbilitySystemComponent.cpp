@@ -4,12 +4,27 @@
 
 #include "AbilitySystem/Abilities/OvrlGameplayAbility.h"
 
-#include "Overlink.h"
+#include "OvrlLogUtils.h"
 
 void UOvrlAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGamePaused)
 {
 	static TArray<FGameplayAbilitySpecHandle> AbilitiesToActivate;
 	AbilitiesToActivate.Reset();
+
+	for (const FGameplayAbilitySpecHandle& SpecHandle : InputHeldSpecHandles)
+	{
+		if (const FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(SpecHandle))
+		{
+			if (AbilitySpec->Ability && !AbilitySpec->IsActive())
+			{
+				const UOvrlGameplayAbility* OvrlAbilityCDO = Cast<UOvrlGameplayAbility>(AbilitySpec->Ability);
+				if (OvrlAbilityCDO && OvrlAbilityCDO->GetActivationPolicy() == EOvrlAbilityActivationPolicy::WhileInputActive)
+				{
+					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
+				}
+			}
+		}
+	}
 
 	for (const FGameplayAbilitySpecHandle& SpecHandle : InputPressedSpecHandles)
 	{
@@ -72,7 +87,7 @@ void UOvrlAbilitySystemComponent::AddDynamicTagGameplayEffect(const FGameplayTag
 
 	if (!Spec)
 	{
-		UE_LOG(LogOverlink, Warning, TEXT("AddDynamicTagGameplayEffect: Unable to make outgoing spec for [%s]."), *GetNameSafe(DynamicTagGE));
+		OVRL_LOG_WARN(LogOverlink, false, "AddDynamicTagGameplayEffect: Unable to make outgoing spec for [%s].", *GetNameSafe(DynamicTagGE));
 		return;
 	}
 

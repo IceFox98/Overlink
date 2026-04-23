@@ -1,14 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Weapons/OvrlProjectileWeaponInstance.h"
 #include "Weapons/OvrlProjectile.h"
+#include "OvrlLogUtils.h"
 
+// Engine
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 #include "Kismet/GameplayStatics.h"
-
-#include "OvrlUtils.h"
 
 AOvrlProjectileWeaponInstance::AOvrlProjectileWeaponInstance()
 {
@@ -66,7 +65,7 @@ void AOvrlProjectileWeaponInstance::StartReloading()
 
 	if (!Owner)
 	{
-		OVRL_LOG_ERR(LogTemp, true, "Owner is NULL!");
+		OVRL_LOG_ERR(LogOverlink, true, "Owner is NULL!");
 		return;
 	}
 
@@ -117,7 +116,7 @@ void AOvrlProjectileWeaponInstance::StartReloading()
 		}
 		else
 		{
-			OVRL_LOG_ERR(LogTemp, true, "GE_ReloadDamage is NULL!");
+			OVRL_LOG_ERR(LogOverlink, true, "GE_ReloadDamage is NULL!");
 		}
 
 		// TODO: Play VFX

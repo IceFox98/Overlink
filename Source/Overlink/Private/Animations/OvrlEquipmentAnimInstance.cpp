@@ -11,7 +11,7 @@
 #include "Animations/Procedural/OvrlStanceStatesAnimManager.h"
 #include "Animations/Procedural/OvrlAnimModifiers.h"
 #include "OvrlUtils.h"
-#include "Overlink.h"
+#include "OvrlLogUtils.h"
 
 // Engine
 #include "Animations/Procedural/OvrlAnimManagerData.h"

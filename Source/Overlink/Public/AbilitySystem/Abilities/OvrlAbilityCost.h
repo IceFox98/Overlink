@@ -10,7 +10,7 @@
 class UOvrlGameplayAbility;
 
 /**
- * Base class for costs that a LyraGameplayAbility has (e.g., ammo or charges)
+ * Base class for costs that a OvrlGameplayAbility has (e.g., ammo or charges)
  */
 UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
 class OVERLINK_API UOvrlAbilityCost : public UObject

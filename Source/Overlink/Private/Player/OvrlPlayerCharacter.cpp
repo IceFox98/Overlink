@@ -115,8 +115,6 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Crouch, ETriggerEvent::Started, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
-		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Started, this, &ThisClass::Input_StartRun, /*bLogIfNotFound=*/ false);
-		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Run, ETriggerEvent::Completed, this, &ThisClass::Input_EndRun, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Interact, ETriggerEvent::Started, this, &ThisClass::Input_StartInteract, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Interact, ETriggerEvent::Completed, this, &ThisClass::Input_EndInteract, /*bLogIfNotFound=*/ false);
 	}
@@ -183,16 +181,6 @@ void AOvrlPlayerCharacter::Input_LookMouse(const FInputActionValue& InputActionV
 void AOvrlPlayerCharacter::Input_Crouch(const FInputActionValue& InputActionValue)
 {
 	GetCharacterMovement()->HandleCrouching(!bIsCrouched);
-}
-
-void AOvrlPlayerCharacter::Input_StartRun(const FInputActionValue& InputActionValue)
-{
-	GetCharacterMovement()->InputStartRun();
-}
-
-void AOvrlPlayerCharacter::Input_EndRun(const FInputActionValue& InputActionValue)
-{
-	GetCharacterMovement()->InputStopRun();
 }
 
 void AOvrlPlayerCharacter::Input_StartInteract(const FInputActionValue& InputActionValue)
