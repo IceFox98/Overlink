@@ -56,38 +56,43 @@ void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
 	{
 		if (AOvrlRangedWeaponInstance* WeaponInstance = GetWeaponInstance())
 		{
-			const FVector BulletDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(PC->PlayerCameraManager->GetActorForwardVector(), WeaponInstance->GetSpreadAngle());
-
-			// Trace from center of the camera to the weapon max range
-			const FVector TraceStart = PC->PlayerCameraManager->GetCameraLocation();
-			const FVector TraceEnd = TraceStart + BulletDirection * WeaponInstance->GetMaxDamageRange();
-
 			FCollisionQueryParams Params;
 			Params.AddIgnoredActor(WeaponInstance);
 			Params.AddIgnoredActor(WeaponInstance->GetOwner());
 			Params.bReturnPhysicalMaterial = true;
+			
+			const int32 BulletsPerCartridge = WeaponInstance->GetBulletsPerCartridge();
+			
+			// Trace a trace for each bullets in the cartridge
+			for (int32 BulletIndex = 0; BulletIndex < BulletsPerCartridge; BulletIndex++)
+			{
+				const FVector BulletDirection = UKismetMathLibrary::RandomUnitVectorInConeInDegrees(PC->PlayerCameraManager->GetActorForwardVector(), WeaponInstance->GetSpreadAngle());
 
-			EDrawDebugTrace::Type DebugType = EDrawDebugTrace::None;
-
-			FHitResult HitResult;
-			GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, TraceCollisionChannel, Params);
+				// Trace from center of the camera to the weapon max range
+				const FVector TraceStart = PC->PlayerCameraManager->GetCameraLocation();
+				const FVector TraceEnd = TraceStart + BulletDirection * WeaponInstance->GetMaxDamageRange();
+			
+				FHitResult HitResult;
+				GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, TraceCollisionChannel, Params);
 
 #if ENABLE_DRAW_DEBUG
-			const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(WeaponInstance->GetOwner(), "Ovrl.Weapons");
+				const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(WeaponInstance->GetOwner(), "Ovrl.Weapons");
 
-			if (bDebugEnabled)
-				DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, HitResult.bBlockingHit, HitResult, FLinearColor::Red, FLinearColor::Green, 5.f);
+				if (bDebugEnabled)
+					DrawDebugLineTraceSingle(GetWorld(), TraceStart, TraceEnd, EDrawDebugTrace::ForDuration, HitResult.bBlockingHit, HitResult, FLinearColor::Red, FLinearColor::Green, 5.f);
 #endif
 
-			if (!HitResult.bBlockingHit)
-			{
-				// Save the TraceEnd as ImpactPoint so that we can use it for other calculations
-				HitResult.ImpactPoint = TraceEnd;
-			}
+				if (!HitResult.bBlockingHit)
+				{
+					// Save the TraceEnd as ImpactPoint so that we can use it for other calculations
+					HitResult.ImpactPoint = TraceEnd;
+					HitResult.Location = TraceEnd;
+				}
 
-			FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
-			NewTargetData->HitResult = HitResult;
-			HitTargetData.Add(NewTargetData);
+				FGameplayAbilityTargetData_SingleTargetHit* NewTargetData = new FGameplayAbilityTargetData_SingleTargetHit();
+				NewTargetData->HitResult = HitResult;
+				HitTargetData.Add(NewTargetData);
+			}
 		}
 	}
 

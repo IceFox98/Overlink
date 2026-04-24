@@ -4,13 +4,13 @@
 
 #include "Core/Interfaces/OvrlDamageable.h"
 #include "OvrlGameplayTags.h"
-#include "OvrlUtils.h"
-#include "Overlink.h"
 
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "AbilitySystemGlobals.h"
+#include "AbilitySystemComponent.h"
 
 AOvrlWeaponInstance::AOvrlWeaponInstance()
 {
@@ -42,21 +42,62 @@ void AOvrlWeaponInstance::OnUnequipped_Implementation()
 	WeaponMesh->SetFirstPersonPrimitiveType(EFirstPersonPrimitiveType::None);
 }
 
-void AOvrlWeaponInstance::Fire(const FHitResult& HitData)
+void AOvrlWeaponInstance::Fire(const TArray<FHitResult>& HitsData)
 {
-	K2_OnFire(HitData);
-
-	if (HitData.GetActor() && HitData.GetActor()->Implements<UOvrlDamageable>())
+	if (HitsData.IsEmpty())
 	{
-		OnHitSomething.ExecuteIfBound(HitData);
+		return;
 	}
-
+	
+	for (const FHitResult& HitResult : HitsData)
+	{
+		ProcessHit(HitResult);
+	}
+	
+	K2_OnFire(HitsData);
 	OnFired.Broadcast(this);
+}
+
+void AOvrlWeaponInstance::ProcessHit(const FHitResult& HitData)
+{
+	// No implementation
 }
 
 void AOvrlWeaponInstance::StopFire()
 {
 	// No implementation
+}
+
+void AOvrlWeaponInstance::DealDamageToTargetFromHit(const FHitResult& HitData)
+{
+	// Apply damage to hit actor
+	if (const AActor* HitActor = HitData.GetActor())
+	{
+		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitActor);
+		UAbilitySystemComponent* InstigatorASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator());
+
+		if (InstigatorASC && TargetASC)
+		{
+			// Create GE context and add the hit result of the weapon
+			FGameplayEffectContextHandle ContextHandle = InstigatorASC->MakeEffectContext();
+			ContextHandle.AddHitResult(HitData);
+			ContextHandle.AddInstigator(this, this);
+
+			const FGameplayEffectSpecHandle SpecHandle = InstigatorASC->MakeOutgoingSpec(
+				GE_Damage,
+				1.f,
+				ContextHandle
+			);
+			
+			if (!SpecHandle.IsValid()) return;
+			
+			const float FinalDamage = ComputeDamage(HitData);
+			SpecHandle.Data->SetSetByCallerMagnitude(DamageMagnitudeTag, -FinalDamage);
+			InstigatorASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
+			
+			OnHitSomething.ExecuteIfBound(HitData);
+		}
+	}
 }
 
 void AOvrlWeaponInstance::StartReloading()
@@ -112,7 +153,7 @@ void AOvrlWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
 	}
 
 	// Get different effects depending on the surface type
-	FBulletImpactEffects ImpactEffects = BulletImpactEffects.FindRef(SurfaceType);
+	const FBulletImpactEffects ImpactEffects = BulletImpactEffects.FindRef(SurfaceType);
 
 	// Spawn impact decal effect
 	SpawnEffect(ImpactEffects.ImpactDecal, SurfaceType, HitData);

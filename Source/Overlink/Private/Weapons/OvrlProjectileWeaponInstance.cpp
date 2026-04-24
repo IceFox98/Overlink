@@ -5,129 +5,49 @@
 #include "OvrlLogUtils.h"
 
 // Engine
-#include "AbilitySystemGlobals.h"
-#include "AbilitySystemComponent.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-AOvrlProjectileWeaponInstance::AOvrlProjectileWeaponInstance()
+void AOvrlProjectileWeaponInstance::ProcessHit(const FHitResult& HitData)
 {
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	ThrowForce = 3200.f;
-	MuzzleSocketName = "Muzzle";
-}
-
-void AOvrlProjectileWeaponInstance::Fire(const FHitResult& HitData)
-{
-	if (bIsReloading)
+	// Don't call Super() to avoid call OnHitSomething event.
+	// The projectile will notify the hit.
+	
+	if (!ProjectileClass)
+	{
+		OVRL_LOG_WARN(LogOverlink, true, "ProjectileClass is not set!");
 		return;
+	}
 
-	FireProjectile(HitData);
-
-	Super::Fire(HitData);
-}
-
-void AOvrlProjectileWeaponInstance::FireProjectile(const FHitResult& HitResult)
-{
 	if (const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
 	{
 		const FVector MuzzleLocation = GetMuzzleTransform().GetLocation();
 
 		FRotator SpawnRotation = PC->PlayerCameraManager->GetCameraRotation();
 
-		if (HitResult.bBlockingHit)
+		if (HitData.bBlockingHit)
 		{
 			// Get rotation of the vector that start from Muzzle Location to Impact Point
-			SpawnRotation = (HitResult.ImpactPoint - MuzzleLocation).Rotation();
+			SpawnRotation = (HitData.ImpactPoint - MuzzleLocation).Rotation();
 		}
 
 		const FTransform SpawnTransform(SpawnRotation, MuzzleLocation);
-
-		AOvrlProjectile* Projectile = GetWorld()->SpawnActorDeferred<AOvrlProjectile>(ProjectileClass, SpawnTransform, GetOwner(), GetInstigator(), ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+		
+		AOvrlProjectile* Projectile = GetWorld()->SpawnActor<AOvrlProjectile>(ProjectileClass, SpawnTransform, SpawnParams);
+		
 		if (Projectile)
 		{
-			Projectile->SetDamage(GE_Damage);
+			Projectile->GetCollisionComp()->OnComponentHit.AddDynamic(this, &AOvrlProjectileWeaponInstance::OnProjectileHit);
 		}
-
-		UGameplayStatics::FinishSpawningActor(Projectile, SpawnTransform);
 	}
 }
 
-void AOvrlProjectileWeaponInstance::SpawnImpactVFX(const FHitResult& HitData)
+void AOvrlProjectileWeaponInstance::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// No instant impact effect for projectile weapons, handled by projectile
-}
-
-void AOvrlProjectileWeaponInstance::StartReloading()
-{
-	Super::StartReloading();
-
-	if (!Owner)
-	{
-		OVRL_LOG_ERR(LogOverlink, true, "Owner is NULL!");
-		return;
-	}
-
-	if (!bIsReloading) // Throw the weapon
-	{
-		bIsReloading = true;
-
-		// Detach weapon from player
-		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-
-		//WeaponMesh->SetNotifyRigidBodyCollision(true);
-		//WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		//WeaponMesh->SetSimulatePhysics(true);
-
-		FVector OutLocation;
-		FRotator OutRotation;
-		Owner->GetActorEyesViewPoint(OutLocation, OutRotation);
-
-		// Throw weapon
-		const FVector ThrowVelocity = OutRotation.Vector() * ThrowForce;
-		WeaponMesh->SetAllPhysicsLinearVelocity(ThrowVelocity);
-	}
-	else
-	{
-		if (GE_ReloadDamage)
-		{
-			FCollisionQueryParams QueryParams;
-			QueryParams.AddIgnoredActor(this);
-			QueryParams.AddIgnoredActor(Owner);
-
-			// Search for any pawn between the weapon and the player
-			TArray<FHitResult> HitResults;
-			GetWorld()->LineTraceMultiByObjectType(HitResults, GetActorLocation(), Owner->GetActorLocation(), ECC_Pawn, QueryParams);
-
-			DrawDebugLine(GetWorld(), GetActorLocation(), Owner->GetActorLocation(), FColor::Red, false, 2.f);
-
-			if (UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator()))
-			{
-				for (const FHitResult& HitResult : HitResults)
-				{
-					if (UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitResult.GetActor()))
-					{
-						// Apply damage to each pawn
-						ASC->ApplyGameplayEffectToTarget(GE_ReloadDamage->GetDefaultObject<UGameplayEffect>(), TargetASC, 1.f, ASC->MakeEffectContext());
-					}
-				}
-			}
-		}
-		else
-		{
-			OVRL_LOG_ERR(LogOverlink, true, "GE_ReloadDamage is NULL!");
-		}
-
-		// TODO: Play VFX
-
-		//WeaponMesh->SetAllPhysicsLinearVelocity(FVector::Zero());
-		//WeaponMesh->SetNotifyRigidBodyCollision(false);
-		//WeaponMesh->SetSimulatePhysics(false);
-		//WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		OnEquipped();
-
-		bIsReloading = false;
-	}
+	DealDamageToTargetFromHit(Hit);
+	SpawnImpactVFX(Hit);
 }

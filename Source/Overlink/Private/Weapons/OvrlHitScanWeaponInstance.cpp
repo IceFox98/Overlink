@@ -3,42 +3,16 @@
 
 #include "Weapons/OvrlHitScanWeaponInstance.h"
 
-#include "AbilitySystemGlobals.h"
-#include "AbilitySystemComponent.h"
 #include "NiagaraDataInterfaceArrayFunctionLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 
-void AOvrlHitScanWeaponInstance::Fire(const FHitResult& HitData)
+void AOvrlHitScanWeaponInstance::ProcessHit(const FHitResult& HitData)
 {
-	Super::Fire(HitData);
+	Super::ProcessHit(HitData);
 
-	// Apply damage to hit pawn
-	if (const APawn* HitPawn = Cast<APawn>(HitData.GetActor()))
-	{
-		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitPawn);
-		UAbilitySystemComponent* InstigatorASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator());
+	DealDamageToTargetFromHit(HitData);
 
-		if (InstigatorASC)
-		{
-			// Create GE context and add the hit result of the weapon
-			FGameplayEffectContextHandle ContextHandle = InstigatorASC->MakeEffectContext();
-			ContextHandle.AddHitResult(HitData);
-			ContextHandle.AddInstigator(this, this);
-
-			const FGameplayEffectSpecHandle SpecHandle = InstigatorASC->MakeOutgoingSpec(
-				GE_Damage,
-				1.f,
-				ContextHandle
-			);
-			
-			if (!SpecHandle.IsValid()) return;
-			
-			const float FinalDamage = ComputeDamage(HitData);
-			SpecHandle.Data->SetSetByCallerMagnitude(DamageMagnitudeTag, -FinalDamage);
-			InstigatorASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
-		}
-	}
-
+	SpawnImpactVFX(HitData);
 	SpawnTrailVFX(HitData);
 }
 

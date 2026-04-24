@@ -18,25 +18,21 @@ class OVERLINK_API UOvrlRangedWeaponReticleWidget : public UOvrlReticleWidgetBas
 	GENERATED_BODY()
 
 public:
-
 	virtual void InitializeFromWeapon(AOvrlRangedWeaponInstance* Weapon) override;
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (DisplayName = "Show Hit Marker"))
 	void K2_ShowHitMarker();
 
 protected:
-
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
-
 	void OnWeaponHitSomething(const FHitResult& HitData);
 
 	UFUNCTION()
 	void OnWeaponDestroyed(AActor* DestroyedActor);
 
 protected:
-
 	UPROPERTY(BlueprintReadOnly, Category = "Ovrl Ranged Weapon Reticle Widget", meta = (BindWidget))
 	TObjectPtr<UOvrlCircularReticleWidget> CrosshairReticle;
 
@@ -54,7 +50,6 @@ protected:
 	float FadeInTimeMultiplier = 2.f;
 
 private:
-
 	float FadeOutTime = 0.f;
 	float CurrentAlpha = 1.f;
 };

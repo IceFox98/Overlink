@@ -102,10 +102,10 @@ void AOvrlRangedWeaponInstance::OnBeforeUnequip_Implementation()
 	}
 }
 
-void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
+void AOvrlRangedWeaponInstance::Fire(const TArray<FHitResult>& HitsData)
 {
-	Super::Fire(HitData);
-
+	Super::Fire(HitsData);
+	
 	AddRecoil();
 
 	if (!IsADS())
@@ -114,8 +114,6 @@ void AOvrlRangedWeaponInstance::Fire(const FHitResult& HitData)
 	}
 
 	PlayWeaponAnimation(FireAnimation);
-	SpawnImpactVFX(HitData);
-
 	UpdateMagazineAmmoCountDisplay();
 }
 

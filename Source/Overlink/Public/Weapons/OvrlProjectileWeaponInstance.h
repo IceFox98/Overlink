@@ -17,42 +17,13 @@ class OVERLINK_API AOvrlProjectileWeaponInstance : public AOvrlRangedWeaponInsta
 {
 	GENERATED_BODY()
 
-public:
-
-	AOvrlProjectileWeaponInstance();
-
-public:
-
-	virtual void Fire(const FHitResult& HitData) override;
-
-	virtual void StartReloading() override;
-
-	UFUNCTION(BlueprintCallable, Category = "Ovrl|Projectile Weapon Fire")
-		void FireProjectile(const FHitResult& HitResult);
-
 protected:
-
-	virtual void SpawnImpactVFX(const FHitResult& HitData) override;
-
-public:
-
-	//// ----- COMPONENTS -----
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	//	TObjectPtr<USphereComponent> PickupSphere;
+	virtual void ProcessHit(const FHitResult& HitData) override;
+	
+	UFUNCTION()
+	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Projectile Weapon Fire")
-		TSubclassOf<AOvrlProjectile> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
-		TSubclassOf<UGameplayEffect> GE_ReloadDamage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Projectile Weapon")
-		float ThrowForce;
-
-protected:
-
-	bool bIsReloading;
+	TSubclassOf<AOvrlProjectile> ProjectileClass;
 };

@@ -10,26 +10,20 @@ class USphereComponent;
 class UProjectileMovementComponent;
 class UGameplayEffect;
 
-UCLASS(config = Game)
+UCLASS()
 class AOvrlProjectile : public AActor
 {
 	GENERATED_BODY()
 
-
 public:
-
 	AOvrlProjectile();
 
 protected:
 	virtual void BeginPlay() override;
 
 public:
-
-
-	/** Returns CollisionComp subobject **/
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
 
-	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
 
 	UFUNCTION()
@@ -38,17 +32,14 @@ public:
 	void SetDamage(const TSubclassOf<UGameplayEffect>& DamageClass) { GE_Damage = DamageClass; };
 
 protected:
-
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
-		USphereComponent* CollisionComp;
+	TObjectPtr<USphereComponent> CollisionComp;
 
 	/** Projectile movement component */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
-		UProjectileMovementComponent* ProjectileMovement;
+	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
 private:
-
 	UPROPERTY()
-		TSubclassOf<UGameplayEffect> GE_Damage;
+	TSubclassOf<UGameplayEffect> GE_Damage;
 };
-

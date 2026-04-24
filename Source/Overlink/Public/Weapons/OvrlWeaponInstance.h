@@ -46,13 +46,16 @@ public:
 	virtual void OnUnequipped_Implementation() override;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
-	virtual void Fire(const FHitResult& HitData);
+	virtual void Fire(const TArray<FHitResult>& HitsData);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 	virtual void StopFire();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Weapon Instance", meta = (DisplayName = "On Fire"))
-	void K2_OnFire(const FHitResult& HitData);
+	void K2_OnFire(const TArray<FHitResult>& HitsData);
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
+	virtual void DealDamageToTargetFromHit(const FHitResult& HitData);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Weapon Instance")
 	virtual void StartReloading();
@@ -66,11 +69,10 @@ public:
 	virtual FTransform GetLeftHandIKTransform() const override;
 
 protected:
+	virtual void ProcessHit(const FHitResult& HitData);
 	virtual void SpawnImpactVFX(const FHitResult& HitData);
 	virtual float ComputeDamage(const FHitResult& HitData) const;
-
-private:
-	void SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData);
+	virtual void SpawnEffect(UNiagaraSystem* Effect, EPhysicalSurface SurfaceType, const FHitResult& HitData);
 
 public:
 	// ----- COMPONENTS -----

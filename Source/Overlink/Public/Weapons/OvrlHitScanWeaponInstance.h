@@ -15,10 +15,8 @@ class OVERLINK_API AOvrlHitScanWeaponInstance : public AOvrlRangedWeaponInstance
 {
 	GENERATED_BODY()
 
-public:
-	virtual void Fire(const FHitResult& HitData) override;
-
 protected:
+	virtual void ProcessHit(const FHitResult& HitData) override;
 	virtual void SpawnTrailVFX(const FHitResult& HitData);
 
 protected:

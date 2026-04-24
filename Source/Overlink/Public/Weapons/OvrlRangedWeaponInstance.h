@@ -50,7 +50,7 @@ public:
 	virtual void OnEquipped_Implementation() override;
 	virtual void OnBeforeUnequip_Implementation() override;
 
-	virtual void Fire(const FHitResult& HitData) override;
+	virtual void Fire(const TArray<FHitResult>& HitsData) override;
 	virtual void StopFire() override;
 
 	virtual void StartReloading() override;
@@ -61,6 +61,7 @@ public:
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
 	FORCEINLINE float GetAimTime() const { return AimTime; };
+	FORCEINLINE int32 GetBulletsPerCartridge() const { return BulletsPerCartridge; };
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Ranged Weapon Instance")
 	FORCEINLINE bool GetCanFire() const { return bCanFire; };

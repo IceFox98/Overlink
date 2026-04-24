@@ -42,25 +42,10 @@ void AOvrlProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//CollisionComp->OnComponentHit.AddDynamic(this, &AOvrlProjectile::OnProjectileHit);
+	CollisionComp->OnComponentHit.AddDynamic(this, &AOvrlProjectile::OnProjectileHit);
 }
 
 void AOvrlProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (APawn* HitPawn = Cast<APawn>(OtherActor))
-	{
-		UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(HitPawn);
-		UAbilitySystemComponent* InstigatorASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetInstigator());
-
-		if (InstigatorASC)
-		{
-			UGameplayEffect* GameplayEffect = GE_Damage->GetDefaultObject<UGameplayEffect>();
-			InstigatorASC->ApplyGameplayEffectToTarget(GameplayEffect, TargetASC, 1.f, InstigatorASC->MakeEffectContext());
-		}
-
-	}
-
-	UGameplayStatics::ApplyDamage(OtherActor, 20.f, nullptr, this, UDamageType::StaticClass());
-	
 	Destroy();
 }
