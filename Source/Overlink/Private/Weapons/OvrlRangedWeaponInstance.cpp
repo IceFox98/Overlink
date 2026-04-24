@@ -193,7 +193,7 @@ void AOvrlRangedWeaponInstance::AddRecoil()
 {
 	CurrentCameraRecoil.Pitch = FMath::Clamp(CurrentCameraRecoil.Pitch + CameraRecoil, 0.f, CameraMaxRecoil);
 	CurrentKickbackRecoil = KickbackRecoil;
-	bCanRecoverFromRecoil = false;
+	bCanRecoverFromRecoil = bCanRecoverRecoilWhileFiring;
 }
 
 void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)

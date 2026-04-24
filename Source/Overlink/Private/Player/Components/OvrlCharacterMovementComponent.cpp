@@ -3,6 +3,7 @@
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "OvrlGameplayTags.h"
 #include "OvrlUtils.h"
+#include "OvrlCollisionChannels.h"
 
 // Engine
 #include "GameFramework/Character.h"
@@ -606,7 +607,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 
 	// Make first sweep trace to find if there's any obstacle in front of us
 	FHitResult ForwardTraversalHit;
-	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, CapsuleRotation, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(ForwardTraversalHit, TraceStart, TraceEnd, CapsuleRotation, Ovrl_TraceChannel_Traversal, FCollisionShape::MakeCapsule(TraceCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
@@ -637,7 +638,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 
 	// Perform downward trace
 	FHitResult DownwardTraversalHit;
-	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, CapsuleRotation, ECC_Visibility, FCollisionShape::MakeCapsule(TraceCapsuleRadius, TraceCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(DownwardTraversalHit, TraceStart, TraceEnd, CapsuleRotation, Ovrl_TraceChannel_Traversal, FCollisionShape::MakeCapsule(TraceCapsuleRadius, TraceCapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
@@ -660,7 +661,7 @@ FTraversalResult UOvrlCharacterMovementComponent::CheckForTraversal()
 	TraceEnd = TraceStart;
 
 	FHitResult PlayerHit;
-	GetWorld()->SweepSingleByChannel(PlayerHit, TraceStart, TraceEnd, CapsuleRotation, ECC_Visibility, FCollisionShape::MakeCapsule(PlayerCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
+	GetWorld()->SweepSingleByChannel(PlayerHit, TraceStart, TraceEnd, CapsuleRotation, Ovrl_TraceChannel_Traversal, FCollisionShape::MakeCapsule(PlayerCapsuleRadius, PlayerCapsuleHalfHeight), QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	if (bDebugEnabled)
@@ -722,7 +723,7 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 	QueryParams.bFindInitialOverlaps = false;
 
 	FHitResult BackEdgeHit;
-	GetWorld()->LineTraceSingleByChannel(BackEdgeHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+	GetWorld()->LineTraceSingleByChannel(BackEdgeHit, TraceStart, TraceEnd, Ovrl_TraceChannel_Traversal, QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 	const bool bDebugEnabled = UOvrlUtils::ShouldDisplayDebugForActor(GetOwner(), "Ovrl.Traversals");
@@ -750,7 +751,7 @@ void UOvrlCharacterMovementComponent::FindLandingPoint(FTraversalResult& OutTrav
 		TraceEnd = TraceStart + GetGravityDirection() * MaxLandingPointHeight;
 
 		FHitResult LandingPointHit;
-		GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+		GetWorld()->LineTraceSingleByChannel(LandingPointHit, TraceStart, TraceEnd, Ovrl_TraceChannel_Traversal, QueryParams);
 
 #if ENABLE_DRAW_DEBUG
 		if (bDebugEnabled)
@@ -971,7 +972,7 @@ bool UOvrlCharacterMovementComponent::HandleVerticalWallrun(float DeltaTime)
 #endif
 
 	FHitResult OutHit;
-	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true, FLinearColor::Blue);
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, Ovrl_TraceType_Traversal, false, {}, DebugType, OutHit, true, FLinearColor::Blue);
 
 	if (OutHit.bBlockingHit)
 	{
@@ -1036,7 +1037,7 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 #endif
 
 	FHitResult OutHit;
-	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, OutHit, true);
+	UKismetSystemLibrary::LineTraceSingle(this, StartTrace, EndTrace, Ovrl_TraceType_Traversal, false, {}, DebugType, OutHit, true);
 
 	// We get the normal only when we detect a wall, otherwise we use the cached one.
 	if (OutHit.bBlockingHit)
@@ -1068,7 +1069,7 @@ bool UOvrlCharacterMovementComponent::HandleLateralWallrun(float DeltaTime, bool
 		const FVector ValidationEndTrace = CharacterOwner->GetActorLocation() - WallrunNormal * 100.f;
 
 		FHitResult ValidationHit;
-		UKismetSystemLibrary::LineTraceSingle(this, ValidationStartTrace, ValidationEndTrace, ETraceTypeQuery::TraceTypeQuery1, false, {}, DebugType, ValidationHit, true);
+		UKismetSystemLibrary::LineTraceSingle(this, ValidationStartTrace, ValidationEndTrace, Ovrl_TraceType_Traversal, false, {}, DebugType, ValidationHit, true);
 
 		if (!ValidationHit.bBlockingHit)
 		{

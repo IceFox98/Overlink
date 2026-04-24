@@ -2,31 +2,13 @@
 
 #include "Weapons/OvrlProjectile.h"
 
+// Engine
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Components/SphereComponent.h"
-#include "AbilitySystemComponent.h"
-#include "GameplayEffect.h"
-#include "AbilitySystemGlobals.h"
-
-#include "Kismet/GameplayStatics.h"
 
 AOvrlProjectile::AOvrlProjectile()
 {
-	// Use a sphere as a simple collision representation
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	CollisionComp->InitSphereRadius(5.0f);
-	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-
-	// Players can't walk on it
-	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
-	CollisionComp->CanCharacterStepUpOn = ECB_No;
-
-	// Set as root component
-	SetRootComponent(CollisionComp);
-
 	// Use a ProjectileMovementComponent to govern this projectile's movement
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
-	ProjectileMovement->UpdatedComponent = CollisionComp;
+	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
 	ProjectileMovement->InitialSpeed = 11000.f;
 	ProjectileMovement->MaxSpeed = 11000.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
@@ -38,14 +20,9 @@ AOvrlProjectile::AOvrlProjectile()
 	InitialLifeSpan = 3.0f;
 }
 
-void AOvrlProjectile::BeginPlay()
+void AOvrlProjectile::TriggerOnProjectileHit(const FHitResult& HitResult)
 {
-	Super::BeginPlay();
+	OnProjectileHit.Broadcast(HitResult);
 
-	CollisionComp->OnComponentHit.AddDynamic(this, &AOvrlProjectile::OnProjectileHit);
-}
-
-void AOvrlProjectile::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
 	Destroy();
 }

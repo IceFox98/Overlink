@@ -150,6 +150,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Instance")
 	ESightMagnification SightMagnification;
+	
+	// If true, the weapon can start recovering the recoil while still firing
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
+	bool bCanRecoverRecoilWhileFiring;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")

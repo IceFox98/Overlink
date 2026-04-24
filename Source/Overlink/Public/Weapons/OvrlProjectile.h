@@ -6,9 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "OvrlProjectile.generated.h"
 
-class USphereComponent;
+class UCapsuleComponent;
 class UProjectileMovementComponent;
-class UGameplayEffect;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnProjectileHit, const FHitResult&, HitResult);
 
 UCLASS()
 class AOvrlProjectile : public AActor
@@ -19,27 +20,15 @@ public:
 	AOvrlProjectile();
 
 protected:
-	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Projectile")
+	void TriggerOnProjectileHit(const FHitResult& HitResult);
 
 public:
-	USphereComponent* GetCollisionComp() const { return CollisionComp; }
-
-	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
-
-	UFUNCTION()
-	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-	void SetDamage(const TSubclassOf<UGameplayEffect>& DamageClass) { GE_Damage = DamageClass; };
+	FOnProjectileHit OnProjectileHit;
 
 protected:
-	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
-	TObjectPtr<USphereComponent> CollisionComp;
+	// ------ COMPONENTS ------
 
-	/** Projectile movement component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
-
-private:
-	UPROPERTY()
-	TSubclassOf<UGameplayEffect> GE_Damage;
 };

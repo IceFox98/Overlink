@@ -5,7 +5,7 @@
 #include "OvrlLogUtils.h"
 
 // Engine
-#include "Components/SphereComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 void AOvrlProjectileWeaponInstance::ProcessHit(const FHitResult& HitData)
@@ -41,12 +41,12 @@ void AOvrlProjectileWeaponInstance::ProcessHit(const FHitResult& HitData)
 		
 		if (Projectile)
 		{
-			Projectile->GetCollisionComp()->OnComponentHit.AddDynamic(this, &AOvrlProjectileWeaponInstance::OnProjectileHit);
+			Projectile->OnProjectileHit.AddDynamic(this, &AOvrlProjectileWeaponInstance::OnProjectileHit);
 		}
 	}
 }
 
-void AOvrlProjectileWeaponInstance::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AOvrlProjectileWeaponInstance::OnProjectileHit(const FHitResult& Hit)
 {
 	DealDamageToTargetFromHit(Hit);
 	SpawnImpactVFX(Hit);

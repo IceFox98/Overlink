@@ -38,9 +38,8 @@ protected:
 
 	void ResetFireCooldown();
 	void StopWeaponFire();
-	
+
 public:
-	
 	UPROPERTY(EditAnywhere, Category = "Ovrl Hit-Scan Weapon Fire")
 	TEnumAsByte<ECollisionChannel> TraceCollisionChannel;
 
