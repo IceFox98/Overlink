@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "MotionWarpingComponent.h"
+#include "OvrlLogUtils.h"
 #include "Core/OvrlCameraEventsDefinition.h"
 
 #if ENABLE_DRAW_DEBUG
@@ -545,19 +546,15 @@ bool UOvrlCharacterMovementComponent::HandleTraversals()
 
 	if (TraversalResult.bFound) // Let's overcome the traversal
 	{
-		// Allow the animation's root motion to ignore the gravity.
-		SetMovementMode(EMovementMode::MOVE_Flying);
-
-		UpdateHandsIKTransform(TraversalResult);
-
+		bool bTraversalHandled = false;
 		switch (TraversalResult.Type)
 		{
 		case ETraversalType::Vault:
-			HandleVault(TraversalResult);
+			bTraversalHandled = HandleVault(TraversalResult);
 			break;
 
 		case ETraversalType::Mantle:
-			HandleMantle(TraversalResult);
+			bTraversalHandled = HandleMantle(TraversalResult);
 			break;
 
 		default:
@@ -565,9 +562,22 @@ bool UOvrlCharacterMovementComponent::HandleTraversals()
 		}
 
 		bHasPlayerJumped = false;
+		
+		if (!bTraversalHandled)
+		{
+			ResetTraversal();
+			return false;
+		}
+		
+		// Allow the animation's root motion to ignore the gravity.
+		SetMovementMode(EMovementMode::MOVE_Flying);
+
+		UpdateHandsIKTransform(TraversalResult);
+
 		UOvrlUtils::TriggerCameraEvent(this, ECameraFeedbackEvent::StopRun);
 		SetGait(OvrlGaitTags::Idle);
 		ResetWallrun();
+		
 		return true;
 	}
 
@@ -821,7 +831,7 @@ void UOvrlCharacterMovementComponent::SetMantleWarpingData(const FTraversalResul
 
 float UOvrlCharacterMovementComponent::FindMontageStartForDeltaZ(UAnimMontage* Montage, double DeltaZ)
 {
-	if (DeltaZ < 0.f)
+	if (DeltaZ < 0.f || !Montage)
 	{
 		return 0.f;
 	}
@@ -864,32 +874,54 @@ void UOvrlCharacterMovementComponent::UpdateHandsIKTransform(const FTraversalRes
 	LeftHandIKLocation = TraversalResult.FrontEdgeLocation + HorizontalOffset + VerticalOffset;
 }
 
-void UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& TraversalResult)
+bool UOvrlCharacterMovementComponent::HandleVault(const FTraversalResult& TraversalResult)
 {
-	SetVaultWarpingData(TraversalResult);
-
 	if (TraversalResult.bHasLandingPoint)
 	{
+		if (!VaultOverMontage)
+		{
+			OVRL_LOG_WARN(LogOverlink, true, "VaultOverMontage is missing! Abort traversal");
+			return false;
+		}
+		
+		SetVaultWarpingData(TraversalResult);
+		
 		// Disable collision just in this case, to avoid jerky movements
 		CharacterOwner->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		OnPlayMontageRequested.Broadcast(VaultOverMontage, 0.f);
 	}
 	else
 	{
+		if (!VaultClimbUpMontage)
+		{
+			OVRL_LOG_WARN(LogOverlink, true, "VaultClimbUpMontage is missing! Abort traversal");
+			return false;
+		}
+		
+		SetVaultWarpingData(TraversalResult);
 		OnPlayMontageRequested.Broadcast(VaultClimbUpMontage, 0.f);
 	}
-
+	
 	SetLocomotionAction(OvrlLocomotionActionTags::Vaulting);
+	
+	return true;
 }
 
-void UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& TraversalResult)
+bool UOvrlCharacterMovementComponent::HandleMantle(const FTraversalResult& TraversalResult)
 {
-	SetMantleWarpingData(TraversalResult);
-
+	if (!MantleMontage)
+	{
+		OVRL_LOG_WARN(LogOverlink, true, "MantleMontage is missing! Abort traversal");
+		return false;
+	}
+	
 	const float StartTime = FindMontageStartForDeltaZ(MantleMontage, TraversalResult.Height);
-
+	SetMantleWarpingData(TraversalResult);
 	OnPlayMontageRequested.Broadcast(MantleMontage, StartTime);
+	
 	SetLocomotionAction(OvrlLocomotionActionTags::Mantling);
+	
+	return true;
 }
 
 bool UOvrlCharacterMovementComponent::ShouldHandleWallrun() const

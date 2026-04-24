@@ -8,7 +8,6 @@
 
 #include "OvrlCharacterMovementComponent.generated.h"
 
-class AOvrlCharacterBase;
 class UMotionWarpingComponent;
 
 enum class ETraversalType : uint8
@@ -16,13 +15,6 @@ enum class ETraversalType : uint8
 	None,
 	Vault,
 	Mantle
-};
-
-enum class EWallrunType : uint8
-{
-	Vertical,
-	Left,
-	Right
 };
 
 struct FTraversalResult
@@ -188,10 +180,10 @@ private:
 	bool HandleTraversals();
 
 	// ------ VAULT ------
-	void HandleVault(const FTraversalResult& TraversalResult);
+	bool HandleVault(const FTraversalResult& TraversalResult);
 
 	// ------ MANTLE ------
-	void HandleMantle(const FTraversalResult& TraversalResult);
+	bool HandleMantle(const FTraversalResult& TraversalResult);
 
 	// ------ WALLRUN ------
 
@@ -299,7 +291,7 @@ public:
 	// ------ WALLRUN VARS ------
 
 	// If true, the component will check for wallrun when player jumps
-	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Traversal")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Character Movement Component|Wallrun")
 	bool bCanCheckWallrun;
 
 	// If true, the system will check for traversals during any wallrun.
