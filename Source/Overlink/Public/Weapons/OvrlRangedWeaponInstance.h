@@ -101,6 +101,9 @@ protected:
 	UMaterialInstanceDynamic* GetMagazineAmmoCountMaterial();
 	void UpdateMagazineAmmoCountDisplay();
 
+private:
+	void UpdateRecoilDeltaRotation();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> MagazineAmmoCountDisplay;
@@ -113,7 +116,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	FName MuzzleSocketName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim")
 	FName AimSocketName;
 
 	// Number of bullets to fire in a single cartridge (typically 1, but may be more for shotguns)
@@ -127,10 +130,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ForceUnits = cm))
 	float MaxDamageRange;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Animations")
 	TSoftObjectPtr<UAnimMontage> PlayerReloadMontage;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Animations")
 	TObjectPtr<UAnimSequence> ReloadAnimation;
 
 	// If true, the fixed FireRate will be ignored and instead depend on how fast the player can shoot.
@@ -141,19 +144,28 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f, EditCondition="!bIsSingleShot"))
 	float FireRate;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance")
+	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance|Animations")
 	TObjectPtr<UAnimSequence> FireAnimation;
 
 	// How much time (in seconds) the weapon needs to aim
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Aim", meta = (ClampMin = 0.0f, Units="s"))
 	float AimTime;
 
-	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Instance")
+	UPROPERTY(EditAnywhere, Category = "Ovrl Ranged Weapon Instance|Aim")
 	ESightMagnification SightMagnification;
-	
+
 	// If true, the weapon can start recovering the recoil while still firing
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
 	bool bCanRecoverRecoilWhileFiring;
+
+	// The recoil that will be applied to the player camera (pitch).
+	// This value is accumulated each shot.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
+	float CameraRecoil;
+
+	// How fast the camera recoil recovers.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
+	float CameraRecoilRecoverySpeed;
 
 	// The recoil that will be applied to the weapon mesh, during the animation.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
@@ -163,19 +175,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
 	float KickbackRecoverySpeed;
 
-	// The recoil that will be applied to the player camera (pitch).
-	// This value is accumulated each shot.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-	float CameraRecoil;
-
-	// The maximum camera recoil (accumulated) that the camera can reach.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-	float CameraMaxRecoil;
-
-	// How fast the camera recoil recovers.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Recoil")
-	float CameraRecoilRecoverySpeed;
-
 	// The minimum spread angle (in degrees) of the weapon when no offsets are applied.
 	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
 	float MinSpreadAngle;
@@ -183,7 +182,7 @@ protected:
 	// The maximum spread angle (in degrees) of the weapon when no offsets are applied.
 	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
 	float MaxSpreadAngle;
-	
+
 	// The angle of the spread while the weapon is ADS.
 	// Set to 0 to have maximum ADS precision.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
@@ -230,8 +229,11 @@ private:
 	TObjectPtr<UOvrlCharacterMovementComponent> OwnerMovementComp;
 
 	UPROPERTY()
+	TObjectPtr<AController> PlayerController;
+
+	UPROPERTY()
 	TObjectPtr<UOvrlCameraModifierBase> CameraFOV;
-	
+
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> MagazineAmmoCountDisplayMat;
 
@@ -244,9 +246,10 @@ private:
 	FTransform CurrentKickbackRecoil;
 	FRotator CurrentCameraRecoil;
 	FRotator LastControllerRotation;
-	FRotator DeltaRotation;
+	FRotator RecoilDeltaRotation;
 	FRotator RecoilStep;
 	bool bCanRecoverFromRecoil;
+	bool bShouldUpdateRecoilDeltaNextFrame;
 
 	bool bIsADS;
 	bool bCanFire;

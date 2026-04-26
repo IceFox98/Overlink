@@ -29,8 +29,7 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	AimTime = .15f;
 
 	KickbackRecoverySpeed = 10.f;
-	CameraRecoilRecoverySpeed = 10.f;
-	CameraMaxRecoil = 20.f;
+	CameraRecoilRecoverySpeed = 30.f;
 
 	SpreadRecoverySpeed = 1.f;
 
@@ -54,7 +53,7 @@ void AOvrlRangedWeaponInstance::Tick(float DeltaTime)
 	UpdateRecoil(DeltaTime);
 	UpdateSpread(DeltaTime);
 
-	if (!IsEquipped() && DeltaRotation.IsNearlyZero())
+	if (!IsEquipped() && RecoilDeltaRotation.IsNearlyZero())
 	{
 		// Disable ticking if the weapon is unequipped and all the recoil has been consumed
 		SetActorTickEnabled(false);
@@ -77,6 +76,9 @@ void AOvrlRangedWeaponInstance::OnEquipped_Implementation()
 	Super::OnEquipped_Implementation();
 
 	OwnerMovementComp = GetOwner()->GetComponentByClass<UOvrlCharacterMovementComponent>();
+	PlayerController = GetOwner()->GetInstigatorController();
+	check(PlayerController);
+	
 	bCanFire = true;
 
 	UpdateMagazineAmmoCountDisplay();
@@ -191,7 +193,8 @@ void AOvrlRangedWeaponInstance::AddSpread()
 
 void AOvrlRangedWeaponInstance::AddRecoil()
 {
-	CurrentCameraRecoil.Pitch = FMath::Clamp(CurrentCameraRecoil.Pitch + CameraRecoil, 0.f, CameraMaxRecoil);
+	CurrentCameraRecoil.Pitch = FMath::Clamp(CurrentCameraRecoil.Pitch + CameraRecoil, 0.f, 89.f); // Clamp to 89°
+
 	CurrentKickbackRecoil = KickbackRecoil;
 	bCanRecoverFromRecoil = bCanRecoverRecoilWhileFiring;
 }
@@ -202,32 +205,29 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 
 	if (CurrentCameraRecoil.Pitch > 0.f || CurrentCameraRecoil.Yaw > 0.f)
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
 		if (!PlayerController)
 			return;
+		
+		UpdateRecoilDeltaRotation();
 
-		// Get the controller Delta Rotation to know how much the recoil has been applied, considering the eventual player mouse compensation
-		const FRotator ControllerDeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(PlayerController->GetControlRotation(), LastControllerRotation);
-		const FRotator MouseDelta = ControllerDeltaRotation - RecoilStep;
-		FRotator FinalDelta = ControllerDeltaRotation;
-
-		// Remove positive mouse compensation from delta, so that it will not be considered as "additional" recoil to recover
-		if (MouseDelta.Pitch > 0.f /*|| MouseDelta.Yaw > 0.f*/)
-		{
-			FinalDelta -= MouseDelta;
-		}
-
-		DeltaRotation += FinalDelta;
-
-		// Consider only the positive delta, because maybe the player has over-compensated the recoil
-		DeltaRotation.Pitch = FMath::Clamp(DeltaRotation.Pitch, 0.f, 360.f);
-		//DeltaRotation.Yaw = FMath::Clamp(DeltaRotation.Yaw, 0.f, 360.f);
+		constexpr float MinCameraRecoilSpeed = 10.f;
+		constexpr float MaxTimeBetweenShots = 0.12f; // Clamp to max time to avoid having too slow recoil
+		const float TimeBetweenShots = FMath::Min(MaxTimeBetweenShots, 60.f / FireRate);
+		const float CameraRecoilSpeed = FMath::Max(MinCameraRecoilSpeed, CameraRecoil / TimeBetweenShots); // Speed = D/T
 
 		// Going from zero to target since we're adding recoil each frame
-		RecoilStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, CurrentCameraRecoil, DeltaTime, CameraRecoilRecoverySpeed);
+		RecoilStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, CurrentCameraRecoil, DeltaTime, CameraRecoilSpeed);
 		OwnerMovementComp->GetPawnOwner()->AddControllerPitchInput(RecoilStep.Pitch);
 		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(RecoilStep.Yaw);
 		CurrentCameraRecoil -= RecoilStep;
+		
+		if (CurrentCameraRecoil.IsZero())
+		{
+			// If we consumed all the recoil, it means that the next frame we won't update the RecoilDeltaRotation through
+			// this scope (because of check on recoil > 0).
+			// If in the next frame we'll start the recoil recovery, it will handle the proper RecoilDeltaRotation update.
+			bShouldUpdateRecoilDeltaNextFrame = true;
+		}
 
 		// OVRL_LOG("%s", *RecoilStep.ToString());
 
@@ -235,21 +235,47 @@ void AOvrlRangedWeaponInstance::UpdateRecoil(float DeltaTime)
 	}
 	else if (bCanRecoverFromRecoil)
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetOwner()->GetInstigatorController());
 		if (!PlayerController)
 			return;
+		
+		if (bShouldUpdateRecoilDeltaNextFrame)
+		{
+			UpdateRecoilDeltaRotation();
+			bShouldUpdateRecoilDeltaNextFrame = false; // Update just one time.
+		}
 
 		// This logic handles the recoil recovery of the weapon
-		const FRotator RecoilRecoveryStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, DeltaRotation, DeltaTime, 30.f);
+		const FRotator RecoilRecoveryStep = UKismetMathLibrary::RInterpTo_Constant(FRotator::ZeroRotator, RecoilDeltaRotation, DeltaTime, CameraRecoilRecoverySpeed);
 		OwnerMovementComp->GetPawnOwner()->AddControllerPitchInput(-RecoilRecoveryStep.Pitch);
 		//OwnerMovementComp->GetPawnOwner()->AddControllerYawInput(-RecoilRecoveryStep.Yaw);
-		DeltaRotation -= RecoilRecoveryStep;
+		RecoilDeltaRotation -= RecoilRecoveryStep;
 
 		//OVRL_LOG("%s", *RecoilRecoveryStep.ToString());
 
-		// Update last controller rotation to avoid bugs when new recoil is applied meanwhile the recovery is ongoing
-		LastControllerRotation = PlayerController->GetControlRotation();
+		// Update last controller rotation to avoid bugs when new recoil is applied meanwhile the recovery is ongoing.
+		// Immediately subtract the recovery step since we're one frame behind the controller rotation update.
+		LastControllerRotation = PlayerController->GetControlRotation() - RecoilRecoveryStep;
 	}
+}
+
+void AOvrlRangedWeaponInstance::UpdateRecoilDeltaRotation()
+{
+	// Get the controller Delta Rotation to know how much the recoil has been applied, considering the eventual player mouse compensation
+	const FRotator ControllerDeltaRotation = UKismetMathLibrary::NormalizedDeltaRotator(PlayerController->GetControlRotation(), LastControllerRotation);
+	const FRotator MouseDelta = ControllerDeltaRotation - RecoilStep;
+	FRotator FinalDelta = ControllerDeltaRotation;
+
+	// Remove positive mouse compensation from delta, so that it will not be considered as "additional" recoil to recover
+	if (MouseDelta.Pitch > 0.f /*|| MouseDelta.Yaw > 0.f*/)
+	{
+		FinalDelta -= MouseDelta;
+	}
+
+	RecoilDeltaRotation += FinalDelta;
+	
+	// Consider only the positive delta, because maybe the player has over-compensated the recoil
+	RecoilDeltaRotation.Pitch = FMath::Clamp(RecoilDeltaRotation.Pitch, 0.f, 360.f);
+	//RecoilDeltaRotation.Yaw = FMath::Clamp(RecoilDeltaRotation.Yaw, 0.f, 360.f);
 }
 
 void AOvrlRangedWeaponInstance::UpdateSpread(float DeltaTime)
