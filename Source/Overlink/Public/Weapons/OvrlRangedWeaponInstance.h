@@ -183,6 +183,11 @@ protected:
 	// The maximum spread angle (in degrees) of the weapon when no offsets are applied.
 	UPROPERTY(VisibleAnywhere, Category = "Ovrl Ranged Weapon Instance|Spread")
 	float MaxSpreadAngle;
+	
+	// The angle of the spread while the weapon is ADS.
+	// Set to 0 to have maximum ADS precision.
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")
+	float SpreadAngleADS;
 
 	// How fast the bullet spread recovers.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Spread")

@@ -105,7 +105,7 @@ void AOvrlRangedWeaponInstance::OnBeforeUnequip_Implementation()
 void AOvrlRangedWeaponInstance::Fire(const TArray<FHitResult>& HitsData)
 {
 	Super::Fire(HitsData);
-	
+
 	AddRecoil();
 
 	if (!IsADS())
@@ -267,7 +267,7 @@ void AOvrlRangedWeaponInstance::UpdateSpreadOffset(float DeltaTime)
 
 	if (IsADS())
 	{
-		TargetOffset = -MinSpreadAngle;
+		TargetOffset = -MinSpreadAngle + SpreadAngleADS;
 	}
 	else
 	{
