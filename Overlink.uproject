@@ -21,7 +21,10 @@
 		{
 			"Name": "OverlinkEditor",
 			"Type": "UncookedOnly",
-			"LoadingPhase": "PreDefault"
+			"LoadingPhase": "PreDefault",
+			"AdditionalDependencies": [
+				"Blutility"
+			]
 		}
 	],
 	"Plugins": [

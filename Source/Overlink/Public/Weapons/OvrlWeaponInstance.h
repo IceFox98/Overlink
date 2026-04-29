@@ -67,6 +67,8 @@ public:
 	virtual bool IsReloading() const { return bIsReloading; }
 
 	virtual FTransform GetLeftHandIKTransform() const override;
+	
+	FORCEINLINE void SetBaseDamage(float NewBaseDamage) { BaseDamage = NewBaseDamage; };
 
 protected:
 	virtual void ProcessHit(const FHitResult& HitData);

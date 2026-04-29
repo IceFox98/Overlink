@@ -28,6 +28,9 @@ public class OverlinkEditor : ModuleRules
 					"EditorFramework",
 					"Kismet",
 					"UnrealEd",
+					"Blutility",
+					"UMG",
+					"UMGEditor",
 				}
 			);
 		}

@@ -123,6 +123,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	int32 BulletsPerCartridge;
 
+	// Class that will be used to check if player, while reloading, has still remaining ammo in its inventory.
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
 	TSubclassOf<UOvrlItemAmmoBase> AmmoType;
 
