@@ -24,6 +24,6 @@ protected:
 	void OnProjectileHit(const FHitResult& HitResult);
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Projectile Weapon Fire")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Projectile Weapon Instance")
 	TSubclassOf<AOvrlProjectile> ProjectileClass;
 };

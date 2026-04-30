@@ -40,6 +40,8 @@ class OVERLINK_API AOvrlWeaponInstance : public AOvrlEquipmentInstance
 
 public:
 	AOvrlWeaponInstance();
+	
+	friend class UOvrlInventoryUtils;
 
 public:
 	virtual void OnEquipped_Implementation() override;
@@ -68,8 +70,6 @@ public:
 
 	virtual FTransform GetLeftHandIKTransform() const override;
 	
-	FORCEINLINE void SetBaseDamage(float NewBaseDamage) { BaseDamage = NewBaseDamage; };
-
 protected:
 	virtual void ProcessHit(const FHitResult& HitData);
 	virtual void SpawnImpactVFX(const FHitResult& HitData);

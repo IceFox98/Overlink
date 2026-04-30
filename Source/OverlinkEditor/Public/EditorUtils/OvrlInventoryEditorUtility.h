@@ -6,6 +6,10 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "OvrlInventoryEditorUtility.generated.h"
 
+class UGameplayEffect;
+class AOvrlProjectile;
+class UOvrlItemAmmoBase;
+class UOvrlAbilitySet;
 class UOvrlItemDefinition;
 class UOvrlEquipmentDefinition;
 class AOvrlEquipmentInstance;
@@ -17,6 +21,9 @@ struct FInventoryItemData
 	GENERATED_BODY()
 
 	UPROPERTY(BlueprintReadWrite)
+	bool bAlwaysOverwrite;
+
+	UPROPERTY(BlueprintReadWrite)
 	FString FolderPath = "/Game";
 
 	UPROPERTY(BlueprintReadWrite)
@@ -26,25 +33,49 @@ struct FInventoryItemData
 	FText DisplayName;
 
 	UPROPERTY(BlueprintReadWrite)
-	UStaticMesh* DisplayMesh;
+	TObjectPtr<UStaticMesh> DisplayMesh;
 
 	UPROPERTY(BlueprintReadWrite)
-	UTexture2D* DisplayTexture;
+	TObjectPtr<UTexture2D> DisplayTexture;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsEquippable;
 
 	UPROPERTY(BlueprintReadWrite)
-	TSubclassOf<AOvrlEquipmentInstance> EquipmentClass;
+	TObjectPtr<UOvrlAbilitySet> AbilitySet;
 
 	UPROPERTY(BlueprintReadWrite)
-	USkeletalMesh* WeaponMesh;
+	bool bAllowQuickSlot;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bShouldSpawnInstance;
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<AOvrlEquipmentInstance> EquipmentInstanceClass;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<USkeletalMesh> WeaponMesh;
 
 	UPROPERTY(BlueprintReadWrite)
 	FName AttachSocketName;
 
 	UPROPERTY(BlueprintReadWrite)
-	float BaseDamage;
+	float BaseDamage = 10.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<UGameplayEffect> GE_DamageClass;
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<UOvrlItemAmmoBase> AmmoType;
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 BulletsPerCartridge = 1;
+
+	UPROPERTY(BlueprintReadWrite)
+	float FireRate = 400.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<AOvrlProjectile> ProjectileClass;
 };
 
 /**
@@ -59,16 +90,13 @@ public:
 	UFUNCTION(BlueprintCallable, meta=(DefaultToSelf="WorldContextObject", HideSelfPin))
 	static void CreateItem(UObject* WorldContextObject, const FInventoryItemData& ItemData);
 
-protected:
-	static void SaveObject(UObject* Object, const FString& PackagePath, UPackage* Package);
-
-	static UPackage* CreateItemPackage(const FString& FolderPath, const FString& PackageName);
-
+private:
 	static UBlueprint* CreateEquipmentInstance(const FInventoryItemData& ItemData);
 	static UBlueprint* CreateEquipmentDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentInstanceBP);
 	static UBlueprint* CreateItemDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentDefinitionBP);
 
-private:
+	static UBlueprint* FindOrCreateBlueprint(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass);
+
 	static void ReopenObject(UObject* Object);
 
 };

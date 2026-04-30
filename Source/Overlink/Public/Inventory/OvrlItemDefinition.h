@@ -37,15 +37,15 @@ public:
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
 public:
-	// The display name for this item in the inventory
+	// The display name for this item in the inventory.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 	FText DisplayName;
 
-	// Visual representation of the item
+	// Visual 3D representation of the item.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<UStaticMesh> DisplayMesh;
 	
-	//Visual representation of the item
+	// Visual 2D representation of the item.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item")
 	TObjectPtr<UTexture2D> DisplayTexture;
 

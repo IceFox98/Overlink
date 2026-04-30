@@ -38,6 +38,8 @@ class OVERLINK_API AOvrlRangedWeaponInstance : public AOvrlWeaponInstance
 
 public:
 	AOvrlRangedWeaponInstance();
+	
+	friend class UOvrlInventoryUtils;
 
 public:
 	virtual void Tick(float DeltaTime) override;

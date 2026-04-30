@@ -2,133 +2,84 @@
 
 #include "EditorUtils/OvrlInventoryEditorUtility.h"
 
-#include "AssetToolsModule.h"
-#include "ContentBrowserModule.h"
-#include "IContentBrowserSingleton.h"
-#include "AssetRegistry/AssetRegistryModule.h"
+// Internal
 #include "Equipment/OvrlEquipmentDefinition.h"
-#include "Factories/BlueprintFactory.h"
+#include "Weapons/OvrlProjectileWeaponInstance.h"
+#include "Weapons/AmmoTypes/OvrlItemAmmoBase.h"
 #include "Inventory/OvrlItemDefinition.h"
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
+
+// Engine
+#include "AssetToolsModule.h"
+#include "BlueprintEditorLibrary.h"
+#include "PackageTools.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Dialog/SMessageDialog.h"
+#include "Factories/BlueprintFactory.h"
 #include "Kismet2/BlueprintEditorUtils.h"
-#include "Weapons/OvrlWeaponInstance.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Subsystems/AssetEditorSubsystem.h"
-#include "UObject/SavePackage.h"
 
 void UOvrlInventoryUtils::CreateItem(UObject* WorldContextObject, const FInventoryItemData& ItemData)
 {
-	UBlueprint* EquipmentInstanceBP = CreateEquipmentInstance(ItemData);
+	UBlueprint* EquipmentInstanceBP = nullptr;
+
+	if (ItemData.bShouldSpawnInstance)
+	{
+		EquipmentInstanceBP = CreateEquipmentInstance(ItemData);
+	}
+
 	UBlueprint* EquipmentDefinitionBP = CreateEquipmentDefinition(ItemData, EquipmentInstanceBP);
 	UBlueprint* ItemDef = CreateItemDefinition(ItemData, EquipmentDefinitionBP);
 }
 
 UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemData& ItemData)
 {
-	const FString AssetName = "BP_" + ItemData.AssetName;
-	// UPackage* Package = CreateItemPackage(ItemData.FolderPath, PackageName);
-	//
-	// if (!Package)
-	// {
-	// 	return nullptr;
-	// }
-	//
-	// const FString PackagePath = Package->GetName();
-	//
-	// if (!ItemData.EquipmentClass)
-	// {
-	// 	return nullptr;
-	// }
-	//
-	// UBlueprint* EquipmentBlueprint = FindObject<UBlueprint>(Package, *PackageName);
-	// if (!EquipmentBlueprint)
-	// {
-	// 	// Create equippable
-	// 	EquipmentBlueprint = FKismetEditorUtilities::CreateBlueprint(
-	// 		ItemData.EquipmentClass,
-	// 		Package,
-	// 		FName(*PackageName),
-	// 		BPTYPE_Normal,
-	// 		UBlueprint::StaticClass(),
-	// 		UBlueprintGeneratedClass::StaticClass()
-	// 	);
-	// }
-	//
-	// if (!EquipmentBlueprint)
-	// {
-	// 	return nullptr;
-	// }
-	//
-	// AOvrlWeaponInstance* DefaultActor = Cast<AOvrlWeaponInstance>(EquipmentBlueprint->GeneratedClass->GetDefaultObject());
-	//
-	// if (DefaultActor)
-	// {
-	// 	if (DefaultActor->WeaponMesh)
-	// 	{
-	// 		DefaultActor->WeaponMesh->SetSkeletalMesh(ItemData.WeaponMesh);
-	// 	}
-	//
-	// 	DefaultActor->SetBaseDamage(ItemData.BaseDamage);
-	// }
-	//
-	// FKismetEditorUtilities::CompileBlueprint(EquipmentBlueprint);
-	//
-	// SaveObject(EquipmentBlueprint, PackagePath, Package);
-
-	// Load necessary modules
-	// FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
-	// FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-	// IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	// Generate a unique asset name
-	// FString Name;
-	// FString PackageName;
-	// AssetToolsModule.Get().CreateUniqueAssetName(ItemData.FolderPath + "/" + AssetName, TEXT(""), PackageName, Name);
-	// Name = AssetName;
-	const FString PackageName = ItemData.FolderPath + "/" + AssetName;
-
-	UPackage* Package = CreatePackage(*PackageName);
-	UBlueprint* EquipmentBlueprint = FindObject<UBlueprint>(Package, *AssetName);
-
-	if (!EquipmentBlueprint)
+	if (!ItemData.EquipmentInstanceClass)
 	{
-		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-
-		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
-		// Create object and package
-		UBlueprintFactory* MyFactory = NewObject<UBlueprintFactory>(UBlueprintFactory::StaticClass());
-		MyFactory->bEditAfterNew = true;
-		MyFactory->SupportedClass = UBlueprint::StaticClass();
-		MyFactory->ParentClass = ItemData.EquipmentClass;
-		EquipmentBlueprint = Cast<UBlueprint>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UBlueprint::StaticClass(), MyFactory));
-
-		// FSavePackageArgs SavePackageArgs;
-		// SavePackageArgs.TopLevelFlags = EObjectFlags::RF_Standalone | EObjectFlags::RF_Public;
-		// UPackage::Save(Package, EquipmentBlueprint, *FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension()), SavePackageArgs);
-		//
-		// // Inform asset registry
-		// AssetRegistry.AssetCreated(EquipmentBlueprint);
-
-		FAssetRegistryModule::AssetCreated(EquipmentBlueprint);
-		//ReopenObject(EquipmentBlueprint);
-		SaveObject(EquipmentBlueprint, PackageName, Package);
+		return nullptr;
 	}
+
+	UBlueprint* EquipmentBlueprint = FindOrCreateBlueprint(ItemData, "BP_", ItemData.EquipmentInstanceClass);
 
 	if (!EquipmentBlueprint)
 	{
 		return nullptr;
 	}
 
-	AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(EquipmentBlueprint->GeneratedClass->GetDefaultObject());
+	UBlueprintEditorLibrary::ReparentBlueprint(EquipmentBlueprint, ItemData.EquipmentInstanceClass);
 
-	if (WeaponInstance)
+	UObject* CDO = EquipmentBlueprint->GeneratedClass->GetDefaultObject();
+
+	if (AOvrlWeaponInstance* WeaponInstance = Cast<AOvrlWeaponInstance>(CDO))
 	{
 		if (WeaponInstance->WeaponMesh)
 		{
 			WeaponInstance->WeaponMesh->SetSkeletalMesh(ItemData.WeaponMesh);
 		}
 
-		WeaponInstance->SetBaseDamage(ItemData.BaseDamage);
+		WeaponInstance->BaseDamage = ItemData.BaseDamage;
+		WeaponInstance->GE_Damage = ItemData.GE_DamageClass;
+	}
+
+	if (AOvrlRangedWeaponInstance* RangedWeaponInstance = Cast<AOvrlRangedWeaponInstance>(CDO))
+	{
+		if (ItemData.AmmoType)
+		{
+			RangedWeaponInstance->AmmoType = ItemData.AmmoType;
+		}
+		else
+		{
+			RangedWeaponInstance->AmmoType = UOvrlItemAmmoBase::StaticClass();
+		}
+
+		RangedWeaponInstance->BulletsPerCartridge = ItemData.BulletsPerCartridge;
+		RangedWeaponInstance->FireRate = ItemData.FireRate;
+	}
+
+	if (AOvrlProjectileWeaponInstance* ProjectileWeaponInstance = Cast<AOvrlProjectileWeaponInstance>(CDO))
+	{
+		ProjectileWeaponInstance->ProjectileClass = ItemData.ProjectileClass;
 	}
 
 	FBlueprintEditorUtils::MarkBlueprintAsModified(EquipmentBlueprint);
@@ -141,36 +92,7 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemDat
 
 UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentInstanceBP)
 {
-	const FString AssetName = "ED_" + ItemData.AssetName;
-	const FString PackageName = ItemData.FolderPath + "/" + AssetName;
-
-	UPackage* Package = CreatePackage(*PackageName);
-	UBlueprint* EquipDefBlueprint = FindObject<UBlueprint>(Package, *AssetName);
-
-	if (!EquipDefBlueprint)
-	{
-		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-
-		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
-		// Create object and package
-		UBlueprintFactory* MyFactory = NewObject<UBlueprintFactory>(UBlueprintFactory::StaticClass());
-		MyFactory->bEditAfterNew = true;
-		MyFactory->SupportedClass = UBlueprint::StaticClass();
-		MyFactory->ParentClass = UOvrlEquipmentDefinition::StaticClass();
-		EquipDefBlueprint = Cast<UBlueprint>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UBlueprint::StaticClass(), MyFactory));
-
-		// FSavePackageArgs SavePackageArgs;
-		// SavePackageArgs.TopLevelFlags = EObjectFlags::RF_Standalone | EObjectFlags::RF_Public;
-		// UPackage::Save(Package, EquipmentBlueprint, *FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension()), SavePackageArgs);
-		//
-		// // Inform asset registry
-		// AssetRegistry.AssetCreated(EquipmentBlueprint);
-
-		FAssetRegistryModule::AssetCreated(EquipDefBlueprint);
-		//ReopenObject(EquipDefBlueprint);
-
-		SaveObject(EquipDefBlueprint, PackageName, Package);
-	}
+	UBlueprint* EquipDefBlueprint = FindOrCreateBlueprint(ItemData, "ED_", UOvrlEquipmentDefinition::StaticClass());
 
 	if (!EquipDefBlueprint)
 	{
@@ -181,64 +103,28 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemD
 
 	if (EquipDef)
 	{
-		if (EquipmentInstanceBP)
-		{
-			// EquipDef->Modify();
+		EquipDef->AbilitySetsToGrant.Empty();
+		EquipDef->AbilitySetsToGrant.Add(ItemData.AbilitySet);
 
-			EquipDef->bShouldSpawnEquipmentInstance = true;
+		EquipDef->bAllowQuickSlot = ItemData.bAllowQuickSlot;
+		EquipDef->bShouldSpawnEquipmentInstance = ItemData.bShouldSpawnInstance;
+
+		if (ItemData.bShouldSpawnInstance && EquipmentInstanceBP)
+		{
 			EquipDef->EquipmentClass = EquipmentInstanceBP->GeneratedClass;
 			EquipDef->AttachSocketName = ItemData.AttachSocketName;
-
-			// EquipDef->ReinitializeProperties();
-			//
-			// EquipDef->PostEditChange();
-			// EquipDef->MarkPackageDirty();
-			// SaveObject(EquipDefBlueprint, PackageName, Package);
 		}
 	}
 
 	FBlueprintEditorUtils::MarkBlueprintAsModified(EquipDefBlueprint);
 	FKismetEditorUtilities::CompileBlueprint(EquipDefBlueprint);
-	//ReopenObject(EquipDefBlueprint);
-
-	// UPackage* Outer = EquipDefBlueprint->GetOutermost();
-	// Outer->MarkPackageDirty();
 
 	return EquipDefBlueprint;
 }
 
 UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentDefinitionBP)
 {
-	const FString AssetName = "ID_" + ItemData.AssetName;
-	const FString PackageName = ItemData.FolderPath + "/" + AssetName;
-
-	UPackage* Package = CreatePackage(*PackageName);
-	UBlueprint* ItemDefBlueprint = FindObject<UBlueprint>(Package, *AssetName);
-
-	if (!ItemDefBlueprint)
-	{
-		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-
-		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
-		// Create object and package
-		UBlueprintFactory* MyFactory = NewObject<UBlueprintFactory>(UBlueprintFactory::StaticClass());
-		MyFactory->bEditAfterNew = true;
-		MyFactory->SupportedClass = UBlueprint::StaticClass();
-		MyFactory->ParentClass = UOvrlItemDefinition::StaticClass();
-		ItemDefBlueprint = Cast<UBlueprint>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UBlueprint::StaticClass(), MyFactory));
-
-		// FSavePackageArgs SavePackageArgs;
-		// SavePackageArgs.TopLevelFlags = EObjectFlags::RF_Standalone | EObjectFlags::RF_Public;
-		// UPackage::Save(Package, EquipmentBlueprint, *FPackageName::LongPackageNameToFilename(PackageName, FPackageName::GetAssetPackageExtension()), SavePackageArgs);
-		//
-		// // Inform asset registry
-		// AssetRegistry.AssetCreated(EquipmentBlueprint);
-
-		FAssetRegistryModule::AssetCreated(ItemDefBlueprint);
-		//ReopenObject(EquipDefBlueprint);
-
-		SaveObject(ItemDefBlueprint, PackageName, Package);
-	}
+	UBlueprint* ItemDefBlueprint = FindOrCreateBlueprint(ItemData, "ID_", UOvrlItemDefinition::StaticClass());
 
 	if (!ItemDefBlueprint)
 	{
@@ -249,7 +135,6 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 
 	if (ItemDef)
 	{
-
 		ItemDef->DisplayName = ItemData.DisplayName;
 		ItemDef->DisplayMesh = ItemData.DisplayMesh;
 		ItemDef->DisplayTexture = ItemData.DisplayTexture;
@@ -278,28 +163,62 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 	return ItemDefBlueprint;
 }
 
-UPackage* UOvrlInventoryUtils::CreateItemPackage(const FString& FolderPath, const FString& PackageName)
+UBlueprint* UOvrlInventoryUtils::FindOrCreateBlueprint(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass)
 {
-	const FString PackagePath = FolderPath + "/" + PackageName; // E.g.: "ED_Rifle"
-	return CreatePackage(*PackagePath);
-}
+	const FString AssetName = Prefix + ItemData.AssetName;
+	const FString PackageName = ItemData.FolderPath + "/" + AssetName;
 
-void UOvrlInventoryUtils::SaveObject(UObject* Object, const FString& PackagePath, UPackage* Package)
-{
-	Object->MarkPackageDirty();
+	UPackage* Package = CreatePackage(*PackageName);
+	if (!UPackageTools::HandleFullyLoadingPackages({ Package }, FText::FromString("Create a new object")))
+	{
+		// User aborted.
+		return nullptr;
+	}
 
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
-	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+	UBlueprint* Blueprint = FindObject<UBlueprint>(Package, *AssetName);
 
-	FSavePackageArgs SavePackageArgs;
-	SavePackageArgs.TopLevelFlags = EObjectFlags::RF_Standalone | EObjectFlags::RF_Public;
-	UPackage::Save(Package, Object, *FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension()), SavePackageArgs);
+	if (!Blueprint)
+	{
+		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
 
-	// Inform asset registry
-	FAssetRegistryModule::AssetCreated(Object);
-	// AssetRegistry.AssetCreated(Object);
+		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
+		// Create object and package
+		UBlueprintFactory* MyFactory = NewObject<UBlueprintFactory>(UBlueprintFactory::StaticClass());
+		MyFactory->bEditAfterNew = true;
+		MyFactory->SupportedClass = UBlueprint::StaticClass();
+		MyFactory->ParentClass = ParentClass;
+		Blueprint = Cast<UBlueprint>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UBlueprint::StaticClass(), MyFactory));
 
-	ReopenObject(Object);
+		FAssetRegistryModule::AssetCreated(Blueprint);
+	}
+	else if (!ItemData.bAlwaysOverwrite)
+	{
+		// Object already exists in either the specified package or another package.
+		// Check to see if the user wants to replace the object.
+		TSharedRef<SMessageDialog> ConfirmDialog = SNew(SMessageDialog)
+			.Icon(FAppStyle::Get().GetBrush("Icons.WarningWithColor.Large"))
+			.Title(FText(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Title", "Overwrite Existing Object")))
+			.Message(FText::Format(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Message", "An object already exists with this name.\n\n\tName: {0}\n\tClass: {1}\n\tAsset path: {2}"
+																										"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
+				FText::FromString(AssetName),
+				FText::FromString(Blueprint->GetClass()->GetName()),
+				FText::FromString(PackageName)))
+			.Buttons({
+				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonOverwrite", "Overwrite")).SetPrimary(true),
+				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonCancel", "Cancel")),
+				})
+			.ContentMinWidth(300.0f);
+		uint32 ConfirmationResult = ConfirmDialog->ShowModal();
+
+		const bool bWantReplace = ConfirmationResult == 0;
+		
+		if (!bWantReplace)
+		{
+			return nullptr;
+		}
+	}
+
+	return Blueprint;
 }
 
 void UOvrlInventoryUtils::ReopenObject(UObject* Object)

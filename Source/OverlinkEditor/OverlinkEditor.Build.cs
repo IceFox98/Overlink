@@ -17,8 +17,9 @@ public class OverlinkEditor : ModuleRules
 				"Overlink",
 				"AnimGraph",
 				"AnimGraphRuntime",
+				"SlateCore",
 			});
-		
+
 		if (Target.bBuildEditor == true)
 		{
 			PrivateDependencyModuleNames.AddRange(
@@ -31,6 +32,9 @@ public class OverlinkEditor : ModuleRules
 					"Blutility",
 					"UMG",
 					"UMGEditor",
+					"BlueprintEditorLibrary",
+					"ToolWidgets",
+					"GameplayAbilities",
 				}
 			);
 		}
