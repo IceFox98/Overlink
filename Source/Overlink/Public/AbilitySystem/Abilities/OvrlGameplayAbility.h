@@ -18,6 +18,9 @@ class UAnimInstance;
 UENUM(BlueprintType)
 enum class EOvrlAbilityActivationPolicy : uint8
 {
+	// Try to activate the ability when the input start triggering (should fire once).
+	OnInputStarted,
+	
 	// Try to activate the ability when the input is triggered.
 	OnInputTriggered,
 
@@ -40,6 +43,9 @@ public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
+	// Called when this ability receives an input pressed start event
+	virtual void OnAbilityInputStarted();
+	
 	// Called when this ability receives an input pressed event
 	virtual void OnAbilityInputPressed();
 
@@ -47,7 +53,7 @@ public:
 	virtual void OnAbilityInputReleased();
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Gameplay Ability")
-	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason) const;
+	void OnAbilityFailedToActivate(const FGameplayTagContainer& FailedReason);
 
 	EOvrlAbilityActivationPolicy GetActivationPolicy() const { return ActivationPolicy; }
 

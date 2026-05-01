@@ -9,6 +9,7 @@ UOvrlGameplayAbility::UOvrlGameplayAbility(const FObjectInitializer& ObjectIniti
 	: Super(ObjectInitializer)
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	ActivationPolicy = EOvrlAbilityActivationPolicy::OnInputTriggered;
 	bAllowOnMontagePlay = true;
 }
 
@@ -70,6 +71,10 @@ void UOvrlGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActor
 	}
 }
 
+void UOvrlGameplayAbility::OnAbilityInputStarted()
+{
+}
+
 void UOvrlGameplayAbility::OnAbilityInputPressed()
 {
 }
@@ -78,7 +83,7 @@ void UOvrlGameplayAbility::OnAbilityInputReleased()
 {
 }
 
-void UOvrlGameplayAbility::OnAbilityFailedToActivate_Implementation(const FGameplayTagContainer& FailedReason) const
+void UOvrlGameplayAbility::OnAbilityFailedToActivate_Implementation(const FGameplayTagContainer& FailedReason)
 {
 }
 

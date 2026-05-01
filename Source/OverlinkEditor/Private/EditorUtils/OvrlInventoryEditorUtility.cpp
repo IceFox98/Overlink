@@ -12,10 +12,16 @@
 // Engine
 #include "AssetToolsModule.h"
 #include "BlueprintEditorLibrary.h"
+#include "FileHelpers.h"
+#include "OvrlGameplayTags.h"
 #include "PackageTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Dialog/SMessageDialog.h"
 #include "Factories/BlueprintFactory.h"
+#include "Factories/DataAssetFactory.h"
+#include "Inventory/OvrlItemFragment_SetStats.h"
+#include "Inventory/OvrlItemPickupActor.h"
+#include "Inventory/OvrlPickupDefinition.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Subsystems/AssetEditorSubsystem.h"
@@ -29,8 +35,10 @@ void UOvrlInventoryUtils::CreateItem(UObject* WorldContextObject, const FInvento
 		EquipmentInstanceBP = CreateEquipmentInstance(ItemData);
 	}
 
-	UBlueprint* EquipmentDefinitionBP = CreateEquipmentDefinition(ItemData, EquipmentInstanceBP);
-	UBlueprint* ItemDef = CreateItemDefinition(ItemData, EquipmentDefinitionBP);
+	const UBlueprint* EquipmentDefinitionBP = CreateEquipmentDefinition(ItemData, EquipmentInstanceBP);
+	const UBlueprint* ItemDefBP = CreateItemDefinition(ItemData, EquipmentDefinitionBP);
+	UDataAsset* PickupDefinitionDA = CreatePickupDefinition(ItemData, ItemDefBP);
+	UBlueprint* PickupActor = CreatePickupActor(ItemData, PickupDefinitionDA);
 }
 
 UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemData& ItemData)
@@ -84,6 +92,7 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemDat
 
 	FBlueprintEditorUtils::MarkBlueprintAsModified(EquipmentBlueprint);
 	FKismetEditorUtilities::CompileBlueprint(EquipmentBlueprint);
+	UEditorLoadingAndSavingUtils::SavePackages({ EquipmentBlueprint->GetPackage() }, false);
 
 	ReopenObject(EquipmentBlueprint);
 
@@ -118,6 +127,7 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemD
 
 	FBlueprintEditorUtils::MarkBlueprintAsModified(EquipDefBlueprint);
 	FKismetEditorUtilities::CompileBlueprint(EquipDefBlueprint);
+	UEditorLoadingAndSavingUtils::SavePackages({ EquipDefBlueprint->GetPackage() }, false);
 
 	return EquipDefBlueprint;
 }
@@ -153,14 +163,79 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 
 			ItemDef->Fragments.Empty();
 			ItemDef->Fragments.Add(Fragment_EquippableItem);
+
+			if (UOvrlEquipmentDefinition* EquipmentDefinitionCDO = Cast<UOvrlEquipmentDefinition>(EquipmentDefinitionBP->GeneratedClass->GetDefaultObject()))
+			{
+				if (EquipmentDefinitionCDO->EquipmentClass->IsChildOf<AOvrlWeaponInstance>())
+				{
+					UOvrlItemFragment_SetStats* Fragment_SetStats = NewObject<UOvrlItemFragment_SetStats>(
+						ItemDef,
+						UOvrlItemFragment_SetStats::StaticClass(),
+						NAME_None,
+						RF_Public | RF_Transactional
+					);
+
+					// Initialize starting ammo
+					Fragment_SetStats->InitialItemStats.Add(OvrlWeaponTags::MagazineSize, ItemData.MagazineSize);
+					Fragment_SetStats->InitialItemStats.Add(OvrlWeaponTags::MagazineAmmo, ItemData.MagazineSize);
+					ItemDef->Fragments.Add(Fragment_SetStats);
+				}
+			}
+
 			ItemDef->PostEditChange();
 		}
 	}
 
 	FBlueprintEditorUtils::MarkBlueprintAsModified(ItemDefBlueprint);
 	FKismetEditorUtilities::CompileBlueprint(ItemDefBlueprint);
+	UEditorLoadingAndSavingUtils::SavePackages({ ItemDefBlueprint->GetPackage() }, false);
 
 	return ItemDefBlueprint;
+}
+
+UDataAsset* UOvrlInventoryUtils::CreatePickupDefinition(const FInventoryItemData& ItemData, const UBlueprint* ItemDefinitionBP)
+{
+	UDataAsset* PickupDefinitionDA = FindOrCreateDataAsset(ItemData, "PickupDefinition_", UOvrlPickupDefinition::StaticClass());
+
+	if (!PickupDefinitionDA)
+	{
+		return nullptr;
+	}
+
+	UOvrlPickupDefinition* PickupDef = Cast<UOvrlPickupDefinition>(PickupDefinitionDA);
+
+	if (PickupDef && ItemDefinitionBP)
+	{
+		PickupDef->ItemDefinition = ItemDefinitionBP->GeneratedClass;
+	}
+
+	UEditorLoadingAndSavingUtils::SavePackages({ PickupDefinitionDA->GetPackage() }, false);
+
+	return PickupDefinitionDA;
+}
+
+UBlueprint* UOvrlInventoryUtils::CreatePickupActor(const FInventoryItemData& ItemData, UDataAsset* PickupDefinitionDA)
+{
+	UBlueprint* PickupActorBlueprint = FindOrCreateBlueprint(ItemData, "BP_ItemPickupActor_", ItemData.PickupActorClass);
+
+	if (!PickupActorBlueprint)
+	{
+		return nullptr;
+	}
+
+	AOvrlItemPickupActor* PickupActor = Cast<AOvrlItemPickupActor>(PickupActorBlueprint->GeneratedClass->GetDefaultObject());
+
+	if (PickupActor)
+	{
+		PickupActor->ItemPickupDefinition = Cast<UOvrlPickupDefinition>(PickupDefinitionDA);
+		PickupActor->ItemMesh->SetStaticMesh(ItemData.DisplayMesh);
+	}
+
+	FBlueprintEditorUtils::MarkBlueprintAsModified(PickupActorBlueprint);
+	FKismetEditorUtilities::CompileBlueprint(PickupActorBlueprint);
+	UEditorLoadingAndSavingUtils::SavePackages({ PickupActorBlueprint->GetPackage() }, false);
+
+	return PickupActorBlueprint;
 }
 
 UBlueprint* UOvrlInventoryUtils::FindOrCreateBlueprint(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass)
@@ -199,19 +274,77 @@ UBlueprint* UOvrlInventoryUtils::FindOrCreateBlueprint(const FInventoryItemData&
 			.Icon(FAppStyle::Get().GetBrush("Icons.WarningWithColor.Large"))
 			.Title(FText(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Title", "Overwrite Existing Object")))
 			.Message(FText::Format(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Message", "An object already exists with this name.\n\n\tName: {0}\n\tClass: {1}\n\tAsset path: {2}"
-																										"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
+					"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
 				FText::FromString(AssetName),
 				FText::FromString(Blueprint->GetClass()->GetName()),
 				FText::FromString(PackageName)))
 			.Buttons({
 				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonOverwrite", "Overwrite")).SetPrimary(true),
 				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonCancel", "Cancel")),
-				})
+			})
 			.ContentMinWidth(300.0f);
 		uint32 ConfirmationResult = ConfirmDialog->ShowModal();
 
 		const bool bWantReplace = ConfirmationResult == 0;
-		
+
+		if (!bWantReplace)
+		{
+			return nullptr;
+		}
+	}
+
+	return Blueprint;
+}
+
+UDataAsset* UOvrlInventoryUtils::FindOrCreateDataAsset(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass)
+{
+	const FString AssetName = Prefix + ItemData.AssetName;
+	const FString PackageName = ItemData.FolderPath + "/" + AssetName;
+
+	UPackage* Package = CreatePackage(*PackageName);
+	if (!UPackageTools::HandleFullyLoadingPackages({ Package }, FText::FromString("Create a new object")))
+	{
+		// User aborted.
+		return nullptr;
+	}
+
+	UDataAsset* Blueprint = FindObject<UDataAsset>(Package, *AssetName);
+
+	if (!Blueprint)
+	{
+		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+
+		const FString PackagePath = FPackageName::GetLongPackagePath(PackageName);
+		// Create object and package
+		UDataAssetFactory* MyFactory = NewObject<UDataAssetFactory>(UDataAssetFactory::StaticClass());
+		MyFactory->bEditAfterNew = true;
+		MyFactory->SupportedClass = UDataAsset::StaticClass();
+		MyFactory->DataAssetClass = ParentClass;
+		Blueprint = Cast<UDataAsset>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UDataAsset::StaticClass(), MyFactory));
+
+		FAssetRegistryModule::AssetCreated(Blueprint);
+	}
+	else if (!ItemData.bAlwaysOverwrite)
+	{
+		// Object already exists in either the specified package or another package.
+		// Check to see if the user wants to replace the object.
+		TSharedRef<SMessageDialog> ConfirmDialog = SNew(SMessageDialog)
+			.Icon(FAppStyle::Get().GetBrush("Icons.WarningWithColor.Large"))
+			.Title(FText(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Title", "Overwrite Existing Object")))
+			.Message(FText::Format(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Message", "An object already exists with this name.\n\n\tName: {0}\n\tClass: {1}\n\tAsset path: {2}"
+					"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
+				FText::FromString(AssetName),
+				FText::FromString(Blueprint->GetClass()->GetName()),
+				FText::FromString(PackageName)))
+			.Buttons({
+				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonOverwrite", "Overwrite")).SetPrimary(true),
+				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonCancel", "Cancel")),
+			})
+			.ContentMinWidth(300.0f);
+		uint32 ConfirmationResult = ConfirmDialog->ShowModal();
+
+		const bool bWantReplace = ConfirmationResult == 0;
+
 		if (!bWantReplace)
 		{
 			return nullptr;

@@ -6,6 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "OvrlInventoryEditorUtility.generated.h"
 
+class AOvrlItemPickupActor;
 class UGameplayEffect;
 class AOvrlProjectile;
 class UOvrlItemAmmoBase;
@@ -40,6 +41,9 @@ struct FInventoryItemData
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsEquippable;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<AOvrlItemPickupActor> PickupActorClass;
 
 	UPROPERTY(BlueprintReadWrite)
 	TObjectPtr<UOvrlAbilitySet> AbilitySet;
@@ -72,6 +76,9 @@ struct FInventoryItemData
 	int32 BulletsPerCartridge = 1;
 
 	UPROPERTY(BlueprintReadWrite)
+	int32 MagazineSize = 30;
+	
+	UPROPERTY(BlueprintReadWrite)
 	float FireRate = 400.f;
 
 	UPROPERTY(BlueprintReadWrite)
@@ -94,8 +101,11 @@ private:
 	static UBlueprint* CreateEquipmentInstance(const FInventoryItemData& ItemData);
 	static UBlueprint* CreateEquipmentDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentInstanceBP);
 	static UBlueprint* CreateItemDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentDefinitionBP);
+	static UDataAsset* CreatePickupDefinition(const FInventoryItemData& ItemData, const UBlueprint* ItemDefinitionBP);
+	static UBlueprint* CreatePickupActor(const FInventoryItemData& ItemData, UDataAsset* PickupDefinitionDA);
 
 	static UBlueprint* FindOrCreateBlueprint(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass);
+	static UDataAsset* FindOrCreateDataAsset(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass);
 
 	static void ReopenObject(UObject* Object);
 

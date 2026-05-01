@@ -17,7 +17,7 @@ AOvrlCharacterBase::AOvrlCharacterBase(const FObjectInitializer& ObjectInitializ
 
 	HealthComponent = CreateDefaultSubobject<UOvrlHealthComponent>(TEXT("HealthComponent"));
 	AbilitySystemComponent = CreateDefaultSubobject<UOvrlAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	
+
 	LandedResetTime = .3f;
 }
 
@@ -36,16 +36,16 @@ void AOvrlCharacterBase::BeginPlay()
 			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
 		}
 	}
-	
+
 	GetCharacterMovement()->OnPlayMontageRequested.AddDynamic(this, &AOvrlCharacterBase::OvrlPlayAnimMontage);
 }
 
 void AOvrlCharacterBase::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
-	
+
 	bJustLanded = true;
-	
+
 	GetWorldTimerManager().ClearTimer(TimerHandle_LandReset);
 	GetWorldTimerManager().SetTimer(TimerHandle_LandReset, [this]() {
 		bJustLanded = false;
@@ -58,7 +58,7 @@ void AOvrlCharacterBase::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimIn
 	{
 		GetMesh()->LinkAnimClassLayers(LayerClass);
 	}
-	
+
 	bHasDefaultAnimLayerClass = false;
 }
 
@@ -68,7 +68,7 @@ void AOvrlCharacterBase::RestoreAnimLayerClass()
 	{
 		GetMesh()->LinkAnimClassLayers(DefaultAnimLayerClass);
 	}
-	
+
 	bHasDefaultAnimLayerClass = true;
 }
 
@@ -102,7 +102,10 @@ void AOvrlCharacterBase::OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, float 
 // Overridden in Player Character, to play full body animation
 void AOvrlCharacterBase::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
 {
-	GetMesh()->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
+	if (MontageToStop)
+	{
+		GetMesh()->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
+	}
 }
 
 UAbilitySystemComponent* AOvrlCharacterBase::GetAbilitySystemComponent() const

@@ -11,20 +11,44 @@ void UOvrlAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGam
 	static TArray<FGameplayAbilitySpecHandle> AbilitiesToActivate;
 	AbilitiesToActivate.Reset();
 
-	for (const FGameplayAbilitySpecHandle& SpecHandle : InputHeldSpecHandles)
+	for (const FGameplayAbilitySpecHandle& SpecHandle : InputStartedSpecHandles)
 	{
-		if (const FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(SpecHandle))
+		if (FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(SpecHandle))
 		{
-			if (AbilitySpec->Ability && !AbilitySpec->IsActive())
+			if (AbilitySpec->Ability)
 			{
+				AbilitySpec->InputPressed = true;
+				
 				const UOvrlGameplayAbility* OvrlAbilityCDO = Cast<UOvrlGameplayAbility>(AbilitySpec->Ability);
-				if (OvrlAbilityCDO && OvrlAbilityCDO->GetActivationPolicy() == EOvrlAbilityActivationPolicy::WhileInputActive)
+				if (OvrlAbilityCDO && OvrlAbilityCDO->GetActivationPolicy() == EOvrlAbilityActivationPolicy::OnInputStarted)
 				{
 					AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
+				}
+
+				// @TODO: Should I create a AbilitySpecInputStarted()? 
+				UGameplayAbility* Instance = AbilitySpec->GetPrimaryInstance();
+				if (UOvrlGameplayAbility* OvrlAbilityInstance = Cast<UOvrlGameplayAbility>(Instance))
+				{
+					OvrlAbilityInstance->OnAbilityInputStarted();
 				}
 			}
 		}
 	}
+
+	// for (const FGameplayAbilitySpecHandle& SpecHandle : InputHeldSpecHandles)
+	// {
+	// 	if (const FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(SpecHandle))
+	// 	{
+	// 		if (AbilitySpec->Ability && !AbilitySpec->IsActive())
+	// 		{
+	// 			const UOvrlGameplayAbility* OvrlAbilityCDO = Cast<UOvrlGameplayAbility>(AbilitySpec->Ability);
+	// 			if (OvrlAbilityCDO && OvrlAbilityCDO->GetActivationPolicy() == EOvrlAbilityActivationPolicy::WhileInputActive)
+	// 			{
+	// 				AbilitiesToActivate.AddUnique(AbilitySpec->Handle);
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	for (const FGameplayAbilitySpecHandle& SpecHandle : InputPressedSpecHandles)
 	{
@@ -75,6 +99,7 @@ void UOvrlAbilitySystemComponent::ProcessAbilityInput(float DeltaTime, bool bGam
 		}
 	}
 
+	InputStartedSpecHandles.Reset();
 	InputPressedSpecHandles.Reset();
 	InputReleasedSpecHandles.Reset();
 }
@@ -149,9 +174,23 @@ void UOvrlAbilitySystemComponent::NotifyAbilityFailed(const FGameplayAbilitySpec
 {
 	Super::NotifyAbilityFailed(Handle, Ability, FailureReason);
 
-	if (const UOvrlGameplayAbility* OvrlAbility = Cast<const UOvrlGameplayAbility>(Ability))
+	if (UOvrlGameplayAbility* OvrlAbility = Cast<UOvrlGameplayAbility>(Ability))
 	{
 		OvrlAbility->OnAbilityFailedToActivate(FailureReason);
+	}
+}
+
+void UOvrlAbilitySystemComponent::AbilityInputTagStarted(const FGameplayTag& InputTag)
+{
+	if (InputTag.IsValid())
+	{
+		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+		{
+			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
+			{
+				InputStartedSpecHandles.Add(AbilitySpec.Handle);
+			}
+		}
 	}
 }
 
@@ -179,6 +218,7 @@ void UOvrlAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
 			{
 				InputReleasedSpecHandles.AddUnique(AbilitySpec.Handle);
+				InputStartedSpecHandles.Remove(AbilitySpec.Handle);
 				InputHeldSpecHandles.Remove(AbilitySpec.Handle);
 			}
 		}

@@ -103,6 +103,8 @@ bool AOvrlPlayerCharacter::CanJumpInternal_Implementation() const
 
 void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
 	UOvrlInputComponent* OvrlIC = Cast<UOvrlInputComponent>(PlayerInputComponent);
 
 	if (ensureMsgf(OvrlIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UOvrlInputComponent or a subclass of it.")))
@@ -110,7 +112,7 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 		// be triggered directly by these input actions Triggered events. 
 		TArray<uint32> BindHandles;
-		OvrlIC->BindAbilityActions(InputConfig, this, &ThisClass::OnAbilityInputPressed, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
+		OvrlIC->BindAbilityActions(InputConfig, this,  &ThisClass::OnAbilityInputStarted, &ThisClass::OnAbilityInputTriggered, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
 
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
@@ -222,7 +224,7 @@ void AOvrlPlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 void AOvrlPlayerCharacter::PlayLandSound() const
 {
 	if (!FoleyAudioBank) return;
-	
+
 	const float PlayerVelocityZ = GetCharacterMovement()->GetRelativeLastUpdateVelocity().Z;
 	constexpr float SoundVelocityThreshold = 200.f;
 
@@ -236,7 +238,7 @@ void AOvrlPlayerCharacter::PlayLandSound() const
 void AOvrlPlayerCharacter::PlayJumpSound() const
 {
 	if (!FoleyAudioBank) return;
-	
+
 	USoundBase* JumpSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Jump, SurfaceType_Default);
 	UGameplayStatics::PlaySoundAtLocation(this, JumpSound, FullBodyMesh->GetComponentLocation(), JumpSoundMultiplier);
 }
@@ -251,14 +253,17 @@ void AOvrlPlayerCharacter::OvrlPlayAnimMontage(UAnimMontage* MontageToPlay, floa
 void AOvrlPlayerCharacter::OvrlStopAnimMontage(UAnimMontage* MontageToStop)
 {
 	Super::OvrlStopAnimMontage(MontageToStop);
-	
-	FullBodyMesh->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
+
+	if (MontageToStop)
+	{
+		FullBodyMesh->GetAnimInstance()->Montage_Stop(MontageToStop->BlendOut.GetBlendTime(), MontageToStop);
+	}
 }
 
 void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnimInstance>& LayerClass)
 {
 	Super::ApplyAnimLayerClass(LayerClass);
-	
+
 	if (FullBodyMesh)
 	{
 		FullBodyMesh->LinkAnimClassLayers(LayerClass);
@@ -268,7 +273,7 @@ void AOvrlPlayerCharacter::ApplyAnimLayerClass(const TSubclassOf<UOvrlLinkedAnim
 void AOvrlPlayerCharacter::RestoreAnimLayerClass()
 {
 	Super::RestoreAnimLayerClass();
-	
+
 	if (FullBodyMesh)
 	{
 		FullBodyMesh->LinkAnimClassLayers(DefaultAnimLayerClass);
@@ -313,7 +318,16 @@ void AOvrlPlayerCharacter::UnequipObject()
 	}
 }
 
-void AOvrlPlayerCharacter::OnAbilityInputPressed(FGameplayTag InputTag)
+
+void AOvrlPlayerCharacter::OnAbilityInputStarted(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->AbilityInputTagStarted(InputTag);
+	}
+}
+
+void AOvrlPlayerCharacter::OnAbilityInputTriggered(FGameplayTag InputTag)
 {
 	if (AbilitySystemComponent)
 	{
@@ -332,7 +346,7 @@ void AOvrlPlayerCharacter::OnAbilityInputReleased(FGameplayTag InputTag)
 void AOvrlPlayerCharacter::OnLocomotionActionChanged(const FGameplayTag& OldLocomotionAction, const FGameplayTag& NewLocomotionAction)
 {
 	if (!FoleyAudioBank) return;
-	
+
 	if (NewLocomotionAction == OvrlLocomotionActionTags::Sliding)
 	{
 		USoundBase* SlideSound = FoleyAudioBank->GetSound(OvrlFoleyEvents::Slide, SurfaceType_Default);

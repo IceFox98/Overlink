@@ -18,6 +18,7 @@ AOvrlWeaponInstance::AOvrlWeaponInstance()
 	SetRootComponent(WeaponMesh);
 
 	WeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::None;
+	WeaponMesh->SetCastShadow(false);
 
 	DamageMagnitudeTag = OvrlDataTags::Damage;
 	DamageSurfaceMultipliers.Add(EPhysicalSurface::SurfaceType4, 2.f); // Weak Spot
@@ -107,8 +108,12 @@ void AOvrlWeaponInstance::StartReloading()
 
 void AOvrlWeaponInstance::EndReloading()
 {
+	if (!IsReloading())
+	{
+		return;
+	}
+	
 	bIsReloading = false;
-
 	OnReloaded.Broadcast(this);
 }
 

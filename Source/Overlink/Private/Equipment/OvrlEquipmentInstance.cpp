@@ -60,7 +60,7 @@ void AOvrlEquipmentInstance::OnEquipped_Implementation()
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		OwnerSkeletalMesh = OwningPawn->GetMesh();
-		
+
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 
 		// Attach Display Mesh to 3rd person mesh
@@ -84,6 +84,13 @@ float AOvrlEquipmentInstance::GetEquipNotifyTime() const
 {
 	const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 
+	if (!EquipmentDefinition->bPlayMontageOnEquip)
+	{
+		// Should not play any montage -> instant item switch
+		OVRL_LOG_WARN(LogOverlink, true, "bPlayMontageOnEquip is disable, equip time will be 0s");
+		return 0.f;
+	}
+	
 	if (!EquipmentDefinition->EquipMontage)
 	{
 		// No Montage -> instant item switch
@@ -116,7 +123,11 @@ void AOvrlEquipmentInstance::PlayEquipMontage() const
 	{
 		// Play equip montage
 		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-		OwningPawn->OvrlPlayAnimMontage(EquipmentDefinition->EquipMontage);
+
+		if (EquipmentDefinition->bPlayMontageOnEquip)
+		{
+			OwningPawn->OvrlPlayAnimMontage(EquipmentDefinition->EquipMontage);
+		}
 
 		// Apply anim layer class of the equip instance, used for 1st person mesh
 		ApplyOverlayAnimInstance();

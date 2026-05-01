@@ -2,12 +2,12 @@
 
 #include "Weapons/OvrlRangedWeaponInstance.h"
 
-#include "Overlink.h"
 #include "Core/OvrlPlayerCameraManager.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "Player/CameraModifiers/OvrlCameraModifierBase.h"
 #include "Player/OvrlCharacterBase.h"
 #include "Inventory/OvrlItemInstance.h"
+#include "Weapons/OvrlMagazineAmmoDisplay.h"
 #include "OvrlLogUtils.h"
 #include "OvrlGameplayTags.h"
 
@@ -19,19 +19,16 @@
 
 AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 {
-	MagazineAmmoCountDisplay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MagazineAmmoCountDisplay"));
-	MagazineAmmoCountDisplay->SetupAttachment(WeaponMesh);
-	MagazineAmmoCountDisplay->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	BulletsPerCartridge = 1;
 	MaxDamageRange = 25000.0f;
 	FireRate = 400.f;
 	AimTime = .15f;
 
+	// Recoil
+	CameraRecoil = 1.f;
 	KickbackRecoverySpeed = 10.f;
 	CameraRecoilRecoverySpeed = 30.f;
-
-	SpreadRecoverySpeed = 1.f;
+	KickbackRecoil = FTransform(FVector(5.f, -1.f, 2.f));
 
 	// Spread Offsets
 	SpreadOffset = 0.f;
@@ -41,8 +38,23 @@ AOvrlRangedWeaponInstance::AOvrlRangedWeaponInstance()
 	SpreadOffsetCrouchWalking = -.2f;
 	SpreadOffsetFalling = 3.f;
 
+	SpreadRecoverySpeed = 60.f;
+
+	HeatToSpread.GetRichCurve()->AddKey(0.f, 5.f);
+	HeatToSpread.GetRichCurve()->AddKey(1.f, 20.f);
+	HeatToHeatPerShot.GetRichCurve()->AddKey(0.f, 15.f);
+	MinSpreadAngle = HeatToSpread.GetRichCurve()->Eval(0.f);
+	MaxSpreadAngle = HeatToSpread.GetRichCurve()->Eval(1.f);
+		
 	MuzzleSocketName = TEXT("Muzzle");
 	AimSocketName = TEXT("Aim");
+}
+
+void AOvrlRangedWeaponInstance::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	MagazineAmmoDisplay = GetComponentByClass<UOvrlMagazineAmmoDisplay>();
 }
 
 void AOvrlRangedWeaponInstance::Tick(float DeltaTime)
@@ -147,11 +159,6 @@ void AOvrlRangedWeaponInstance::StartReloading()
 
 void AOvrlRangedWeaponInstance::EndReloading()
 {
-	if (!IsReloading())
-	{
-		return;
-	}
-
 	UpdateMagazineAmmoCountDisplay();
 
 	Super::EndReloading();
@@ -368,21 +375,11 @@ void AOvrlRangedWeaponInstance::PlayWeaponAnimation(UAnimSequence* AnimToPlay)
 	}
 }
 
-UMaterialInstanceDynamic* AOvrlRangedWeaponInstance::GetMagazineAmmoCountMaterial()
+void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay() const
 {
-	if (!MagazineAmmoCountDisplayMat && MagazineAmmoCountDisplay && MagazineAmmoCountDisplay->GetStaticMesh())
+	if (MagazineAmmoDisplay)
 	{
-		MagazineAmmoCountDisplayMat = MagazineAmmoCountDisplay->CreateDynamicMaterialInstance(0, MagazineAmmoCountDisplay->GetMaterial(0));
-	}
-
-	return MagazineAmmoCountDisplayMat;
-}
-
-void AOvrlRangedWeaponInstance::UpdateMagazineAmmoCountDisplay()
-{
-	if (UMaterialInstanceDynamic* Material = GetMagazineAmmoCountMaterial())
-	{
-		Material->SetScalarParameterValue(TEXT("Value"), GetMagazineAmmo());
+		MagazineAmmoDisplay->UpdateMagazineAmmo(GetMagazineAmmo());
 	}
 
 	OnAmmoUpdated.Broadcast();

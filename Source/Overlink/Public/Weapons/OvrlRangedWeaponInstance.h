@@ -7,6 +7,7 @@
 
 #include "OvrlRangedWeaponInstance.generated.h"
 
+class UOvrlMagazineAmmoDisplay;
 UENUM()
 enum class ESightMagnification
 {
@@ -21,7 +22,6 @@ enum class ESightMagnification
 
 class UOvrlCharacterMovementComponent;
 class UOvrlCameraModifierBase;
-class UMaterialInstanceDynamic;
 class UAnimMontage;
 class UAnimSequence;
 class UOvrlItemAmmoBase;
@@ -38,15 +38,16 @@ class OVERLINK_API AOvrlRangedWeaponInstance : public AOvrlWeaponInstance
 
 public:
 	AOvrlRangedWeaponInstance();
-	
 	friend class UOvrlInventoryUtils;
 
-public:
 	virtual void Tick(float DeltaTime) override;
-
+	
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+	
+protected:
+	virtual void BeginPlay() override;
 
 public:
 	virtual void OnEquipped_Implementation() override;
@@ -58,7 +59,8 @@ public:
 	virtual void StartReloading() override;
 	virtual void EndReloading() override;
 
-	FORCEINLINE float GetTimeBetweenShots() const { return bIsSingleShot ? 0.f : 60.f / FireRate; };
+	// Get the time (in seconds) between each shot.
+	FORCEINLINE float GetTimeBetweenShots() const { return 60.f / FireRate; };
 	FORCEINLINE float GetMaxDamageRange() const { return MaxDamageRange; };
 	FORCEINLINE float GetSpreadAngle() const { return CurrentSpread; };
 	FORCEINLINE FTransform GetWeaponKickbackRecoil() const { return CurrentKickbackRecoil; };
@@ -100,15 +102,10 @@ protected:
 
 	virtual void PlayWeaponAnimation(UAnimSequence* AnimToPlay);
 
-	UMaterialInstanceDynamic* GetMagazineAmmoCountMaterial();
-	void UpdateMagazineAmmoCountDisplay();
+	void UpdateMagazineAmmoCountDisplay() const;
 
 private:
 	void UpdateRecoilDeltaRotation();
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> MagazineAmmoCountDisplay;
 
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -139,12 +136,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance|Animations")
 	TObjectPtr<UAnimSequence> ReloadAnimation;
 
-	// If true, the fixed FireRate will be ignored and instead depend on how fast the player can shoot.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance")
-	bool bIsSingleShot;
-
 	// The fire rate of this weapon. This will represent the amount of bullets shot per minute
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 0.0f, EditCondition="!bIsSingleShot"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Ranged Weapon Instance", meta = (ClampMin = 1.0f))
 	float FireRate;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ovrl Ranged Weapon Instance|Animations")
@@ -238,7 +231,7 @@ private:
 	TObjectPtr<UOvrlCameraModifierBase> CameraFOV;
 
 	UPROPERTY()
-	TObjectPtr<UMaterialInstanceDynamic> MagazineAmmoCountDisplayMat;
+	TObjectPtr<UOvrlMagazineAmmoDisplay> MagazineAmmoDisplay;
 
 	// Spread
 	float SpreadOffset;

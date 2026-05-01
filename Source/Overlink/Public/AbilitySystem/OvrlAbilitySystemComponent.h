@@ -26,6 +26,7 @@ class OVERLINK_API UOvrlAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
+	void AbilityInputTagStarted(const FGameplayTag& InputTag);
 	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 	void ProcessAbilityInput(float DeltaTime, bool bGamePaused);
@@ -44,6 +45,9 @@ protected:
 	virtual void NotifyAbilityFailed(const FGameplayAbilitySpecHandle Handle, UGameplayAbility* Ability, const FGameplayTagContainer& FailureReason) override;
 
 protected:
+	// Handles to abilities that had their input start pressed this frame.
+	TArray<FGameplayAbilitySpecHandle> InputStartedSpecHandles;
+	
 	// Handles to abilities that had their input pressed this frame.
 	TArray<FGameplayAbilitySpecHandle> InputPressedSpecHandles;
 

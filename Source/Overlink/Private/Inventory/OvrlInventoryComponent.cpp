@@ -78,18 +78,25 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Count/* = 1
 		{
 			const UOvrlEquipmentDefinition* EquipmentDef = GetDefault<UOvrlEquipmentDefinition>(EquipDefClass);
 
-			if (EquipmentDef->EquipmentClass)
+			if (EquipmentDef->bShouldSpawnEquipmentInstance)
 			{
-				FActorSpawnParameters SpawnParams;
-				SpawnParams.Owner = GetOwner();
-				SpawnParams.Instigator = Cast<APawn>(GetOwner());
+				if (EquipmentDef->EquipmentClass)
+				{
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = GetOwner();
+					SpawnParams.Instigator = Cast<APawn>(GetOwner());
 
-				AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->EquipmentClass, SpawnParams);
-				EquipmentInstance->Initialize(EquipDefClass, Item);
+					AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDef->EquipmentClass, SpawnParams);
+					EquipmentInstance->Initialize(EquipDefClass, Item);
 
-				EquippedInstances.Emplace(EquipmentInstance);
+					EquippedInstances.Emplace(EquipmentInstance);
 
-				SetActiveSlotIndex(EquippedInstances.Num() - 1);
+					SetActiveSlotIndex(EquippedInstances.Num() - 1);
+				}
+				else
+				{
+					OVRL_LOG_WARN(LogOverlink, true, "Tried to spawn equipment instance, but EquipmentClass was not valid! Asset: %s", *EquipDefClass->GetName());
+				}
 			}
 		}
 	}
@@ -124,13 +131,20 @@ void UOvrlInventoryComponent::SetActiveSlotIndex(int32 NewIndex, bool bForceSet 
 			}
 
 			const float EquipNotifyTime = NewEquipInstance->GetEquipNotifyTime();
-
-			// Simulate weapon switch animation, but actually perform the switch only after specific amount of time
-			FTimerDelegate TimerDelegate;
-			TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UOvrlInventoryComponent, SetActiveSlotIndex_Internal), NewIndex);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_EquipItem, TimerDelegate, EquipNotifyTime, false);
-
 			NewEquipInstance->PlayEquipMontage();
+
+			if (EquipNotifyTime > 0.f)
+			{
+				// Simulate weapon switch animation, but actually perform the switch only after specific amount of time
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UOvrlInventoryComponent, SetActiveSlotIndex_Internal), NewIndex);
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle_EquipItem, TimerDelegate, EquipNotifyTime, false);
+			}
+			else
+			{
+				// Instant item switch
+				SetActiveSlotIndex_Internal(NewIndex);
+			}
 		}
 	}
 }
@@ -266,7 +280,7 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 		{
 			// Decrease the item count
 			Entry.Count -= FMath::Max(1, Count);
-			
+
 			// If equal/lower than 0, remove the item
 			if (Entry.Count <= 0)
 			{
@@ -297,7 +311,7 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 
 			// Remove from equipped item list
 			It.RemoveCurrent();
-			
+
 			RefreshQuickSlot();
 			break;
 		}

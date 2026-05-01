@@ -32,7 +32,7 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Pickup Actor")
 	void HandlePickup(APawn* InInstigator);
-	
+
 	// Returns true if this Pickup Actor has an existing cached item.
 	// The cached item is usually valid when the item was dropped from the player/enemy (see DropItem of Inventory Component)
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
@@ -45,7 +45,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor", meta=(ReturnDisplayName="Handled"))
 	bool ManageDuplicatedItem(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn);
-	
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor")
 	void Drop();
 

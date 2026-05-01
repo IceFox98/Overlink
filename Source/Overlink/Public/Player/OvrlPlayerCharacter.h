@@ -84,7 +84,8 @@ protected:
 	void OnLocomotionActionChanged(const FGameplayTag& OldLocomotionAction, const FGameplayTag& NewLocomotionAction);
 
 private:
-	void OnAbilityInputPressed(FGameplayTag InputTag);
+	void OnAbilityInputStarted(FGameplayTag InputTag);
+	void OnAbilityInputTriggered(FGameplayTag InputTag);
 	void OnAbilityInputReleased(FGameplayTag InputTag);
 
 protected:

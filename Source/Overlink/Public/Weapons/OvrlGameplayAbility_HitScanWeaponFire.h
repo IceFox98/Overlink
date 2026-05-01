@@ -25,6 +25,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Hit-Scan Weapon Fire", meta = (DisplayName = "On Ranged Weapon Target Data Ready"))
 	void K2_OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
+	virtual void OnAbilityInputStarted() override;
 	virtual void OnAbilityInputReleased() override;
 
 public:
@@ -35,7 +36,9 @@ protected:
 	/** Actually activate ability, do not call this directly */
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 
+	void HandleWeaponFire();
 	void ResetFireCooldown();
 	void StopWeaponFire();
 
@@ -45,4 +48,8 @@ public:
 
 private:
 	FTimerHandle TimerHandle_FireCooldown;
+	
+	double StartFireTime;
+	bool bHasPendingShot;
+	float FireCooldownDuration;
 };
