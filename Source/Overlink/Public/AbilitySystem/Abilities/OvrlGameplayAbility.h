@@ -44,7 +44,9 @@ public:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
 	// Called when this ability receives an input pressed start event
-	virtual void OnAbilityInputStarted();
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Gameplay Ability")
+	void OnAbilityInputStarted();
+	virtual void OnAbilityInputStarted_Implementation();
 	
 	// Called when this ability receives an input pressed event
 	virtual void OnAbilityInputPressed();

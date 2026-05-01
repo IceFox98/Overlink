@@ -71,7 +71,7 @@ void UOvrlGameplayAbility::TryActivateAbilityOnSpawn(const FGameplayAbilityActor
 	}
 }
 
-void UOvrlGameplayAbility::OnAbilityInputStarted()
+void UOvrlGameplayAbility::OnAbilityInputStarted_Implementation()
 {
 }
 

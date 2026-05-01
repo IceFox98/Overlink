@@ -25,7 +25,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Ovrl Hit-Scan Weapon Fire", meta = (DisplayName = "On Ranged Weapon Target Data Ready"))
 	void K2_OnRangedWeaponTargetDataReady(const FGameplayAbilityTargetDataHandle& TargetData);
 
-	virtual void OnAbilityInputStarted() override;
+	virtual void OnAbilityInputStarted_Implementation() override;
 	virtual void OnAbilityInputReleased() override;
 
 public:
@@ -46,6 +46,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Ovrl Hit-Scan Weapon Fire")
 	TEnumAsByte<ECollisionChannel> TraceCollisionChannel;
 
+	// Used for pending shot logic.
+	// When request for pending shot, check whether the time elapsed since the last shot exceeds the fire cooldown (TimeBetweenShots), scaled by this percentage.
+	// If it exceeds, the shot will be queued.
+	UPROPERTY(EditAnywhere, Category = "Ovrl Hit-Scan Weapon Fire", meta=(ClampMin = 10.0f, ClampMax = 90.f))
+	float PendingShotCooldownPercentage = 70.f;
+	
 private:
 	FTimerHandle TimerHandle_FireCooldown;
 	

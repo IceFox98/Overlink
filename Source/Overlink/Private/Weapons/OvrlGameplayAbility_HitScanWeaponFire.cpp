@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Weapons/OvrlGameplayAbility_HitScanWeaponFire.h"
+
+#include "OvrlLogUtils.h"
 #include "Weapons/OvrlRangedWeaponInstance.h"
 #include "OvrlUtils.h"
 
@@ -24,6 +26,44 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ActivateAbility(const FGameplayAbil
 	}
 }
 
+void UOvrlGameplayAbility_HitScanWeaponFire::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+
+	StopWeaponFire();
+}
+
+void UOvrlGameplayAbility_HitScanWeaponFire::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	StopWeaponFire();
+}
+
+void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputStarted_Implementation()
+{
+	Super::OnAbilityInputStarted_Implementation();
+
+	// Check how much time has passed from last shot.
+	const float ElapsedTimeFromLastFire = GetWorld()->GetTimeSeconds() - StartFireTime;
+
+	// If elapsed time is greater than the N% of the fire cooldown (TimeBetweenShots), then we can queue the next shot.
+	if (ElapsedTimeFromLastFire > (FireCooldownDuration * (PendingShotCooldownPercentage * .01f)))
+	{
+		if (!bHasPendingShot && TimerHandle_FireCooldown.IsValid())
+		{
+			bHasPendingShot = true;
+		}
+	}
+}
+
+void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputReleased()
+{
+	Super::OnAbilityInputReleased();
+
+	StopWeaponFire();
+}
+
 void UOvrlGameplayAbility_HitScanWeaponFire::HandleWeaponFire()
 {
 	if (AOvrlRangedWeaponInstance* WeaponInstance = GetWeaponInstance())
@@ -38,26 +78,7 @@ void UOvrlGameplayAbility_HitScanWeaponFire::HandleWeaponFire()
 		{
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_FireCooldown, this, &UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown, TimeBetweenShots, false);
 		}
-		else
-		{
-			ResetFireCooldown();
-			StopWeaponFire();
-		}
 	}
-}
-
-void UOvrlGameplayAbility_HitScanWeaponFire::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
-{
-	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
-
-	StopWeaponFire();
-}
-
-void UOvrlGameplayAbility_HitScanWeaponFire::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
-{
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-
-	StopWeaponFire();
 }
 
 void UOvrlGameplayAbility_HitScanWeaponFire::StartRangedWeaponTargeting()
@@ -133,30 +154,6 @@ void UOvrlGameplayAbility_HitScanWeaponFire::ResetFireCooldown()
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	TimerHandle_FireCooldown.Invalidate();
-}
-
-void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputStarted()
-{
-	Super::OnAbilityInputStarted();
-
-	// Check how much time has passed from last shot.
-	const float ElapsedTimeFromLastFire = GetWorld()->GetTimeSeconds() - StartFireTime;
-	
-	// If elapsed time is greater than the 80% of the fire cooldown (TimeBetweenShots), then we can queue the next shot.
-	if (ElapsedTimeFromLastFire > (FireCooldownDuration * 0.8f))
-	{
-		if (!bHasPendingShot && TimerHandle_FireCooldown.IsValid())
-		{
-			bHasPendingShot = true;
-		}
-	}
-}
-
-void UOvrlGameplayAbility_HitScanWeaponFire::OnAbilityInputReleased()
-{
-	Super::OnAbilityInputReleased();
-
-	StopWeaponFire();
 }
 
 void UOvrlGameplayAbility_HitScanWeaponFire::StopWeaponFire()
