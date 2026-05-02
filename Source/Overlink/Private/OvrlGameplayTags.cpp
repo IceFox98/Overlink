@@ -17,9 +17,11 @@ namespace OvrlAbilityTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_IsDead, "Ovrl.Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_Cooldown, "Ovrl.Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_Cost, "Ovrl.Ability.ActivateFail.Cost", "Ability failed to activate because it did not pass the cost checks.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_TagsBlocked, "Ovrl.Ability.ActivateFail.TagsBlocked", "Ability failed to activate because tags are blocking it.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_TagsMissing, "Ovrl.Ability.ActivateFail.TagsMissing", "Ability failed to activate because tags are missing.");
-	UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateFail_ActivationGroup, "Ovrl.Ability.ActivateFail.ActivationGroup", "Ability failed to activate because of its activation group.");
+	
+	UE_DEFINE_GAMEPLAY_TAG(PlayerRun, "Ovrl.Ability.Player.Run");
+	UE_DEFINE_GAMEPLAY_TAG(PlayerJump, "Ovrl.Ability.Player.Jump");
+	UE_DEFINE_GAMEPLAY_TAG(WeaponFire, "Ovrl.Ability.Weapon.Fire");
+	UE_DEFINE_GAMEPLAY_TAG(WeaponReload, "Ovrl.Ability.Weapon.Reload");
 }
 
 namespace OvrlLocomotionModeTags
@@ -61,6 +63,8 @@ namespace OvrlInputTags
 	UE_DEFINE_GAMEPLAY_TAG(Jump, "Ovrl.InputTag.Jump");
 	UE_DEFINE_GAMEPLAY_TAG(Slide, "Ovrl.InputTag.Slide");
 	UE_DEFINE_GAMEPLAY_TAG(Interact, "Ovrl.InputTag.Interact");
+	UE_DEFINE_GAMEPLAY_TAG(Fire, "Ovrl.InputTag.Fire");
+	UE_DEFINE_GAMEPLAY_TAG(Reload, "Ovrl.InputTag.Reload");
 	UE_DEFINE_GAMEPLAY_TAG(ADS, "Ovrl.InputTag.ADS");
 }
 
@@ -79,9 +83,6 @@ namespace OvrlOverlayModeTags
 
 namespace OvrlWeaponTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(Fire, "Ovrl.Weapon.Fire");
-	UE_DEFINE_GAMEPLAY_TAG(FireAuto, "Ovrl.Weapon.FireAuto");
-	UE_DEFINE_GAMEPLAY_TAG(Reload, "Ovrl.Weapon.Reload");
 	UE_DEFINE_GAMEPLAY_TAG(ReloadCompleted, "Ovrl.Weapon.ReloadCompleted");
 	UE_DEFINE_GAMEPLAY_TAG(ReloadFailed, "Ovrl.Weapon.ReloadFailed");
 
