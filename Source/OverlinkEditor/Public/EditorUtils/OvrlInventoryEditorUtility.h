@@ -6,6 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "OvrlInventoryEditorUtility.generated.h"
 
+class SMessageDialog;
 class AOvrlItemPickupActor;
 class UGameplayEffect;
 class AOvrlProjectile;
@@ -98,6 +99,8 @@ public:
 	static void CreateItem(UObject* WorldContextObject, const FInventoryItemData& ItemData);
 
 private:
+	static void CreateItemInternal(UObject* WorldContextObject, const FInventoryItemData& ItemData);
+	
 	static UBlueprint* CreateEquipmentInstance(const FInventoryItemData& ItemData);
 	static UBlueprint* CreateEquipmentDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentInstanceBP);
 	static UBlueprint* CreateItemDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentDefinitionBP);
@@ -108,5 +111,11 @@ private:
 	static UDataAsset* FindOrCreateDataAsset(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass);
 
 	static void ReopenObject(UObject* Object);
+	
+	static TSharedRef<SMessageDialog> ShowDuplicatedAssetDialog(const FString& AssetName, const FString& PackageName, const UObject* Asset);
+	static TSharedRef<SMessageDialog> ShowMessageDialog(const FString& Title, const FText& Message, const FString& SubmitButtonText, bool bShowCancelButton = false);
+private:
+	
+	static FInventoryItemData ItemDataRef;
 
 };

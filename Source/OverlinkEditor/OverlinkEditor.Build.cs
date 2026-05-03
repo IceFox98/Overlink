@@ -33,8 +33,11 @@ public class OverlinkEditor : ModuleRules
 					"UMG",
 					"UMGEditor",
 					"BlueprintEditorLibrary",
+					"Slate",
 					"ToolWidgets",
+					"ToolMenus",
 					"GameplayAbilities",
+					"ContentBrowser"
 				}
 			);
 		}

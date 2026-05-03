@@ -12,4 +12,8 @@ class OVERLINKEDITOR_API FOverlinkEditorModule : public FDefaultGameModuleImpl
 public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+
+protected:
+	void RegisterMenus();
+	void OnButtonClicked();
 };

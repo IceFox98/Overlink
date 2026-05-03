@@ -12,7 +12,9 @@
 // Engine
 #include "AssetToolsModule.h"
 #include "BlueprintEditorLibrary.h"
+#include "ContentBrowserModule.h"
 #include "FileHelpers.h"
+#include "IContentBrowserSingleton.h"
 #include "OvrlGameplayTags.h"
 #include "PackageTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -26,23 +28,122 @@
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Subsystems/AssetEditorSubsystem.h"
 
+FInventoryItemData UOvrlInventoryUtils::ItemDataRef;
+
 void UOvrlInventoryUtils::CreateItem(UObject* WorldContextObject, const FInventoryItemData& ItemData)
 {
-	UBlueprint* EquipmentInstanceBP = nullptr;
-
-	if (ItemData.bShouldSpawnInstance)
+	if (ItemData.AssetName.TrimStartAndEnd().IsEmpty())
 	{
-		EquipmentInstanceBP = CreateEquipmentInstance(ItemData);
+		ShowMessageDialog("Invalid Asset Name", FText::FromString("You have to provide at least 1 character for Asset Name field!"), "Ok");
+		return;
 	}
 
+	// Use static to avoid memory access violation
+	ItemDataRef = ItemData;
+
+	// Create folder selection window
+	FContentBrowserModule& ContentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+
+	FPathPickerConfig PathPickerConfig;
+	PathPickerConfig.bAllowReadOnlyFolders = false;
+	PathPickerConfig.bForceShowEngineContent = false;
+	PathPickerConfig.OnPathSelected = FOnPathSelected::CreateLambda([](const FString& SelectedPath) {
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *SelectedPath);
+		ItemDataRef.FolderPath = SelectedPath;
+	});
+
+	TSharedRef<SWindow> Window = FSlateApplication::Get().AddWindow(
+		SNew(SWindow)
+		.Title(FText::FromString("Select the destination folder for the items"))
+		.SupportsMaximize(false)
+		.SupportsMinimize(false)
+		.IsTopmostWindow(true)
+		.ClientSize(FVector2D(400, 500))
+		.AutoCenter(EAutoCenter::PreferredWorkArea)
+	);
+
+	TWeakPtr<SWindow> WeakWindow = Window;
+
+	Window->SetContent(
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		[
+			ContentBrowserModule.Get().CreatePathPicker(PathPickerConfig)
+		]
+		+ SVerticalBox::Slot()
+		.HAlign(HAlign_Right)
+		.Padding(0, 20, 0, 0)
+		.AutoHeight()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.Padding(0, 2, 6, 0)
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.VAlign(VAlign_Bottom)
+				.ContentPadding(FMargin(8, 2, 8, 2))
+				.OnClicked(FOnClicked::CreateLambda([WeakWindow, WorldContextObject]() {
+					if (WeakWindow.IsValid())
+					{
+						WeakWindow.Pin()->RequestDestroyWindow();
+					}
+
+					UOvrlInventoryUtils::CreateItemInternal(WorldContextObject, ItemDataRef);
+
+					return FReply::Handled();
+				}))
+				.ButtonStyle(FAppStyle::Get(), "FlatButton.Success")
+				.TextStyle(FAppStyle::Get(), "FlatButton.DefaultTextStyle")
+				.Text(FText::FromString("Create"))
+			]
+			+ SHorizontalBox::Slot()
+			.Padding(0, 2, 0, 0)
+			.AutoWidth()
+			[
+				SNew(SButton)
+				.VAlign(VAlign_Bottom)
+				.ContentPadding(FMargin(8, 2, 8, 2))
+				.OnClicked(FOnClicked::CreateLambda([WeakWindow]() {
+					if (WeakWindow.IsValid())
+					{
+						WeakWindow.Pin()->RequestDestroyWindow();
+					}
+					return FReply::Handled();
+				}))
+				.ButtonStyle(FAppStyle::Get(), "FlatButton.Default")
+				.TextStyle(FAppStyle::Get(), "FlatButton.DefaultTextStyle")
+				.Text(FText::FromString("Cancel"))
+			]
+		]
+	);
+}
+
+void UOvrlInventoryUtils::CreateItemInternal(UObject* WorldContextObject, const FInventoryItemData& ItemData)
+{
+	const UBlueprint* EquipmentInstanceBP = CreateEquipmentInstance(ItemData);;
 	const UBlueprint* EquipmentDefinitionBP = CreateEquipmentDefinition(ItemData, EquipmentInstanceBP);
 	const UBlueprint* ItemDefBP = CreateItemDefinition(ItemData, EquipmentDefinitionBP);
 	UDataAsset* PickupDefinitionDA = CreatePickupDefinition(ItemData, ItemDefBP);
 	UBlueprint* PickupActor = CreatePickupActor(ItemData, PickupDefinitionDA);
+
+	// Navigate to the created asset.
+	if (ItemDefBP)
+	{
+		const TArray<FAssetData>& Assets = { ItemDefBP };
+		const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+		ContentBrowserModule.Get().SyncBrowserToAssets(Assets);
+	}
 }
 
 UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemData& ItemData)
 {
+	if (!ItemData.bIsEquippable || !ItemData.bShouldSpawnInstance)
+	{
+		return nullptr;
+	}
+
 	if (!ItemData.EquipmentInstanceClass)
 	{
 		return nullptr;
@@ -101,6 +202,11 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemDat
 
 UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentInstanceBP)
 {
+	if (!ItemData.bIsEquippable)
+	{
+		return nullptr;
+	}
+
 	UBlueprint* EquipDefBlueprint = FindOrCreateBlueprint(ItemData, "ED_", UOvrlEquipmentDefinition::StaticClass());
 
 	if (!EquipDefBlueprint)
@@ -149,7 +255,7 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 		ItemDef->DisplayMesh = ItemData.DisplayMesh;
 		ItemDef->DisplayTexture = ItemData.DisplayTexture;
 
-		if (EquipmentDefinitionBP)
+		if (ItemData.bIsEquippable && EquipmentDefinitionBP)
 		{
 			ItemDef->Modify();
 			UOvrlItemFragment_EquippableItem* Fragment_EquippableItem = NewObject<UOvrlItemFragment_EquippableItem>(
@@ -166,7 +272,7 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 
 			if (UOvrlEquipmentDefinition* EquipmentDefinitionCDO = Cast<UOvrlEquipmentDefinition>(EquipmentDefinitionBP->GeneratedClass->GetDefaultObject()))
 			{
-				if (EquipmentDefinitionCDO->EquipmentClass->IsChildOf<AOvrlWeaponInstance>())
+				if (EquipmentDefinitionCDO->EquipmentClass && EquipmentDefinitionCDO->EquipmentClass->IsChildOf<AOvrlWeaponInstance>())
 				{
 					UOvrlItemFragment_SetStats* Fragment_SetStats = NewObject<UOvrlItemFragment_SetStats>(
 						ItemDef,
@@ -270,21 +376,8 @@ UBlueprint* UOvrlInventoryUtils::FindOrCreateBlueprint(const FInventoryItemData&
 	{
 		// Object already exists in either the specified package or another package.
 		// Check to see if the user wants to replace the object.
-		TSharedRef<SMessageDialog> ConfirmDialog = SNew(SMessageDialog)
-			.Icon(FAppStyle::Get().GetBrush("Icons.WarningWithColor.Large"))
-			.Title(FText(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Title", "Overwrite Existing Object")))
-			.Message(FText::Format(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Message", "An object already exists with this name.\n\n\tName: {0}\n\tClass: {1}\n\tAsset path: {2}"
-					"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
-				FText::FromString(AssetName),
-				FText::FromString(Blueprint->GetClass()->GetName()),
-				FText::FromString(PackageName)))
-			.Buttons({
-				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonOverwrite", "Overwrite")).SetPrimary(true),
-				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonCancel", "Cancel")),
-			})
-			.ContentMinWidth(300.0f);
-		uint32 ConfirmationResult = ConfirmDialog->ShowModal();
-
+		TSharedRef<SMessageDialog> ConfirmDialog = ShowDuplicatedAssetDialog(AssetName, PackageName, Blueprint);
+		const uint32 ConfirmationResult = ConfirmDialog->ShowModal();
 		const bool bWantReplace = ConfirmationResult == 0;
 
 		if (!bWantReplace)
@@ -308,9 +401,9 @@ UDataAsset* UOvrlInventoryUtils::FindOrCreateDataAsset(const FInventoryItemData&
 		return nullptr;
 	}
 
-	UDataAsset* Blueprint = FindObject<UDataAsset>(Package, *AssetName);
+	UDataAsset* DataAsset = FindObject<UDataAsset>(Package, *AssetName);
 
-	if (!Blueprint)
+	if (!DataAsset)
 	{
 		FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
 
@@ -320,29 +413,16 @@ UDataAsset* UOvrlInventoryUtils::FindOrCreateDataAsset(const FInventoryItemData&
 		MyFactory->bEditAfterNew = true;
 		MyFactory->SupportedClass = UDataAsset::StaticClass();
 		MyFactory->DataAssetClass = ParentClass;
-		Blueprint = Cast<UDataAsset>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UDataAsset::StaticClass(), MyFactory));
+		DataAsset = Cast<UDataAsset>(AssetToolsModule.Get().CreateAsset(AssetName, PackagePath, UDataAsset::StaticClass(), MyFactory));
 
-		FAssetRegistryModule::AssetCreated(Blueprint);
+		FAssetRegistryModule::AssetCreated(DataAsset);
 	}
 	else if (!ItemData.bAlwaysOverwrite)
 	{
 		// Object already exists in either the specified package or another package.
 		// Check to see if the user wants to replace the object.
-		TSharedRef<SMessageDialog> ConfirmDialog = SNew(SMessageDialog)
-			.Icon(FAppStyle::Get().GetBrush("Icons.WarningWithColor.Large"))
-			.Title(FText(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Title", "Overwrite Existing Object")))
-			.Message(FText::Format(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_Message", "An object already exists with this name.\n\n\tName: {0}\n\tClass: {1}\n\tAsset path: {2}"
-					"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
-				FText::FromString(AssetName),
-				FText::FromString(Blueprint->GetClass()->GetName()),
-				FText::FromString(PackageName)))
-			.Buttons({
-				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonOverwrite", "Overwrite")).SetPrimary(true),
-				SCustomDialog::FButton(NSLOCTEXT("OverlinkEd", "ReplaceExistingObjectInPackageConfirmation_ButtonCancel", "Cancel")),
-			})
-			.ContentMinWidth(300.0f);
-		uint32 ConfirmationResult = ConfirmDialog->ShowModal();
-
+		TSharedRef<SMessageDialog> ConfirmDialog = ShowDuplicatedAssetDialog(AssetName, PackageName, DataAsset);
+		const uint32 ConfirmationResult = ConfirmDialog->ShowModal();
 		const bool bWantReplace = ConfirmationResult == 0;
 
 		if (!bWantReplace)
@@ -351,7 +431,40 @@ UDataAsset* UOvrlInventoryUtils::FindOrCreateDataAsset(const FInventoryItemData&
 		}
 	}
 
-	return Blueprint;
+	return DataAsset;
+}
+
+TSharedRef<SMessageDialog> UOvrlInventoryUtils::ShowDuplicatedAssetDialog(const FString& AssetName, const FString& PackageName, const UObject* Asset)
+{
+	if (!Asset)
+	{
+		return ShowMessageDialog("Invalid Asset", FText::FromString("Can't show dialog due to invalid Asset"), "Ok");
+	}
+
+	FText Message = FText::Format(FText::FromString("An object already exists with this name.\n\n\tName: {0}\n\tClass: {1}\n\tAsset path: {2}"
+			"\n\nOverwriting will replace all matching properties of the existing object with the values from the creation tool.\n\nOverwrite the existing object?"),
+		FText::FromString(AssetName),
+		FText::FromString(Asset->GetClass()->GetName()),
+		FText::FromString(PackageName));
+
+	return ShowMessageDialog("Overwrite Existing Object", Message, "Overwrite", true);
+}
+
+TSharedRef<SMessageDialog> UOvrlInventoryUtils::ShowMessageDialog(const FString& Title, const FText& Message, const FString& SubmitButtonText, bool bShowCancelButton /* = false*/)
+{
+	TArray<SCustomDialog::FButton> Buttons;
+	Buttons.Add(SCustomDialog::FButton(FText::FromString(SubmitButtonText)).SetPrimary(true));
+	if (bShowCancelButton)
+	{
+		Buttons.Add(SCustomDialog::FButton(FText::FromString("Cancel")));
+	}
+
+	return SNew(SMessageDialog)
+		.Icon(FAppStyle::Get().GetBrush("Icons.WarningWithColor.Large"))
+		.Title(FText::FromString(Title))
+		.Message(Message)
+		.Buttons(Buttons)
+		.ContentMinWidth(300.0f);
 }
 
 void UOvrlInventoryUtils::ReopenObject(UObject* Object)
