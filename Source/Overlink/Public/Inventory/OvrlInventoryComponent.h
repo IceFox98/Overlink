@@ -20,10 +20,10 @@ struct FOvrlItemEntry
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TObjectPtr<UOvrlItemInstance> Instance;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	int32 Count = 0;
 };
 

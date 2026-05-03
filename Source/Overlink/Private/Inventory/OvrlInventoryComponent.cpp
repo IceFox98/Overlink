@@ -37,9 +37,7 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 		return nullptr;
 	}
 
-	UOvrlItemInstance* ItemInstance = nullptr;
-
-	ItemInstance = NewObject<UOvrlItemInstance>(GetOwner());
+	UOvrlItemInstance* ItemInstance = NewObject<UOvrlItemInstance>(GetOwner(), ItemDefinition->GetFName());
 	ItemInstance->SetItemDef(ItemDefinition);
 	ItemInstance->PickupClass = PickupClass; // Set pickup class so we know what class to use when drop the item
 
