@@ -43,7 +43,9 @@ public:
 	int32 Count = 1;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnItemRemoved);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemAdded, UOvrlItemInstance*, AddedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemRemoved, UOvrlItemInstance*, RemovedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemDropRequested, UOvrlItemInstance*, ItemToDrop);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem, bool, bJustCreated);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, AOvrlEquipmentInstance*, EquippedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, AOvrlEquipmentInstance*, UnequippedItem);
@@ -67,7 +69,7 @@ public:
 	void AddItem(UOvrlItemInstance* Item, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
-	void DropItem(UOvrlItemInstance* ItemToDrop);
+	void DropItem(UOvrlItemInstance* ItemToDrop, int32 Count = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Count = 1);
@@ -88,9 +90,9 @@ public:
 	void AddItemCount(UOvrlItemInstance* Item, int32 CountToAdd, bool bCreateItemIfMissing);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component",
-		meta=(PickupClass="OvrlItemPickupActor", AutoCreateRefTerm="PickupClass", AdvancedDisplay="bCreateItemIfMissing, PickupClass"))
-	void AddItemCountByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 CountToAdd,
-	                              bool bCreateItemIfMissing, const TSubclassOf<AOvrlItemPickupActor>& PickupClass);
+		meta=(PickupClass="OvrlItemPickupActor", AutoCreateRefTerm="PickupClass", AdvancedDisplay="bCreateItemIfMissing, PickupClass", ReturnDisplayName="Item Instance"))
+	UOvrlItemInstance* AddItemCountByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 CountToAdd,
+	                                            bool bCreateItemIfMissing, const TSubclassOf<AOvrlItemPickupActor>& PickupClass);
 
 	// Searches an item definition type for a matching stat and returns the value, or 0 if not found
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
@@ -100,8 +102,6 @@ public:
 	FORCEINLINE TArray<AOvrlEquipmentInstance*> GetEquippedInstances() const { return EquippedInstances; };
 
 private:
-	UOvrlAbilitySystemComponent* GetAbilitySystemComponent() const;
-
 	UFUNCTION()
 	void SetActiveSlotIndex_Internal(int32 NewIndex);
 
@@ -110,15 +110,22 @@ private:
 	void UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const;
 
 	void RefreshQuickSlot();
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemEquipped OnItemEquipped;
 
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
+	FOnItemAdded OnItemAdded;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemUpdated OnItemUpdated;
 
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemRemoved OnItemRemoved;
+
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
+	FOnItemDropRequested OnItemDropRequested;
 
 protected:
 	// Items that will be automatically added on begin play
@@ -130,6 +137,9 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<AOvrlEquipmentInstance*> EquippedInstances;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	TArray<AOvrlEquipmentInstance*> QuickSlotInstances;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TObjectPtr<AOvrlEquipmentInstance> CurrentEquippedInstance;

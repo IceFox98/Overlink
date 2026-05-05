@@ -5,11 +5,11 @@
 // Internal
 #include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
-#include "Inventory/OvrlInventoryComponent.h"
 #include "Weapons/OvrlRangedWeaponInstance.h"
 #include "Player/OvrlPlayerAnimInstance.h"
 #include "Animations/Procedural/OvrlStanceStatesAnimManager.h"
 #include "Animations/Procedural/OvrlAnimModifiers.h"
+#include "Player/Components/OvrlEquipmentManagerComponent.h"
 #include "OvrlUtils.h"
 #include "OvrlLogUtils.h"
 
@@ -40,9 +40,9 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 	Super::NativeBeginPlay();
 
 	check(PlayerCharacter);
-	if (UOvrlInventoryComponent* InventoryComponent = PlayerCharacter->GetComponentByClass<UOvrlInventoryComponent>())
+	if (UOvrlEquipmentManagerComponent* EquipmentManager = PlayerCharacter->GetComponentByClass<UOvrlEquipmentManagerComponent>())
 	{
-		InventoryComponent->OnItemEquipped.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnNewItemEquipped);
+		EquipmentManager->OnEquipInstanceChanged.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnEquipInstanceChanged);
 	}
 
 	ensure(JumpSwayCurve);
@@ -163,9 +163,9 @@ void UOvrlEquipmentAnimInstance::UpdateLeftHandIKAplha(float DeltaTime)
 	}
 }
 
-void UOvrlEquipmentAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)
+void UOvrlEquipmentAnimInstance::OnEquipInstanceChanged(AOvrlEquipmentInstance* NewEquipmentInstance)
 {
-	EquippedItem = NewEquippedItem;
+	EquippedItem = NewEquipmentInstance;
 }
 
 void UOvrlEquipmentAnimInstance::GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation)

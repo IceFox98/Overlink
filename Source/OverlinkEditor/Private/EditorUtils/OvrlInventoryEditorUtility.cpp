@@ -218,10 +218,10 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemD
 
 	if (EquipDef)
 	{
-		EquipDef->AbilitySetsToGrant.Empty();
-		EquipDef->AbilitySetsToGrant.Add(ItemData.AbilitySet);
+		EquipDef->AbilitySetsToGrantToItem.Empty();
+		EquipDef->AbilitySetsToGrantToItem.Add(ItemData.AbilitySet);
 
-		EquipDef->bAllowQuickSlot = ItemData.bAllowQuickSlot;
+		EquipDef->bSetAsActiveSlotOnAdded = ItemData.bAllowQuickSlot;
 		EquipDef->bShouldSpawnEquipmentInstance = ItemData.bShouldSpawnInstance;
 
 		if (ItemData.bShouldSpawnInstance && EquipmentInstanceBP)

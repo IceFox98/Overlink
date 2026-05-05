@@ -53,9 +53,9 @@ void UOvrlRangedWeaponAnimInstance::UpdateAim(float DeltaTime)
 	JumpSwayAlpha = bIsWeaponAiming ? JumpSwayAlphaADS : 1.f;
 }
 
-void UOvrlRangedWeaponAnimInstance::OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem)
+void UOvrlRangedWeaponAnimInstance::OnEquipInstanceChanged(AOvrlEquipmentInstance* NewEquipmentInstance)
 {
-	Super::OnNewItemEquipped(NewEquippedItem);
+	Super::OnEquipInstanceChanged(NewEquipmentInstance);
 
 	if (EquippedItem->IsA<AOvrlRangedWeaponInstance>())
 	{

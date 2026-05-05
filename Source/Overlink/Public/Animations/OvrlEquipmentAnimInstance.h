@@ -35,7 +35,7 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem);
+	virtual void OnEquipInstanceChanged(AOvrlEquipmentInstance* NewEquipmentInstance);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
 	void GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation);

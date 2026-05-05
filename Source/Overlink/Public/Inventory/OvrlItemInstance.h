@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/NoExportTypes.h"
+#include "AbilitySystem/OvrlAbilitySet.h"
 #include "GameplayTagContainer.h"
 
 #include "OvrlItemInstance.generated.h"
@@ -66,6 +66,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	UOvrlItemDefinition* GetItemDef() const;
 
+	FOvrlAbilitySet_GrantedHandles& GetGrantedHandles() { return GrantedHandles; } ;
+	
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
@@ -89,5 +91,7 @@ private:
 	// Accelerated list of tag stacks for queries
 	UPROPERTY()
 	TMap<FGameplayTag, int32> TagToCountMap;
-
+	
+	// List of granted handles
+	FOvrlAbilitySet_GrantedHandles GrantedHandles;
 };

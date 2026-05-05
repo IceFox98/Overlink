@@ -19,23 +19,27 @@ class OVERLINK_API UOvrlEquipmentDefinition : public UObject
 	GENERATED_BODY()
 
 public:
-	// Sets of ability to grant to the player when equips this item
+	// Sets of ability to grant to the entity that will equip this item (player/enemy).
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
-	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrant;
+	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrantToOwner;
 
-	// Can this item be equipped in the player quick slot?
+	// If true, the item will be immediately added to the quick slots and set as currently active.
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
-	bool bAllowQuickSlot = false;
+	bool bSetAsActiveSlotOnAdded = false;
 
-	// If true, an actor instance of the item will be spawned and attached to the player
+	// If true, an actor instance of the item will be spawned and attached to the player.
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
 	bool bShouldSpawnEquipmentInstance = false;
+	
+	// Sets of ability to grant to the item itself when equipped.
+	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrantToItem;
 	
 	// Name of the socket/bone to which the equipment instance will be attached to.
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	FName AttachSocketName;
 	
-	// The Actor class to spawn when this item is equipped
+	// The Actor class to spawn when this item is equipped-
 	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	TSubclassOf<AOvrlEquipmentInstance> EquipmentClass;
 

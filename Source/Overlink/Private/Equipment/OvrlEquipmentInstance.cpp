@@ -2,15 +2,17 @@
 
 #include "Equipment/OvrlEquipmentInstance.h"
 
+#include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "Equipment/OvrlEquipmentDefinition.h"
-#include "Animations/OvrlLinkedAnimInstance.h"
+// #include "Animations/OvrlLinkedAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Inventory/OvrlItemDefinition.h"
 #include "Inventory/OvrlItemInstance.h"
-
 #include "Player/OvrlCharacterBase.h"
-
 #include "OvrlLogUtils.h"
+
+// Engine
+#include "AbilitySystemGlobals.h"
 
 // Sets default values
 AOvrlEquipmentInstance::AOvrlEquipmentInstance()
@@ -39,9 +41,9 @@ void AOvrlEquipmentInstance::BeginPlay()
 	SetActorTickEnabled(false); // Will be enabled when equipped
 }
 
-void AOvrlEquipmentInstance::Initialize(const TSubclassOf<UOvrlEquipmentDefinition>& InEquipmentDefinitionClass, UOvrlItemInstance* InAssociatedItem)
+void AOvrlEquipmentInstance::Initialize(UOvrlEquipmentDefinition* InEquipmentDefinition, UOvrlItemInstance* InAssociatedItem)
 {
-	EquipmentDefinitionClass = InEquipmentDefinitionClass;
+	EquipmentDefinition = InEquipmentDefinition;
 	AssociatedItem = InAssociatedItem;
 
 	if (ensure(AssociatedItem) && AssociatedItem->GetItemDef())
@@ -57,11 +59,14 @@ void AOvrlEquipmentInstance::OnEquipped_Implementation()
 	SetActorHiddenInGame(false);
 	SetActorTickEnabled(true);
 
+	if (!EquipmentDefinition)
+	{
+		return;
+	}
+
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		OwnerSkeletalMesh = OwningPawn->GetMesh();
-
-		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
 
 		// Attach Display Mesh to 3rd person mesh
 		OwningPawn->EquipObject(this, EquipmentDefinition->AttachSocketName, DisplayMesh.Get());
@@ -76,13 +81,28 @@ void AOvrlEquipmentInstance::OnUnequipped_Implementation()
 {
 	bIsEquipped = false;
 
-	// SetActorTickEnabled(false);
 	SetActorHiddenInGame(true);
+
+	// if (UOvrlAbilitySystemComponent* ASC = GetOwnerAbilitySystemComponent())
+	// {
+	// 	// When unequip the item, remove all given abilities/effects/attributes from owner's ASC
+	// 	GrantedHandles.TakeFromAbilitySystem(ASC);
+	// }
+}
+
+void AOvrlEquipmentInstance::BeginDrop_Implementation()
+{
+	// Play any sound, or other logic
+
+	OnDropReady.Broadcast(this);
 }
 
 float AOvrlEquipmentInstance::GetEquipNotifyTime() const
 {
-	const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
+	if (!EquipmentDefinition)
+	{
+		return 0.f;
+	}
 
 	if (!EquipmentDefinition->bPlayMontageOnEquip)
 	{
@@ -90,7 +110,7 @@ float AOvrlEquipmentInstance::GetEquipNotifyTime() const
 		OVRL_LOG_WARN(LogOverlink, true, "bPlayMontageOnEquip is disable, equip time will be 0s");
 		return 0.f;
 	}
-	
+
 	if (!EquipmentDefinition->EquipMontage)
 	{
 		// No Montage -> instant item switch
@@ -122,9 +142,7 @@ void AOvrlEquipmentInstance::PlayEquipMontage() const
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
 		// Play equip montage
-		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-
-		if (EquipmentDefinition->bPlayMontageOnEquip)
+		if (EquipmentDefinition && EquipmentDefinition->bPlayMontageOnEquip)
 		{
 			OwningPawn->OvrlPlayAnimMontage(EquipmentDefinition->EquipMontage);
 		}
@@ -138,7 +156,14 @@ void AOvrlEquipmentInstance::ApplyOverlayAnimInstance() const
 {
 	if (AOvrlCharacterBase* OwningPawn = Cast<AOvrlCharacterBase>(GetOwner()))
 	{
-		const UOvrlEquipmentDefinition* EquipmentDefinition = GetDefault<UOvrlEquipmentDefinition>(EquipmentDefinitionClass);
-		OwningPawn->ApplyAnimLayerClass(EquipmentDefinition->OverlayAnimInstance);
+		if (EquipmentDefinition)
+		{
+			OwningPawn->ApplyAnimLayerClass(EquipmentDefinition->OverlayAnimInstance);
+		}
 	}
+}
+
+UOvrlAbilitySystemComponent* AOvrlEquipmentInstance::GetOwnerAbilitySystemComponent() const
+{
+	return Cast<UOvrlAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
 }

@@ -26,7 +26,7 @@ public:
 	AOvrlRangedWeaponInstance* GetEquippedWeapon() const { return EquippedWeapon; };
 
 protected:
-	virtual void OnNewItemEquipped(AOvrlEquipmentInstance* NewEquippedItem) override;
+	virtual void OnEquipInstanceChanged(AOvrlEquipmentInstance* NewEquipmentInstance) override;
 
 private:
 	void UpdateAim(float DeltaTime);
