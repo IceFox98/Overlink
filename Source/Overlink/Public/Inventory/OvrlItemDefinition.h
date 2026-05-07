@@ -35,6 +35,12 @@ public:
 public:
 	// Search for the passed class through all the Fragments of this item
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
+	
+	template <typename ResultClass>
+	const ResultClass* FindFragmentByClass() const
+	{
+		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
+	}
 
 public:
 	// The display name for this item in the inventory.

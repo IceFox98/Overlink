@@ -20,40 +20,40 @@ class OVERLINK_API UOvrlEquipmentDefinition : public UObject
 
 public:
 	// Sets of ability to grant to the entity that will equip this item (player/enemy).
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition")
 	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrantToOwner;
 
 	// If true, the item will be immediately added to the quick slots and set as currently active.
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition")
 	bool bSetAsActiveSlotOnAdded = false;
 
 	// If true, an actor instance of the item will be spawned and attached to the player.
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition")
 	bool bShouldSpawnEquipmentInstance = false;
-	
+
 	// Sets of ability to grant to the item itself when equipped.
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrantToItem;
-	
+
 	// Name of the socket/bone to which the equipment instance will be attached to.
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	FName AttachSocketName;
-	
+
 	// The Actor class to spawn when this item is equipped-
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	TSubclassOf<AOvrlEquipmentInstance> EquipmentClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	TSubclassOf<UOvrlLinkedAnimInstance> OverlayAnimInstance;
 
 	// Should player play a montage when equip this item?
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	bool bPlayMontageOnEquip = false;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance && bPlayMontageOnEquip", EditConditionHides))
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance && bPlayMontageOnEquip", EditConditionHides))
 	TObjectPtr<UAnimMontage> EquipMontage;
 
 	// Name of the notify used in the equipment montage, to hide the equipped item at specific time.
-	UPROPERTY(EditAnywhere, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance && bPlayMontageOnEquip", EditConditionHides))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance && bPlayMontageOnEquip", EditConditionHides))
 	FName EquipNotifyName = FName("ChangeItemNotify");
 };

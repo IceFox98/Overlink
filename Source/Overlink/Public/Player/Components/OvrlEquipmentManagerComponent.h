@@ -31,7 +31,9 @@ struct FQuickSlotEntry
 	};
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipInstanceChanged, AOvrlEquipmentInstance*, EquippedInstance);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemEquipped, UOvrlItemInstance*, EquippedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUnequipped, UOvrlItemInstance*, UnequippedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveSlotChanged, const FQuickSlotEntry&, ActiveSlotEntry);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlEquipmentManagerComponent : public UActorComponent
@@ -39,17 +41,26 @@ class OVERLINK_API UOvrlEquipmentManagerComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Manager Component")
 	void InitializeFromInventory(UOvrlInventoryComponent* InventoryComponent);
 
-	UFUNCTION(BlueprintCallable, meta=(AdvancedDisplay="bForceSet"))
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Manager Component", meta=(AdvancedDisplay="bForceSet"))
 	void SetActiveSlotIndex(int32 NewIndex, bool bForceSet = false);
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	AOvrlEquipmentInstance* FindFirstEquipmentInstanceByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
+	const FQuickSlotEntry& FindFirstQuickSlotEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
 
 	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
+	FORCEINLINE UOvrlItemInstance* GetActiveSlotItemInstance() const { return CurrentActiveSlotEntry.ItemInstance; };
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
+	FORCEINLINE AOvrlEquipmentInstance* GetActiveSlotEquipInstance() const { return CurrentActiveSlotEntry.EquipmentInstance; };
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
+	static const UOvrlEquipmentDefinition* GetItemEquipmentDefinition(const UOvrlItemInstance* Item);
+	
 protected:
 	UFUNCTION()
 	void OnInventoryItemAdded(UOvrlItemInstance* AddedItem);
@@ -73,12 +84,17 @@ private:
 	void UnequipItemInSlot();
 	void UnequipItem(UOvrlItemInstance* ItemToUnequip);
 
-	const UOvrlEquipmentDefinition* GetItemEquipmentDefinition(UOvrlItemInstance* Item) const;
 
 public:
 	
-	UPROPERTY(BlueprintAssignable)
-	FOnEquipInstanceChanged OnEquipInstanceChanged;
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Equipment Manager Component")
+	FOnItemEquipped OnItemEquipped;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Equipment Manager Component")
+	FOnItemUnequipped OnItemUnequipped;
+	
+	UPROPERTY(BlueprintAssignable, Category = "Ovrl Equipment Manager Component")
+	FOnActiveSlotChanged OnActiveSlotChanged;
 	
 protected:
 	// Number of quick slots available.

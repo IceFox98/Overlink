@@ -8,6 +8,7 @@
 
 #include "OvrlItemInstance.generated.h"
 
+class UOvrlPickupDefinition;
 class UOvrlItemDefinition;
 class UOvrlItemFragment;
 
@@ -62,12 +63,12 @@ public:
 
 	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDefClass) { ItemDefClass = InItemDefClass; };
 	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDefClass() const { return ItemDefClass; }
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	UOvrlItemDefinition* GetItemDef() const;
 
 	FOvrlAbilitySet_GrantedHandles& GetGrantedHandles() { return GrantedHandles; } ;
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
 
@@ -76,10 +77,6 @@ public:
 	{
 		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
 	}
-
-public:
-	UPROPERTY()
-	TObjectPtr<UClass> PickupClass;
 
 private:
 	TSubclassOf<UOvrlItemDefinition> ItemDefClass;
@@ -91,7 +88,7 @@ private:
 	// Accelerated list of tag stacks for queries
 	UPROPERTY()
 	TMap<FGameplayTag, int32> TagToCountMap;
-	
+
 	// List of granted handles
 	FOvrlAbilitySet_GrantedHandles GrantedHandles;
 };

@@ -312,7 +312,7 @@ UDataAsset* UOvrlInventoryUtils::CreatePickupDefinition(const FInventoryItemData
 
 	if (PickupDef && ItemDefinitionBP)
 	{
-		PickupDef->ItemDefinition = ItemDefinitionBP->GeneratedClass;
+		// PickupDef->ItemDefinition = ItemDefinitionBP->GeneratedClass;
 	}
 
 	UEditorLoadingAndSavingUtils::SavePackages({ PickupDefinitionDA->GetPackage() }, false);
@@ -333,7 +333,7 @@ UBlueprint* UOvrlInventoryUtils::CreatePickupActor(const FInventoryItemData& Ite
 
 	if (PickupActor)
 	{
-		PickupActor->ItemPickupDefinition = Cast<UOvrlPickupDefinition>(PickupDefinitionDA);
+		// PickupActor->ItemPickupDefinition = Cast<UOvrlPickupDefinition>(PickupDefinitionDA);
 		PickupActor->ItemMesh->SetStaticMesh(ItemData.DisplayMesh);
 	}
 

@@ -40,11 +40,11 @@ void UOvrlEquipmentManagerComponent::SetActiveSlotIndex(int32 NewIndex, bool bFo
 {
 	// if (!bForceSet)
 	// {
-	// 	if (QuickSlotIndex == NewIndex || TimerHandle_EquipItem.IsValid())
-	// 	{
-	// 		// Do nothing if index is the same.
-	// 		return;
-	// 	}
+	if (QuickSlotIndex == NewIndex || TimerHandle_EquipItem.IsValid())
+	{
+		// Do nothing if index is the same.
+		return;
+	}
 	// }
 
 	if (QuickSlotEntries.IsValidIndex(NewIndex))
@@ -116,6 +116,11 @@ void UOvrlEquipmentManagerComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
 
 void UOvrlEquipmentManagerComponent::EquipItem(UOvrlItemInstance* Item)
 {
+	if (!Item)
+	{
+		return;
+	}
+
 	ItemInstances.Add(Item);
 
 	if (UOvrlAbilitySystemComponent* ASC = GetOwnerAbilitySystemComponent())
@@ -134,7 +139,7 @@ void UOvrlEquipmentManagerComponent::EquipItem(UOvrlItemInstance* Item)
 					}
 				}
 			}
-			
+
 			// When the item is equipped, we give all its Abilities/Effects/Attributes to its owner's ASC
 			for (TObjectPtr<const UOvrlAbilitySet> AbilitySet : EquipmentDefinition->AbilitySetsToGrantToOwner)
 			{
@@ -143,7 +148,7 @@ void UOvrlEquipmentManagerComponent::EquipItem(UOvrlItemInstance* Item)
 		}
 	}
 
-	// OnItemEquipped.Broadcast(Item);
+	OnItemEquipped.Broadcast(Item);
 }
 
 void UOvrlEquipmentManagerComponent::EquipItemInSlot()
@@ -159,7 +164,7 @@ void UOvrlEquipmentManagerComponent::EquipItemInSlot()
 		}
 
 		CurrentActiveSlotEntry = QuickSlotEntries[QuickSlotIndex];
-		OnEquipInstanceChanged.Broadcast(EquipInstance);
+		OnActiveSlotChanged.Broadcast(CurrentActiveSlotEntry);
 	}
 
 	EquipItem(CurrentActiveSlotEntry.ItemInstance);
@@ -178,11 +183,6 @@ void UOvrlEquipmentManagerComponent::UnequipItemInSlot()
 
 void UOvrlEquipmentManagerComponent::UnequipItem(UOvrlItemInstance* ItemToUnequip)
 {
-	// if (ItemToUnequip)
-	// {
-	// 	ItemToUnequip->OnUnequipped();
-	// }
-
 	if (!ItemToUnequip)
 	{
 		return;
@@ -195,11 +195,8 @@ void UOvrlEquipmentManagerComponent::UnequipItem(UOvrlItemInstance* ItemToUnequi
 		// When unequip the item, remove all given abilities/effects/attributes from owner's ASC
 		ItemToUnequip->GetGrantedHandles().TakeFromAbilitySystem(ASC);
 	}
-}
 
-AOvrlEquipmentInstance* UOvrlEquipmentManagerComponent::FindFirstEquipmentInstanceByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const
-{
-	return nullptr;
+	OnItemUnequipped.Broadcast(ItemToUnequip);
 }
 
 int32 UOvrlEquipmentManagerComponent::AddItemToQuickSlots(UOvrlItemInstance* Item)
@@ -238,8 +235,13 @@ int32 UOvrlEquipmentManagerComponent::GetFirstAvailableQuickSlotIndex() const
 	return INDEX_NONE;
 }
 
-const UOvrlEquipmentDefinition* UOvrlEquipmentManagerComponent::GetItemEquipmentDefinition(UOvrlItemInstance* Item) const
+const UOvrlEquipmentDefinition* UOvrlEquipmentManagerComponent::GetItemEquipmentDefinition(const UOvrlItemInstance* Item)
 {
+	if (!Item)
+	{
+		return nullptr;
+	}
+	
 	if (const UOvrlItemFragment_EquippableItem* EquipFragment = Item->FindFragmentByClass<UOvrlItemFragment_EquippableItem>())
 	{
 		TSubclassOf<UOvrlEquipmentDefinition> EquipDefClass = EquipFragment->EquipmentDefinition;
@@ -250,6 +252,20 @@ const UOvrlEquipmentDefinition* UOvrlEquipmentManagerComponent::GetItemEquipment
 	}
 
 	return nullptr;
+}
+
+const FQuickSlotEntry& UOvrlEquipmentManagerComponent::FindFirstQuickSlotEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const
+{
+	for (const FQuickSlotEntry& QuickSlotEntry : QuickSlotEntries)
+	{
+		if (QuickSlotEntry.EquipmentInstance && QuickSlotEntry.EquipmentInstance->GetAssociatedItem()->GetItemDefClass() == ItemDefinition)
+		{
+			return QuickSlotEntry;
+		}
+	}
+
+	static FQuickSlotEntry EMPTY_SLOT;
+	return EMPTY_SLOT;
 }
 
 UOvrlAbilitySystemComponent* UOvrlEquipmentManagerComponent::GetOwnerAbilitySystemComponent() const

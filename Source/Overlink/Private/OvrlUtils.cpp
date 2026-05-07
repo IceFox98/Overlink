@@ -2,12 +2,16 @@
 
 #include "OvrlUtils.h"
 
+// Internal
+#include "Core/OvrlPlayerCameraManager.h"
+#include "Inventory/OvrlInventoryComponent.h"
+#include "Player/Components/OvrlEquipmentManagerComponent.h"
+
+// Engine
 #include "MotionTrajectoryLibrary.h"
 #include "Animation/AnimNodeReference.h"
 #include "GameFramework/HUD.h"
-#include "Core/OvrlPlayerCameraManager.h"
 #include "GameFramework/Character.h"
-#include "Inventory/OvrlInventoryComponent.h"
 #include "MotionTrajectory.h"
 #include "PoseSearch/PoseSearchTrajectoryLibrary.h"
 
@@ -118,9 +122,10 @@ AOvrlEquipmentInstance* UOvrlUtils::GetFirstEquipmentInstance(AActor* InventoryO
 {
 	if (InventoryOwner)
 	{
-		if (UOvrlInventoryComponent* Inventory = Cast<UOvrlInventoryComponent>(InventoryOwner->GetComponentByClass(UOvrlInventoryComponent::StaticClass())))
+		if (UOvrlEquipmentManagerComponent* EquipmentManagerComponent = 
+			Cast<UOvrlEquipmentManagerComponent>(InventoryOwner->GetComponentByClass(UOvrlEquipmentManagerComponent::StaticClass())))
 		{
-			return Inventory->FindFirstEquipmentInstanceByDefinition(ItemDefinition);
+			return EquipmentManagerComponent->FindFirstQuickSlotEntryByDefinition(ItemDefinition).EquipmentInstance;
 		}
 	}
 	

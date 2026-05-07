@@ -49,7 +49,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
 	static UPARAM(DisplayName="Item") FOvrlItemEntry GetFirstItemEntry(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);
 
-	// Looks for an Inventory Component and retrieve the first equipment instance matching the passed definition.
+	// Looks for an Equipment Manager Component and retrieve the first equipment instance matching the passed definition.
 	UFUNCTION(BlueprintPure, Category = "Ovrl Utils")
 	static UPARAM(DisplayName="Equipment Instance") AOvrlEquipmentInstance* GetFirstEquipmentInstance(AActor* InventoryOwner, TSubclassOf<UOvrlItemDefinition> ItemDefinition);
 	

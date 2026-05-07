@@ -6,7 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "OvrlPickupDefinition.generated.h"
 
-class UOvrlItemDefinition;
+class AOvrlItemPickupActor;
 
 /**
  * 
@@ -17,15 +17,23 @@ class OVERLINK_API UOvrlPickupDefinition : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	// Defines the pickup's actors to spawn, abilities to grant, and tags to add
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup")
-	TSubclassOf<UOvrlItemDefinition> ItemDefinition;
+	// Base class used to spawn a Pickup Actor when this item is dropped.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Pickup Definition")
+	TSubclassOf<AOvrlItemPickupActor> BasePickupClass;
+	
+	// Sets the scale of the item mesh in the target Pickup Actor.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Pickup Definition")
+	FVector MeshScale = FVector::One();
 
-	// Sets the height of the display mesh above the Weapon spawner
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup|Mesh")
-	FVector MeshScale = FVector(1.0f, 1.0f, 1.0f);
+	// Sets the transform of the pickup collider in the target Pickup Actor.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Pickup Definition")
+	FTransform PickupColliderTransform;
 
-	// Sound to play when picked up
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl|Pickup")
-	USoundBase* PickedUpSound;
+	// Sets the half height of the capsule pickup collider in the target Pickup Actor.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Pickup Definition")
+	float PickupColliderCapsuleHalfHeight = 20.f;
+
+	// Sets the radius of the capsule pickup collider in the target Pickup Actor.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ovrl Pickup Definition")
+	float PickupColliderCapsuleRadius = 16.f;
 };

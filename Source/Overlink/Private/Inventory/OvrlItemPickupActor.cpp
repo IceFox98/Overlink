@@ -9,6 +9,7 @@
 // Engine
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Inventory/OvrlItemFragment_PickupableItem.h"
 
 AOvrlItemPickupActor::AOvrlItemPickupActor()
 {
@@ -16,7 +17,7 @@ AOvrlItemPickupActor::AOvrlItemPickupActor()
 	SetRootComponent(ItemMesh);
 	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ItemMesh->SetGenerateOverlapEvents(false);
-	
+
 	PickupCollider = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PickupCollider"));
 	PickupCollider->SetupAttachment(ItemMesh);
 }
@@ -25,7 +26,7 @@ void AOvrlItemPickupActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	ShowItemMesh();
+	RefreshData();
 }
 
 void AOvrlItemPickupActor::BeginPlay()
@@ -34,7 +35,7 @@ void AOvrlItemPickupActor::BeginPlay()
 
 	PickupCollider->OnComponentBeginOverlap.AddDynamic(this, &AOvrlItemPickupActor::OnPickupColliderOverlap);
 
-	ShowItemMesh();
+	RefreshData();
 }
 
 void AOvrlItemPickupActor::Drop_Implementation()
@@ -47,10 +48,10 @@ void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)
 	if (UOvrlInventoryComponent* InventoryComponent = InInstigator->GetComponentByClass<UOvrlInventoryComponent>())
 	{
 		// The cached item is valid only when the item was dropped from the player/enemy
-		TSubclassOf<UOvrlItemDefinition> ItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDefClass() : ItemPickupDefinition->ItemDefinition;
+		TSubclassOf<UOvrlItemDefinition> TargetItemDefinition = CachedItemInstance ? CachedItemInstance->GetItemDefClass() : ItemDefinitionClass;
 
 		// Search for an item of the same type
-		UOvrlItemInstance* ExistingItem = InventoryComponent->FindFirstItemEntryByDefinition(ItemDefinition).Instance;
+		UOvrlItemInstance* ExistingItem = InventoryComponent->FindFirstItemEntryByDefinition(TargetItemDefinition).Instance;
 
 		bool bHandled = true;
 		if (ExistingItem) // Duplicated item found
@@ -63,7 +64,7 @@ void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)
 			else
 			{
 				// Let user manage the duplicated item
-				bHandled = ManageDuplicatedItem(ItemDefinition, ExistingItem, InInstigator);
+				bHandled = ManageDuplicatedItem(TargetItemDefinition, ExistingItem, InInstigator);
 			}
 		}
 		else
@@ -80,24 +81,37 @@ void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)
 	}
 }
 
-void AOvrlItemPickupActor::ShowItemMesh()
+void AOvrlItemPickupActor::RefreshData()
 {
 	UOvrlItemDefinition* ItemDefinition = nullptr;
 
-	// Pick the right mesh to display
+	// If the item was dropped, this will be valid, so we can set the ItemDefinition that would be null otherwise.
 	if (CachedItemInstance)
 	{
 		ItemDefinition = CachedItemInstance->GetItemDef();
 	}
-	else if (ItemPickupDefinition)
+	else if (ItemDefinitionClass)
 	{
-		ItemDefinition = Cast<UOvrlItemDefinition>(ItemPickupDefinition->ItemDefinition->GetDefaultObject());
+		ItemDefinition = Cast<UOvrlItemDefinition>(ItemDefinitionClass->GetDefaultObject());
 	}
 
 	if (ItemDefinition)
 	{
 		ItemMesh->SetStaticMesh(ItemDefinition->DisplayMesh);
+
+		// If we find a pickupable fragment, set additional data.
+		if (const UOvrlItemFragment_PickupableItem* PickupableItemFragment = ItemDefinition->FindFragmentByClass<UOvrlItemFragment_PickupableItem>())
+		{
+			if (const UOvrlPickupDefinition* PickupDefinition = PickupableItemFragment->PickupDefinition)
+			{
+				ItemMesh->SetRelativeScale3D(PickupDefinition->MeshScale);
+				PickupCollider->SetRelativeTransform(PickupDefinition->PickupColliderTransform);
+				PickupCollider->SetCapsuleHalfHeight(PickupDefinition->PickupColliderCapsuleHalfHeight);
+				PickupCollider->SetCapsuleRadius(PickupDefinition->PickupColliderCapsuleRadius);
+			}
+		}
 	}
+
 }
 
 bool AOvrlItemPickupActor::ManageDuplicatedItem_Implementation(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn)
@@ -124,7 +138,7 @@ void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInv
 		}
 		else
 		{
-			TargetInventoryComponent->AddItemFromDefinition(ItemPickupDefinition->ItemDefinition, GetClass());
+			TargetInventoryComponent->AddItemFromDefinition(ItemDefinitionClass);
 		}
 	}
 }

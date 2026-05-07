@@ -9,6 +9,7 @@
 
 #include "OvrlEquipmentAnimInstance.generated.h"
 
+struct FQuickSlotEntry;
 class UOvrlCharacterMovementComponent;
 class AOvrlRangedWeaponInstance;
 class AOvrlEquipmentInstance;
@@ -35,7 +36,7 @@ public:
 
 protected:
 	UFUNCTION()
-	virtual void OnEquipInstanceChanged(AOvrlEquipmentInstance* NewEquipmentInstance);
+	virtual void OnActiveSlotChanged(const FQuickSlotEntry& ActiveSlotEntry);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta = (BlueprintThreadSafe))
 	void GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation);

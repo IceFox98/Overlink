@@ -6,9 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "OvrlItemPickupActor.generated.h"
 
+class UOvrlItemDefinition;
 class UCapsuleComponent;
 class UStaticMeshComponent;
-class UOvrlPickupDefinition;
 class UOvrlItemInstance;
 class UOvrlInventoryComponent;
 
@@ -54,7 +54,7 @@ protected:
 	void OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent);
-	void ShowItemMesh();
+	void RefreshData();
 
 public:
 	// ------ COMPONENTS ------
@@ -73,11 +73,11 @@ public:
 	bool bAddDuplicatedItem;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
-	TObjectPtr<UOvrlPickupDefinition> ItemPickupDefinition;
+	TSubclassOf<UOvrlItemDefinition> ItemDefinitionClass;
 
 protected:
 	// Reference used when an entity drops an item.
-	UPROPERTY()
+	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Item Pickup Actor")
 	TObjectPtr<UOvrlItemInstance> CachedItemInstance;
 
 };

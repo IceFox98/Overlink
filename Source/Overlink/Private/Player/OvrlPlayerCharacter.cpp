@@ -8,6 +8,7 @@
 #include "Player/Input/OvrlInputComponent.h"
 #include "Player/Input/OvrlInputConfig.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
+#include "Player/Components/OvrlEquipmentManagerComponent.h"
 #include "Inventory/OvrlInventoryComponent.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/Attributes/OvrlHealthSet.h"
@@ -57,6 +58,7 @@ AOvrlPlayerCharacter::AOvrlPlayerCharacter(const FObjectInitializer& ObjectIniti
 
 	InteractionComponent = CreateDefaultSubobject<UOvrlInteractionComponent>(TEXT("InteractionComponent"));
 	InventoryComponent = CreateDefaultSubobject<UOvrlInventoryComponent>(TEXT("InventoryComponent"));
+	EquipmentManagerComponent = CreateDefaultSubobject<UOvrlEquipmentManagerComponent>(TEXT("EquipmentManagerComponent"));
 	MotionWarping = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 
 	bEnableCameraStabilization = true;
@@ -78,6 +80,14 @@ void AOvrlPlayerCharacter::Landed(const FHitResult& Hit)
 	Super::Landed(Hit);
 
 	PlayLandSound();
+}
+
+void AOvrlPlayerCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
+	// Need to initialize before BeginPlay to make sure the delegates are bound.
+	EquipmentManagerComponent->InitializeFromInventory(InventoryComponent);
 }
 
 void AOvrlPlayerCharacter::BeginPlay()

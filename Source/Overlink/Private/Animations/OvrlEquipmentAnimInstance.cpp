@@ -42,7 +42,7 @@ void UOvrlEquipmentAnimInstance::NativeBeginPlay()
 	check(PlayerCharacter);
 	if (UOvrlEquipmentManagerComponent* EquipmentManager = PlayerCharacter->GetComponentByClass<UOvrlEquipmentManagerComponent>())
 	{
-		EquipmentManager->OnEquipInstanceChanged.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnEquipInstanceChanged);
+		EquipmentManager->OnActiveSlotChanged.AddDynamic(this, &UOvrlEquipmentAnimInstance::OnActiveSlotChanged);
 	}
 
 	ensure(JumpSwayCurve);
@@ -163,9 +163,9 @@ void UOvrlEquipmentAnimInstance::UpdateLeftHandIKAplha(float DeltaTime)
 	}
 }
 
-void UOvrlEquipmentAnimInstance::OnEquipInstanceChanged(AOvrlEquipmentInstance* NewEquipmentInstance)
+void UOvrlEquipmentAnimInstance::OnActiveSlotChanged(const FQuickSlotEntry& ActiveSlotEntry)
 {
-	EquippedItem = NewEquipmentInstance;
+	EquippedItem = ActiveSlotEntry.EquipmentInstance;
 }
 
 void UOvrlEquipmentAnimInstance::GetModifierValues(FGameplayTag ModifierTag, FVector& OutTranslation, FRotator& OutRotation)

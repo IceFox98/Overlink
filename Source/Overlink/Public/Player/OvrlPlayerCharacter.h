@@ -11,6 +11,7 @@
 class UOvrlCameraComponent;
 class UOvrlInteractionComponent;
 class UOvrlInventoryComponent;
+class UOvrlEquipmentManagerComponent;
 class UMotionWarpingComponent;
 class UOvrlInputConfig;
 class UInputMappingContext;
@@ -38,6 +39,7 @@ public:
 public:
 	virtual void OnJumped_Implementation() override;
 	virtual void Landed(const FHitResult& Hit) override;
+	virtual void PostInitializeComponents() override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -49,6 +51,7 @@ public:
 
 	UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarping; };
 	UOvrlInventoryComponent* GetInventoryComponent() const { return InventoryComponent; };
+	UOvrlEquipmentManagerComponent* GetEquipmentManagerComponent() const { return EquipmentManagerComponent; };
 	UOvrlCameraComponent* GetCameraComponent() const { return CameraComp; };
 	USkeletalMeshComponent* GetFullBodyMesh() const { return FullBodyMesh; };
 
@@ -104,6 +107,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UOvrlEquipmentManagerComponent> EquipmentManagerComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UMotionWarpingComponent> MotionWarping;
