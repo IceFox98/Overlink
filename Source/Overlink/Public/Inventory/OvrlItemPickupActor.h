@@ -24,7 +24,7 @@ public:
 	AOvrlItemPickupActor();
 
 public:
-	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,13 +41,19 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
 	FORCEINLINE UOvrlItemInstance* GetCachedItem() const { return CachedItemInstance; }
 
-	FORCEINLINE void SetCachedItemInstance(UOvrlItemInstance* ItemToCache) { CachedItemInstance = ItemToCache; }
+	void SetCachedItemInstance(UOvrlItemInstance* ItemToCache, int32 InQuantity = 1);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor", meta=(ReturnDisplayName="Handled"))
 	bool ManageDuplicatedItem(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Item Pickup Actor")
 	void Drop();
+
+#if WITH_EDITOR
+	// If pressed, all the pickup-related info will be copied to the relative pickup definition asset of the selected item.
+	UFUNCTION(CallInEditor, Category = "Ovrl Item Pickup Actor", DisplayName = "Update Pickup Definition")
+	void UpdatePickupDefinition() const;
+#endif
 
 protected:
 	UFUNCTION()
@@ -65,6 +71,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> ItemMesh;
 
+protected:
 	// ------ ITEM ------
 
 	// If true, the item will be added to the inventory even if there's already an instance of it.
@@ -75,9 +82,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
 	TSubclassOf<UOvrlItemDefinition> ItemDefinitionClass;
 
-protected:
+	// The quantity assigned to the item when it will be added to the inventory.
+	// E.g.: ID_HealthPotion - 20 -> In the inventory you will have 1 item entry (Health Potion) with 20 count
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", meta = (ClampMin = 1))
+	int32 Quantity = 1;
+
 	// Reference used when an entity drops an item.
 	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Item Pickup Actor")
 	TObjectPtr<UOvrlItemInstance> CachedItemInstance;
-
 };

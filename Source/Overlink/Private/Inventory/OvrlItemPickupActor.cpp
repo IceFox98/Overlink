@@ -1,15 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Inventory/OvrlItemPickupActor.h"
+
+// Internal
 #include "Inventory/OvrlInventoryComponent.h"
 #include "Inventory/OvrlPickupDefinition.h"
 #include "Inventory/OvrlItemInstance.h"
 #include "Inventory/OvrlItemDefinition.h"
+#include "Inventory/OvrlItemFragment_PickupableItem.h"
+#include "OvrlLogUtils.h"
+#include "OvrlItemUtils.h"
 
 // Engine
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Inventory/OvrlItemFragment_PickupableItem.h"
 
 AOvrlItemPickupActor::AOvrlItemPickupActor()
 {
@@ -22,11 +26,18 @@ AOvrlItemPickupActor::AOvrlItemPickupActor()
 	PickupCollider->SetupAttachment(ItemMesh);
 }
 
-void AOvrlItemPickupActor::OnConstruction(const FTransform& Transform)
+void AOvrlItemPickupActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::OnConstruction(Transform);
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	RefreshData();
+	static const FName NAME_ItemDefinitionClass = GET_MEMBER_NAME_CHECKED(AOvrlItemPickupActor, ItemDefinitionClass);
+	const FName Name = PropertyChangedEvent.Property ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+
+	// Update the data only when the ItemDefinition has changed
+	if (Name == NAME_ItemDefinitionClass)
+	{
+		RefreshData();
+	}
 }
 
 void AOvrlItemPickupActor::BeginPlay()
@@ -38,9 +49,12 @@ void AOvrlItemPickupActor::BeginPlay()
 	RefreshData();
 }
 
-void AOvrlItemPickupActor::Drop_Implementation()
+void AOvrlItemPickupActor::OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// No base logic
+	if (APawn* Pawn = Cast<APawn>(OtherActor))
+	{
+		HandlePickup(Pawn);
+	}
 }
 
 void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)
@@ -81,6 +95,38 @@ void AOvrlItemPickupActor::HandlePickup(APawn* InInstigator)
 	}
 }
 
+bool AOvrlItemPickupActor::ManageDuplicatedItem_Implementation(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn)
+{
+	// By default, the item is considered successfully handled
+	return true;
+}
+
+void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent)
+{
+	if (TargetInventoryComponent)
+	{
+		if (HasCachedItem())
+		{
+			TargetInventoryComponent->AddItem(CachedItemInstance, Quantity);
+		}
+		else
+		{
+			TargetInventoryComponent->AddItemFromDefinition(ItemDefinitionClass, Quantity);
+		}
+	}
+}
+
+void AOvrlItemPickupActor::Drop_Implementation()
+{
+	// No base logic
+}
+
+void AOvrlItemPickupActor::SetCachedItemInstance(UOvrlItemInstance* ItemToCache, int32 InQuantity/* = 1*/)
+{
+	CachedItemInstance = ItemToCache;
+	Quantity = FMath::Max(1, InQuantity); // Must be at least 1
+}
+
 void AOvrlItemPickupActor::RefreshData()
 {
 	UOvrlItemDefinition* ItemDefinition = nullptr;
@@ -111,34 +157,24 @@ void AOvrlItemPickupActor::RefreshData()
 			}
 		}
 	}
-
 }
 
-bool AOvrlItemPickupActor::ManageDuplicatedItem_Implementation(TSubclassOf<UOvrlItemDefinition> DuplicatedItemClass, UOvrlItemInstance* ExistingItem, APawn* ReceivingPawn)
+#if WITH_EDITOR
+void AOvrlItemPickupActor::UpdatePickupDefinition() const
 {
-	// By default, the item is considered successfully handled
-	return true;
-}
-
-void AOvrlItemPickupActor::OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (APawn* Pawn = Cast<APawn>(OtherActor))
+	UOvrlPickupDefinition* PickupDefinition = UOvrlItemUtils::GetPickupDefinitionFromItemDefinition(ItemDefinitionClass);
+	if (PickupDefinition)
 	{
-		HandlePickup(Pawn);
+		PickupDefinition->MeshScale = ItemMesh->GetRelativeScale3D();
+		PickupDefinition->PickupColliderTransform = PickupCollider->GetRelativeTransform();
+		PickupDefinition->PickupColliderCapsuleHalfHeight = PickupCollider->GetUnscaledCapsuleHalfHeight();
+		PickupDefinition->PickupColliderCapsuleRadius = PickupCollider->GetUnscaledCapsuleRadius();
+
+		OVRL_LOG_INFO(LogOverlink, true, "Pickup Definition %s updated successfully!", *PickupDefinition->GetName());
+	}
+	else
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to update Pickup Definition.");
 	}
 }
-
-void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent)
-{
-	if (TargetInventoryComponent)
-	{
-		if (HasCachedItem())
-		{
-			TargetInventoryComponent->AddItem(CachedItemInstance);
-		}
-		else
-		{
-			TargetInventoryComponent->AddItemFromDefinition(ItemDefinitionClass);
-		}
-	}
-}
+#endif

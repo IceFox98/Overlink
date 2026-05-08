@@ -23,7 +23,7 @@ struct FQuickSlotEntry
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TObjectPtr<AOvrlEquipmentInstance> EquipmentInstance = nullptr;
-	
+
 	void Invalidate()
 	{
 		ItemInstance = nullptr;
@@ -51,25 +51,20 @@ public:
 	const FQuickSlotEntry& FindFirstQuickSlotEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
 
 	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
-	
+	void RemoveItemFromQuickSlots(UOvrlItemInstance* Item);
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE UOvrlItemInstance* GetActiveSlotItemInstance() const { return CurrentActiveSlotEntry.ItemInstance; };
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE AOvrlEquipmentInstance* GetActiveSlotEquipInstance() const { return CurrentActiveSlotEntry.EquipmentInstance; };
 
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
-	static const UOvrlEquipmentDefinition* GetItemEquipmentDefinition(const UOvrlItemInstance* Item);
-	
 protected:
 	UFUNCTION()
 	void OnInventoryItemAdded(UOvrlItemInstance* AddedItem);
 
 	UFUNCTION()
 	void OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem);
-
-	UFUNCTION()
-	void OnItemDropped();
 
 	int32 GetFirstAvailableQuickSlotIndex() const;
 
@@ -84,25 +79,23 @@ private:
 	void UnequipItemInSlot();
 	void UnequipItem(UOvrlItemInstance* ItemToUnequip);
 
-
 public:
-	
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Equipment Manager Component")
 	FOnItemEquipped OnItemEquipped;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Equipment Manager Component")
 	FOnItemUnequipped OnItemUnequipped;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Equipment Manager Component")
 	FOnActiveSlotChanged OnActiveSlotChanged;
-	
+
 protected:
 	// Number of quick slots available.
 	UPROPERTY(EditDefaultsOnly, meta=(ClampMin = 1, ClampMax = 30))
 	int32 NumQuickSlots = 1;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	int32 QuickSlotIndex = 0;
+	int32 QuickSlotIndex = -1;
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<UOvrlItemInstance*> ItemInstances;

@@ -8,8 +8,9 @@
 #include "Inventory/OvrlInventoryComponent.h"
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
 #include "Inventory/OvrlItemInstance.h"
-#include "OvrlLogUtils.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "OvrlLogUtils.h"
+#include "OvrlItemUtils.h"
 
 void UOvrlEquipmentManagerComponent::InitializeFromInventory(UOvrlInventoryComponent* InventoryComponent)
 {
@@ -25,7 +26,7 @@ void UOvrlEquipmentManagerComponent::InitializeFromInventory(UOvrlInventoryCompo
 void UOvrlEquipmentManagerComponent::OnInventoryItemAdded(UOvrlItemInstance* AddedItem)
 {
 	// Check if it's equippable
-	if (const UOvrlEquipmentDefinition* EquipmentDef = GetItemEquipmentDefinition(AddedItem))
+	if (const UOvrlEquipmentDefinition* EquipmentDef = UOvrlItemUtils::GetItemEquipmentDefinition(AddedItem))
 	{
 		// Should be equipped immediately?
 		if (EquipmentDef->bSetAsActiveSlotOnAdded && EquipmentDef->bShouldSpawnEquipmentInstance)
@@ -51,7 +52,7 @@ void UOvrlEquipmentManagerComponent::SetActiveSlotIndex(int32 NewIndex, bool bFo
 	{
 		UOvrlItemInstance* Item = QuickSlotEntries[NewIndex].ItemInstance;
 
-		if (const UOvrlEquipmentDefinition* EquipmentDefinition = GetItemEquipmentDefinition(Item))
+		if (const UOvrlEquipmentDefinition* EquipmentDefinition = UOvrlItemUtils::GetItemEquipmentDefinition(Item))
 		{
 			if (EquipmentDefinition->bShouldSpawnEquipmentInstance)
 			{
@@ -125,7 +126,7 @@ void UOvrlEquipmentManagerComponent::EquipItem(UOvrlItemInstance* Item)
 
 	if (UOvrlAbilitySystemComponent* ASC = GetOwnerAbilitySystemComponent())
 	{
-		if (const UOvrlEquipmentDefinition* EquipmentDefinition = GetItemEquipmentDefinition(Item))
+		if (const UOvrlEquipmentDefinition* EquipmentDefinition = UOvrlItemUtils::GetItemEquipmentDefinition(Item))
 		{
 			if (EquipmentDefinition->bShouldSpawnEquipmentInstance && CurrentActiveSlotEntry.ItemInstance == Item)
 			{
@@ -214,12 +215,45 @@ int32 UOvrlEquipmentManagerComponent::AddItemToQuickSlots(UOvrlItemInstance* Ite
 
 void UOvrlEquipmentManagerComponent::OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem)
 {
+	// Search if the item is also an equipment, in that case unequip it
+	for (auto It = ItemInstances.CreateIterator(); It; ++It)
+	{
+		UOvrlItemInstance*& ItemInstance = *It;
 
+		if (ItemInstance == RemovedItem)
+		{
+			RemoveItemFromQuickSlots(RemovedItem);
+
+			// Remove from equipped item list
+			It.RemoveCurrent();
+
+			break;
+		}
+	}
 }
 
-void UOvrlEquipmentManagerComponent::OnItemDropped()
+void UOvrlEquipmentManagerComponent::RemoveItemFromQuickSlots(UOvrlItemInstance* Item)
 {
+	for (auto It = QuickSlotEntries.CreateIterator(); It; ++It)
+	{
+		FQuickSlotEntry& QuickSlotEntry = *It;
+		if (QuickSlotEntry.ItemInstance == Item)
+		{
+			if (QuickSlotEntry.EquipmentInstance)
+			{
+				QuickSlotEntry.EquipmentInstance->OnBeforeUnequip();
+				QuickSlotEntry.EquipmentInstance->Destroy();
+			}
 
+			if (GetActiveSlotItemInstance() == Item)
+			{
+				CurrentActiveSlotEntry.Invalidate();
+			}
+
+			QuickSlotEntry.Invalidate();
+			break;
+		}
+	}
 }
 
 int32 UOvrlEquipmentManagerComponent::GetFirstAvailableQuickSlotIndex() const
@@ -233,25 +267,6 @@ int32 UOvrlEquipmentManagerComponent::GetFirstAvailableQuickSlotIndex() const
 	}
 
 	return INDEX_NONE;
-}
-
-const UOvrlEquipmentDefinition* UOvrlEquipmentManagerComponent::GetItemEquipmentDefinition(const UOvrlItemInstance* Item)
-{
-	if (!Item)
-	{
-		return nullptr;
-	}
-	
-	if (const UOvrlItemFragment_EquippableItem* EquipFragment = Item->FindFragmentByClass<UOvrlItemFragment_EquippableItem>())
-	{
-		TSubclassOf<UOvrlEquipmentDefinition> EquipDefClass = EquipFragment->EquipmentDefinition;
-		if (EquipDefClass)
-		{
-			return GetDefault<UOvrlEquipmentDefinition>(EquipDefClass);
-		}
-	}
-
-	return nullptr;
 }
 
 const FQuickSlotEntry& UOvrlEquipmentManagerComponent::FindFirstQuickSlotEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const

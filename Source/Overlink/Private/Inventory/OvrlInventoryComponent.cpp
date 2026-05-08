@@ -6,13 +6,14 @@
 #include "Inventory/OvrlItemPickupActor.h"
 #include "Equipment/OvrlEquipmentInstance.h"
 #include "Equipment/OvrlEquipmentDefinition.h"
+#include "OvrlItemUtils.h"
+#include "OvrlLogUtils.h"
 
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "AbilitySystem/OvrlAbilitySet.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "AbilitySystemGlobals.h"
-#include "OvrlLogUtils.h"
 #include "Inventory/OvrlItemFragment_PickupableItem.h"
 #include "Inventory/OvrlPickupDefinition.h"
 
@@ -27,11 +28,11 @@ void UOvrlInventoryComponent::BeginPlay()
 
 	for (const FOvrlInitialItemData& InitialItem : InitialItems)
 	{
-		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.Count);
+		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.Quantity);
 	}
 }
 
-UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Count/* = 1*/)
+UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity/* = 1*/)
 {
 	if (!ItemDefinition)
 	{
@@ -51,12 +52,12 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 		}
 	}
 
-	AddItem(ItemInstance, Count);
+	AddItem(ItemInstance, Quantity);
 
 	return ItemInstance;
 }
 
-void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Count/* = 1*/)
+void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Quantity/* = 1*/)
 {
 	if (!Item)
 	{
@@ -66,7 +67,7 @@ void UOvrlInventoryComponent::AddItem(UOvrlItemInstance* Item, int32 Count/* = 1
 
 	FOvrlItemEntry ItemEntry;
 	ItemEntry.Instance = Item;
-	ItemEntry.Count = FMath::Max(1, Count); // Must be at least 1
+	ItemEntry.Quantity = FMath::Max(1, Quantity); // Must be at least 1
 	ItemEntries.Add(ItemEntry);
 
 	// // Spawn item if we find an equippable fragment
@@ -164,13 +165,13 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByDefinition(TSubclass
 	return FOvrlItemEntry();
 }
 
-void UOvrlInventoryComponent::AddItemCount(UOvrlItemInstance* Item, int32 CountToAdd, bool bCreateItemIfMissing)
+void UOvrlInventoryComponent::AddItemQuantity(UOvrlItemInstance* Item, int32 QuantityToAdd, bool bCreateItemIfMissing)
 {
 	for (FOvrlItemEntry& ItemEntry : ItemEntries)
 	{
 		if (ItemEntry.Instance == Item)
 		{
-			ItemEntry.Count += FMath::Max(0, CountToAdd);
+			ItemEntry.Quantity += FMath::Max(0, QuantityToAdd);
 			OnItemUpdated.Broadcast(ItemEntry, false);
 			return;
 		}
@@ -179,17 +180,17 @@ void UOvrlInventoryComponent::AddItemCount(UOvrlItemInstance* Item, int32 CountT
 	// Didn't find the item, let's create it if needed
 	if (bCreateItemIfMissing)
 	{
-		AddItem(Item, CountToAdd);
+		AddItem(Item, QuantityToAdd);
 	}
 }
 
-UOvrlItemInstance* UOvrlInventoryComponent::AddItemCountByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 CountToAdd, bool bCreateItemIfMissing)
+UOvrlItemInstance* UOvrlInventoryComponent::AddItemQuantityByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 QuantityToAdd, bool bCreateItemIfMissing)
 {
 	for (FOvrlItemEntry& ItemEntry : ItemEntries)
 	{
 		if (ItemEntry.Instance && ItemEntry.Instance->GetItemDefClass() == ItemDefinition)
 		{
-			ItemEntry.Count += FMath::Max(0, CountToAdd);
+			ItemEntry.Quantity += FMath::Max(0, QuantityToAdd);
 			OnItemUpdated.Broadcast(ItemEntry, false);
 			return ItemEntry.Instance;
 		}
@@ -198,7 +199,7 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemCountByDefinition(TSubclassOf
 	// Didn't find the item, let's create it if needed
 	if (bCreateItemIfMissing)
 	{
-		return AddItemFromDefinition(ItemDefinition, CountToAdd);
+		return AddItemFromDefinition(ItemDefinition, QuantityToAdd);
 	}
 
 	return nullptr;
@@ -260,7 +261,7 @@ void UOvrlInventoryComponent::UnequipItem(AOvrlEquipmentInstance* ItemToUnequip)
 	}
 }
 
-void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Count/* = 1*/)
+void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Quantity/* = 1*/)
 {
 	bool bItemRemoved = false;
 	for (auto EntryIt = ItemEntries.CreateIterator(); EntryIt; ++EntryIt)
@@ -268,11 +269,11 @@ void UOvrlInventoryComponent::RemoveItem(UOvrlItemInstance* ItemToRemove, int32 
 		FOvrlItemEntry& Entry = *EntryIt;
 		if (Entry.Instance == ItemToRemove)
 		{
-			// Decrease the item count
-			Entry.Count -= FMath::Max(1, Count);
+			// Decrease the item quantity
+			Entry.Quantity -= FMath::Max(1, Quantity);
 
 			// If equal/lower than 0, remove the item
-			if (Entry.Count <= 0)
+			if (Entry.Quantity <= 0)
 			{
 				EntryIt.RemoveCurrent();
 				bItemRemoved = true;
@@ -332,59 +333,32 @@ void UOvrlInventoryComponent::RefreshQuickSlot()
 	}
 }
 
-void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop, int32 Count/* = 1*/)
+void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop, int32 Quantity/* = 1*/)
 {
-	if (!ItemToDrop)
-	{
-		return;
-	}
+	const UOvrlPickupDefinition* PickupDefinition = UOvrlItemUtils::GetPickupDefinitionFromItemInstance(ItemToDrop);
 	
-	if (const UOvrlItemFragment_PickupableItem* PickupableItemFragment = ItemToDrop->FindFragmentByClass<UOvrlItemFragment_PickupableItem>())
+	if (PickupDefinition)
 	{
-		if (!PickupableItemFragment->PickupDefinition)
-		{
-			OVRL_LOG_WARN(LogOverlink, true, "Failed to drop the item '%s'. The Item Definition must include a PickupableItem fragment.", *ItemToDrop->GetName());
-			return;
-		}
-		
 		// Deferred spawn so we can set cached item before BeginPlay is called
-		AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(PickupableItemFragment->PickupDefinition->BasePickupClass, GetOwner()->GetActorTransform());
+		AOvrlItemPickupActor* ItemPickupActor = GetWorld()->SpawnActorDeferred<AOvrlItemPickupActor>(PickupDefinition->BasePickupClass, GetOwner()->GetActorTransform());
 		if (!ItemPickupActor)
 		{
-			OVRL_LOG_WARN(LogOverlink, true, "Failed to spawn the Pickup Actor of the item '%s'. Check if the BasePickupClass of '%s' is set", *ItemToDrop->GetName(), *PickupableItemFragment->PickupDefinition->GetName());
+			OVRL_LOG_ERR(LogOverlink, true, "Failed to spawn the Pickup Actor of the item '%s'. Check if the BasePickupClass of '%s' is set", *ItemToDrop->GetName(), *PickupDefinition->GetName());
 			return;
 		}
 		
-		ItemPickupActor->SetCachedItemInstance(ItemToDrop);
+		ItemPickupActor->SetCachedItemInstance(ItemToDrop, Quantity);
 		UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform());
 
 		// Let pickup actor handle the drop logic
 		ItemPickupActor->Drop(); 
 	
-		// OnItemDropRequested.Broadcast();
+		OnItemDropped.Broadcast(ItemToDrop);
 
 		RemoveItem(ItemToDrop);
 	}
 	else
 	{
-		OVRL_LOG_WARN(LogOverlink, true, "Failed to drop the item '%s'. The Item Definition must include a PickupableItem fragment.", *ItemToDrop->GetName());
+		OVRL_LOG_WARN(LogOverlink, true, "Failed to drop the item '%s'.", *ItemToDrop->GetName());
 	}
-
-
-}
-
-int32 UOvrlInventoryComponent::GetDefaultStatFromItemDef(const TSubclassOf<UOvrlItemDefinition> WeaponItemClass, FGameplayTag StatTag)
-{
-	if (WeaponItemClass)
-	{
-		if (UOvrlItemDefinition* WeaponItemCDO = WeaponItemClass->GetDefaultObject<UOvrlItemDefinition>())
-		{
-			if (const UOvrlItemFragment_SetStats* ItemStatsFragment = WeaponItemCDO->FindFragmentByClass<UOvrlItemFragment_SetStats>())
-			{
-				return ItemStatsFragment->GetItemStatByTag(StatTag);
-			}
-		}
-	}
-
-	return 0;
 }
