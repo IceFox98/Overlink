@@ -26,6 +26,17 @@ AOvrlItemPickupActor::AOvrlItemPickupActor()
 	PickupCollider->SetupAttachment(ItemMesh);
 }
 
+void AOvrlItemPickupActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	
+	if (ItemDefinitionClass)
+	{
+		UOvrlItemDefinition* ItemDefinition = Cast<UOvrlItemDefinition>(ItemDefinitionClass->GetDefaultObject());
+		ItemMesh->SetStaticMesh(ItemDefinition->DisplayMesh);
+	}
+}
+
 void AOvrlItemPickupActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -101,7 +112,7 @@ bool AOvrlItemPickupActor::ManageDuplicatedItem_Implementation(TSubclassOf<UOvrl
 	return true;
 }
 
-void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent)
+void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent) const
 {
 	if (TargetInventoryComponent)
 	{
@@ -121,27 +132,31 @@ void AOvrlItemPickupActor::Drop_Implementation()
 	// No base logic
 }
 
+UOvrlItemDefinition* AOvrlItemPickupActor::GetItemDefinition() const
+{
+	// If the item was dropped, this will be valid, so we can set the ItemDefinition that would be null otherwise.
+	if (CachedItemInstance)
+	{
+		return CachedItemInstance->GetItemDef();
+	}
+	
+	if (ItemDefinitionClass)
+	{
+		return Cast<UOvrlItemDefinition>(ItemDefinitionClass->GetDefaultObject());
+	}
+	
+	return nullptr;
+}
+
 void AOvrlItemPickupActor::SetCachedItemInstance(UOvrlItemInstance* ItemToCache, int32 InQuantity/* = 1*/)
 {
 	CachedItemInstance = ItemToCache;
 	Quantity = FMath::Max(1, InQuantity); // Must be at least 1
 }
 
-void AOvrlItemPickupActor::RefreshData()
+void AOvrlItemPickupActor::RefreshData() const
 {
-	UOvrlItemDefinition* ItemDefinition = nullptr;
-
-	// If the item was dropped, this will be valid, so we can set the ItemDefinition that would be null otherwise.
-	if (CachedItemInstance)
-	{
-		ItemDefinition = CachedItemInstance->GetItemDef();
-	}
-	else if (ItemDefinitionClass)
-	{
-		ItemDefinition = Cast<UOvrlItemDefinition>(ItemDefinitionClass->GetDefaultObject());
-	}
-
-	if (ItemDefinition)
+	if (const UOvrlItemDefinition* ItemDefinition = GetItemDefinition())
 	{
 		ItemMesh->SetStaticMesh(ItemDefinition->DisplayMesh);
 

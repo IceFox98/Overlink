@@ -42,7 +42,7 @@ class OVERLINK_API UOvrlEquipmentManagerComponent : public UActorComponent
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Manager Component")
-	void InitializeFromInventory(UOvrlInventoryComponent* InventoryComponent);
+	void InitializeFromInventory(UOvrlInventoryComponent* InInventoryComponent);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Manager Component", meta=(AdvancedDisplay="bForceSet"))
 	void SetActiveSlotIndex(int32 NewIndex, bool bForceSet = false);
@@ -50,16 +50,20 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	const FQuickSlotEntry& FindFirstQuickSlotEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
 
-	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
-	void RemoveItemFromQuickSlots(UOvrlItemInstance* Item);
-
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE UOvrlItemInstance* GetActiveSlotItemInstance() const { return CurrentActiveSlotEntry.ItemInstance; };
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE AOvrlEquipmentInstance* GetActiveSlotEquipInstance() const { return CurrentActiveSlotEntry.EquipmentInstance; };
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
+	FORCEINLINE bool HasAnyQuickSlotAvailable() const;
 
 protected:
+	
+	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
+	void RemoveItemFromQuickSlots(UOvrlItemInstance* Item);
+	
 	UFUNCTION()
 	void OnInventoryItemAdded(UOvrlItemInstance* AddedItem);
 
@@ -67,6 +71,7 @@ protected:
 	void OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem);
 
 	int32 GetFirstAvailableQuickSlotIndex() const;
+	AOvrlEquipmentInstance* GetOrSpawnEquipmentInstance(int32 Index);
 
 	UOvrlAbilitySystemComponent* GetOwnerAbilitySystemComponent() const;
 
@@ -105,6 +110,9 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FQuickSlotEntry CurrentActiveSlotEntry;
+	
+	UPROPERTY()
+	TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 
 private:
 	FTimerHandle TimerHandle_EquipItem;

@@ -15,15 +15,17 @@ class UOvrlInventoryComponent;
 /**
  *
  */
-UCLASS(Blueprintable, BlueprintType)
+UCLASS(Blueprintable, BlueprintType, meta = (PrioritizeCategories = "OvrlItemPickupActor"))
 class OVERLINK_API AOvrlItemPickupActor : public AActor
 {
+private:
 	GENERATED_BODY()
 
 public:
 	AOvrlItemPickupActor();
 
 public:
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 protected:
@@ -40,6 +42,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
 	FORCEINLINE UOvrlItemInstance* GetCachedItem() const { return CachedItemInstance; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Item Pickup Actor")
+	UOvrlItemDefinition* GetItemDefinition() const;
 
 	void SetCachedItemInstance(UOvrlItemInstance* ItemToCache, int32 InQuantity = 1);
 
@@ -59,8 +64,8 @@ protected:
 	UFUNCTION()
 	void OnPickupColliderOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	void AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent);
-	void RefreshData();
+	void AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent) const;
+	void RefreshData() const;
 
 public:
 	// ------ COMPONENTS ------

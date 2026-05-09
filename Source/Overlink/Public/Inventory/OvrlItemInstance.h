@@ -48,6 +48,8 @@ UCLASS(BlueprintType)
 class OVERLINK_API UOvrlItemInstance : public UObject
 {
 	GENERATED_BODY()
+	
+	UOvrlItemInstance();
 
 public:
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
@@ -77,8 +79,15 @@ public:
 	{
 		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
 	}
+	
+	// bool operator==(const UOvrlItemInstance* Other) const
+	// {
+	// 	return this == Other && ;
+	// }
 
 private:
+	FGuid ID;
+	
 	TSubclassOf<UOvrlItemDefinition> ItemDefClass;
 
 	// List of gameplay tag stacks

@@ -42,16 +42,12 @@ public:
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemAdded, UOvrlItemInstance*, AddedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemRemoved, UOvrlItemInstance*, RemovedItem);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemDropped, UOvrlItemInstance*, DroppedItem);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem, bool, bJustCreated);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
-public:
-	// Sets default values for this component's properties
-	UOvrlInventoryComponent();
 
 public:
 	virtual void BeginPlay() override;
@@ -68,12 +64,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void RemoveItem(UOvrlItemInstance* ItemToRemove, int32 Quantity = 1);
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
-	FORCEINLINE AOvrlEquipmentInstance* GetEquippedInstance() const { return CurrentEquippedInstance; }
-
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta=(AdvancedDisplay="bForceSet"))
-	void SetActiveSlotIndex(int32 NewIndex, bool bForceSet = false);
-
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FOvrlItemEntry FindFirstItemEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
 
@@ -83,19 +73,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component",
 		meta=(AdvancedDisplay="bCreateItemIfMissing", ReturnDisplayName="Item Instance"))
 	UOvrlItemInstance* AddItemQuantityByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 QuantityToAdd, bool bCreateItemIfMissing);
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
-	FORCEINLINE TArray<AOvrlEquipmentInstance*> GetEquippedInstances() const { return EquippedInstances; };
-
-private:
-	UFUNCTION()
-	void SetActiveSlotIndex_Internal(int32 NewIndex);
-
-	void EquipItemInSlot();
-	void UnequipItemInSlot();
-	void UnequipItem(AOvrlEquipmentInstance* ItemToUnequip) const;
-
-	void RefreshQuickSlot();
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
@@ -117,18 +94,6 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<FOvrlItemEntry> ItemEntries;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TArray<AOvrlEquipmentInstance*> EquippedInstances;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TArray<AOvrlEquipmentInstance*> QuickSlotInstances;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TObjectPtr<AOvrlEquipmentInstance> CurrentEquippedInstance;
-
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	int32 QuickSlotIndex;
 
 private:
 	FTimerHandle TimerHandle_EquipItem;

@@ -57,7 +57,7 @@ void UOvrlRangedWeaponAnimInstance::OnActiveSlotChanged(const FQuickSlotEntry& A
 {
 	Super::OnActiveSlotChanged(ActiveSlotEntry);
 
-	if (EquippedItem->IsA<AOvrlRangedWeaponInstance>())
+	if (EquippedItem && EquippedItem->IsA<AOvrlRangedWeaponInstance>())
 	{
 		EquippedWeapon = Cast<AOvrlRangedWeaponInstance>(EquippedItem);
 	}

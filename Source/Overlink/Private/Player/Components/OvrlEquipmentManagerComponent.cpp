@@ -12,8 +12,10 @@
 #include "OvrlLogUtils.h"
 #include "OvrlItemUtils.h"
 
-void UOvrlEquipmentManagerComponent::InitializeFromInventory(UOvrlInventoryComponent* InventoryComponent)
+void UOvrlEquipmentManagerComponent::InitializeFromInventory(UOvrlInventoryComponent* InInventoryComponent)
 {
+	InventoryComponent = InInventoryComponent;
+
 	if (InventoryComponent)
 	{
 		InventoryComponent->OnItemRemoved.AddUniqueDynamic(this, &UOvrlEquipmentManagerComponent::OnInventoryItemRemoved);
@@ -21,6 +23,11 @@ void UOvrlEquipmentManagerComponent::InitializeFromInventory(UOvrlInventoryCompo
 	}
 
 	QuickSlotEntries.Init(FQuickSlotEntry(), NumQuickSlots);
+}
+
+bool UOvrlEquipmentManagerComponent::HasAnyQuickSlotAvailable() const
+{
+	return GetFirstAvailableQuickSlotIndex() != INDEX_NONE;
 }
 
 void UOvrlEquipmentManagerComponent::OnInventoryItemAdded(UOvrlItemInstance* AddedItem)
@@ -31,75 +38,66 @@ void UOvrlEquipmentManagerComponent::OnInventoryItemAdded(UOvrlItemInstance* Add
 		// Should be equipped immediately?
 		if (EquipmentDef->bSetAsActiveSlotOnAdded && EquipmentDef->bShouldSpawnEquipmentInstance)
 		{
+			bool bForceSet = false;
+			if (!HasAnyQuickSlotAvailable())
+			{
+				if (CurrentActiveSlotEntry.ItemInstance)
+				{
+					// Replace the current active item with the new one
+					InventoryComponent->DropItem(CurrentActiveSlotEntry.ItemInstance);
+				}
+
+				// If we're here it means that there's no quick slot left, so we force re-select the new added item
+				// to the currently active slot.
+				bForceSet = true;
+			}
+
 			const int32 SlotIndex = AddItemToQuickSlots(AddedItem);
-			SetActiveSlotIndex(SlotIndex);
+			
+			if (!bForceSet)
+			{
+				// Force set active index if the new item's index is the same as the current one.
+				bForceSet = SlotIndex == QuickSlotIndex;
+			}
+			
+			SetActiveSlotIndex(SlotIndex, bForceSet);
 		}
 	}
 }
 
-void UOvrlEquipmentManagerComponent::SetActiveSlotIndex(int32 NewIndex, bool bForceSet)
+void UOvrlEquipmentManagerComponent::SetActiveSlotIndex(int32 NewIndex, bool bForceSet/* = false*/)
 {
-	// if (!bForceSet)
-	// {
-	if (QuickSlotIndex == NewIndex || TimerHandle_EquipItem.IsValid())
+	if (!bForceSet)
 	{
-		// Do nothing if index is the same.
-		return;
-	}
-	// }
-
-	if (QuickSlotEntries.IsValidIndex(NewIndex))
-	{
-		UOvrlItemInstance* Item = QuickSlotEntries[NewIndex].ItemInstance;
-
-		if (const UOvrlEquipmentDefinition* EquipmentDefinition = UOvrlItemUtils::GetItemEquipmentDefinition(Item))
+		if (QuickSlotIndex == NewIndex || TimerHandle_EquipItem.IsValid())
 		{
-			if (EquipmentDefinition->bShouldSpawnEquipmentInstance)
-			{
-				if (EquipmentDefinition->EquipmentClass)
-				{
-					FActorSpawnParameters SpawnParams;
-					SpawnParams.Owner = GetOwner();
-					SpawnParams.Instigator = Cast<APawn>(GetOwner());
+			// Do nothing if index is the same.
+			return;
+		}
+	}
 
-					AOvrlEquipmentInstance* EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDefinition->EquipmentClass, SpawnParams);
-					EquipmentInstance->Initialize(const_cast<UOvrlEquipmentDefinition*>(EquipmentDefinition), Item);
-
-					QuickSlotEntries[NewIndex].EquipmentInstance = EquipmentInstance;
-					// EquippedInstances.Emplace(EquipmentInstance);
-
-					// SetActiveSlotIndex(EquippedInstances.Num() - 1);
-				}
-				else
-				{
-					OVRL_LOG_WARN(LogOverlink, true, "Tried to spawn equipment instance, but EquipmentClass was not valid! Asset: %s", *EquipmentDefinition->GetName());
-				}
-			}
+	AOvrlEquipmentInstance* NewEquipInstance = GetOrSpawnEquipmentInstance(NewIndex);
+	if (NewEquipInstance)
+	{
+		if (CurrentActiveSlotEntry.EquipmentInstance)
+		{
+			CurrentActiveSlotEntry.EquipmentInstance->OnBeforeUnequip(); // Prepare current item to unequip (stop firing/animations...)
 		}
 
-		AOvrlEquipmentInstance* NewEquipInstance = QuickSlotEntries[NewIndex].EquipmentInstance;
-		if (NewEquipInstance)
+		const float EquipNotifyTime = NewEquipInstance->GetEquipNotifyTime();
+		NewEquipInstance->PlayEquipMontage();
+
+		if (EquipNotifyTime > 0.f)
 		{
-			if (CurrentActiveSlotEntry.EquipmentInstance)
-			{
-				CurrentActiveSlotEntry.EquipmentInstance->OnBeforeUnequip(); // Prepare current item to unequip (stop firing/animations...)
-			}
-
-			const float EquipNotifyTime = NewEquipInstance->GetEquipNotifyTime();
-			NewEquipInstance->PlayEquipMontage();
-
-			if (EquipNotifyTime > 0.f)
-			{
-				// Simulate weapon switch animation, but actually perform the switch only after specific amount of time
-				FTimerDelegate TimerDelegate;
-				TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UOvrlEquipmentManagerComponent, SetActiveSlotIndex_Internal), NewIndex);
-				GetWorld()->GetTimerManager().SetTimer(TimerHandle_EquipItem, TimerDelegate, EquipNotifyTime, false);
-			}
-			else
-			{
-				// Instant item switch
-				SetActiveSlotIndex_Internal(NewIndex);
-			}
+			// Simulate weapon switch animation, but actually perform the switch only after specific amount of time
+			FTimerDelegate TimerDelegate;
+			TimerDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UOvrlEquipmentManagerComponent, SetActiveSlotIndex_Internal), NewIndex);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_EquipItem, TimerDelegate, EquipNotifyTime, false);
+		}
+		else
+		{
+			// Instant item switch
+			SetActiveSlotIndex_Internal(NewIndex);
 		}
 	}
 }
@@ -113,6 +111,44 @@ void UOvrlEquipmentManagerComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
 	QuickSlotIndex = NewIndex;
 
 	EquipItemInSlot();
+}
+
+AOvrlEquipmentInstance* UOvrlEquipmentManagerComponent::GetOrSpawnEquipmentInstance(int32 Index)
+{
+	if (!QuickSlotEntries.IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+
+	AOvrlEquipmentInstance* EquipmentInstance = QuickSlotEntries[Index].EquipmentInstance;
+	if (!EquipmentInstance)
+	{
+		UOvrlItemInstance* Item = QuickSlotEntries[Index].ItemInstance;
+
+		if (const UOvrlEquipmentDefinition* EquipmentDefinition = UOvrlItemUtils::GetItemEquipmentDefinition(Item))
+		{
+			if (EquipmentDefinition->bShouldSpawnEquipmentInstance)
+			{
+				if (EquipmentDefinition->EquipmentClass)
+				{
+					FActorSpawnParameters SpawnParams;
+					SpawnParams.Owner = GetOwner();
+					SpawnParams.Instigator = Cast<APawn>(GetOwner());
+
+					EquipmentInstance = GetWorld()->SpawnActor<AOvrlEquipmentInstance>(EquipmentDefinition->EquipmentClass, SpawnParams);
+					EquipmentInstance->Initialize(const_cast<UOvrlEquipmentDefinition*>(EquipmentDefinition), Item);
+
+					QuickSlotEntries[Index].EquipmentInstance = EquipmentInstance;
+				}
+				else
+				{
+					OVRL_LOG_WARN(LogOverlink, true, "Tried to spawn equipment instance, but EquipmentClass was not valid! Asset: %s", *EquipmentDefinition->GetName());
+				}
+			}
+		}
+	}
+
+	return EquipmentInstance;
 }
 
 void UOvrlEquipmentManagerComponent::EquipItem(UOvrlItemInstance* Item)
@@ -202,20 +238,21 @@ void UOvrlEquipmentManagerComponent::UnequipItem(UOvrlItemInstance* ItemToUnequi
 
 int32 UOvrlEquipmentManagerComponent::AddItemToQuickSlots(UOvrlItemInstance* Item)
 {
-	const int32 SlotIndex = GetFirstAvailableQuickSlotIndex();
-	if (SlotIndex != INDEX_NONE)
+	int32 SlotIndex = GetFirstAvailableQuickSlotIndex();
+	if (SlotIndex == INDEX_NONE)
 	{
-		FQuickSlotEntry SlotEntry;
-		SlotEntry.ItemInstance = Item;
-		QuickSlotEntries[SlotIndex] = SlotEntry;
+		SlotIndex = QuickSlotIndex;
 	}
+
+	FQuickSlotEntry SlotEntry;
+	SlotEntry.ItemInstance = Item;
+	QuickSlotEntries[SlotIndex] = SlotEntry;
 
 	return SlotIndex;
 }
 
 void UOvrlEquipmentManagerComponent::OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem)
 {
-	// Search if the item is also an equipment, in that case unequip it
 	for (auto It = ItemInstances.CreateIterator(); It; ++It)
 	{
 		UOvrlItemInstance*& ItemInstance = *It;
@@ -223,10 +260,7 @@ void UOvrlEquipmentManagerComponent::OnInventoryItemRemoved(UOvrlItemInstance* R
 		if (ItemInstance == RemovedItem)
 		{
 			RemoveItemFromQuickSlots(RemovedItem);
-
-			// Remove from equipped item list
-			It.RemoveCurrent();
-
+			UnequipItem(RemovedItem);
 			break;
 		}
 	}
@@ -245,12 +279,14 @@ void UOvrlEquipmentManagerComponent::RemoveItemFromQuickSlots(UOvrlItemInstance*
 				QuickSlotEntry.EquipmentInstance->Destroy();
 			}
 
+			// Check if the item removed is the same we have currently selected
 			if (GetActiveSlotItemInstance() == Item)
 			{
 				CurrentActiveSlotEntry.Invalidate();
 			}
 
 			QuickSlotEntry.Invalidate();
+			OnActiveSlotChanged.Broadcast(QuickSlotEntry);
 			break;
 		}
 	}
