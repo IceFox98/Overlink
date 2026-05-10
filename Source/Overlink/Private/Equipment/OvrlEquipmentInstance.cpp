@@ -2,24 +2,16 @@
 
 #include "Equipment/OvrlEquipmentInstance.h"
 
-#include "AbilitySystem/OvrlAbilitySystemComponent.h"
 #include "Equipment/OvrlEquipmentDefinition.h"
-// #include "Animations/OvrlLinkedAnimInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Inventory/OvrlItemDefinition.h"
 #include "Inventory/OvrlItemInstance.h"
 #include "Player/OvrlCharacterBase.h"
 #include "OvrlLogUtils.h"
 
-// Engine
-#include "AbilitySystemGlobals.h"
-
-// Sets default values
 AOvrlEquipmentInstance::AOvrlEquipmentInstance()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 void AOvrlEquipmentInstance::Destroyed()
@@ -82,19 +74,6 @@ void AOvrlEquipmentInstance::OnUnequipped_Implementation()
 	bIsEquipped = false;
 
 	SetActorHiddenInGame(true);
-
-	// if (UOvrlAbilitySystemComponent* ASC = GetOwnerAbilitySystemComponent())
-	// {
-	// 	// When unequip the item, remove all given abilities/effects/attributes from owner's ASC
-	// 	GrantedHandles.TakeFromAbilitySystem(ASC);
-	// }
-}
-
-void AOvrlEquipmentInstance::BeginDrop_Implementation()
-{
-	// Play any sound, or other logic
-
-	OnDropReady.Broadcast(this);
 }
 
 float AOvrlEquipmentInstance::GetEquipNotifyTime() const
@@ -161,9 +140,4 @@ void AOvrlEquipmentInstance::ApplyOverlayAnimInstance() const
 			OwningPawn->ApplyAnimLayerClass(EquipmentDefinition->OverlayAnimInstance);
 		}
 	}
-}
-
-UOvrlAbilitySystemComponent* AOvrlEquipmentInstance::GetOwnerAbilitySystemComponent() const
-{
-	return Cast<UOvrlAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner()));
 }

@@ -43,7 +43,8 @@ void UOvrlEquipmentManagerComponent::OnInventoryItemAdded(UOvrlItemInstance* Add
 			{
 				if (CurrentActiveSlotEntry.ItemInstance)
 				{
-					// Replace the current active item with the new one
+					// Replace the current active item with the new one.
+					// This will trigger OnItemRemoved delegate
 					InventoryComponent->DropItem(CurrentActiveSlotEntry.ItemInstance);
 				}
 
@@ -113,6 +114,29 @@ void UOvrlEquipmentManagerComponent::SetActiveSlotIndex_Internal(int32 NewIndex)
 	EquipItemInSlot();
 }
 
+bool UOvrlEquipmentManagerComponent::SelectNearestValidSlot()
+{
+	for (int32 Offset = 1; Offset < NumQuickSlots; Offset++)
+	{
+		const int32 RightIndex = QuickSlotIndex + Offset;
+		if (QuickSlotEntries.IsValidIndex(RightIndex) && QuickSlotEntries[RightIndex].ItemInstance)
+		{
+			SetActiveSlotIndex(RightIndex);
+			return true;
+		}
+
+		const int32 LeftIndex = QuickSlotIndex - Offset;
+		if (QuickSlotEntries.IsValidIndex(LeftIndex) && QuickSlotEntries[LeftIndex].ItemInstance)
+		{
+			SetActiveSlotIndex(LeftIndex);
+			return true;
+		}
+	}
+	
+	// Nothing changed
+	return false;
+}
+
 AOvrlEquipmentInstance* UOvrlEquipmentManagerComponent::GetOrSpawnEquipmentInstance(int32 Index)
 {
 	if (!QuickSlotEntries.IsValidIndex(Index))
@@ -158,7 +182,7 @@ void UOvrlEquipmentManagerComponent::EquipItem(UOvrlItemInstance* Item)
 		return;
 	}
 
-	ItemInstances.Add(Item);
+	EquippedItems.Add(Item);
 
 	if (UOvrlAbilitySystemComponent* ASC = GetOwnerAbilitySystemComponent())
 	{
@@ -225,7 +249,7 @@ void UOvrlEquipmentManagerComponent::UnequipItem(UOvrlItemInstance* ItemToUnequi
 		return;
 	}
 
-	ItemInstances.Remove(ItemToUnequip);
+	EquippedItems.Remove(ItemToUnequip);
 
 	if (UOvrlAbilitySystemComponent* ASC = GetOwnerAbilitySystemComponent())
 	{
@@ -253,7 +277,7 @@ int32 UOvrlEquipmentManagerComponent::AddItemToQuickSlots(UOvrlItemInstance* Ite
 
 void UOvrlEquipmentManagerComponent::OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem)
 {
-	for (auto It = ItemInstances.CreateIterator(); It; ++It)
+	for (auto It = EquippedItems.CreateIterator(); It; ++It)
 	{
 		UOvrlItemInstance*& ItemInstance = *It;
 
@@ -261,7 +285,7 @@ void UOvrlEquipmentManagerComponent::OnInventoryItemRemoved(UOvrlItemInstance* R
 		{
 			RemoveItemFromQuickSlots(RemovedItem);
 			UnequipItem(RemovedItem);
-			break;
+			return;
 		}
 	}
 }
@@ -287,7 +311,7 @@ void UOvrlEquipmentManagerComponent::RemoveItemFromQuickSlots(UOvrlItemInstance*
 
 			QuickSlotEntry.Invalidate();
 			OnActiveSlotChanged.Broadcast(QuickSlotEntry);
-			break;
+			return;
 		}
 	}
 }

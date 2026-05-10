@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Equipment/OvrlEquipmentInstance.h"
+#include "AbilitySystem/OvrlAbilitySet.h"
 #include "NiagaraFunctionLibrary.h"
 
 #include "OvrlWeaponInstance.generated.h"

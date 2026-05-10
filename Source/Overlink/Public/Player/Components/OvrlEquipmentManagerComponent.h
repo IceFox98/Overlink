@@ -6,7 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "OvrlEquipmentManagerComponent.generated.h"
 
-class UOvrlEquipmentDefinition;
 class UOvrlItemInstance;
 class UOvrlInventoryComponent;
 class UOvrlAbilitySystemComponent;
@@ -55,24 +54,25 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE AOvrlEquipmentInstance* GetActiveSlotEquipInstance() const { return CurrentActiveSlotEntry.EquipmentInstance; };
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE bool HasAnyQuickSlotAvailable() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Manager Component")
+	bool SelectNearestValidSlot();
 
 protected:
-	
-	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
-	void RemoveItemFromQuickSlots(UOvrlItemInstance* Item);
-	
 	UFUNCTION()
 	void OnInventoryItemAdded(UOvrlItemInstance* AddedItem);
 
 	UFUNCTION()
 	void OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem);
-
+	
+	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
+	void RemoveItemFromQuickSlots(UOvrlItemInstance* Item);
+	
 	int32 GetFirstAvailableQuickSlotIndex() const;
 	AOvrlEquipmentInstance* GetOrSpawnEquipmentInstance(int32 Index);
-
 	UOvrlAbilitySystemComponent* GetOwnerAbilitySystemComponent() const;
 
 private:
@@ -102,15 +102,20 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	int32 QuickSlotIndex = -1;
 
+	// List of items currently equipped, active quick slot included
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
-	TArray<UOvrlItemInstance*> ItemInstances;
+	TArray<UOvrlItemInstance*> EquippedItems;
 
+	// List of items that are currently placed in the quick slot bar.
+	// They can be equipped changing the quick slot index.
+	// NOTE: It has a fixed size! See NumQuickSlots
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<FQuickSlotEntry> QuickSlotEntries;
 
+	// Current active quick slot item.
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FQuickSlotEntry CurrentActiveSlotEntry;
-	
+
 	UPROPERTY()
 	TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 

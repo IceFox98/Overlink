@@ -151,6 +151,13 @@ void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop, int32 Quan
 			return;
 		}
 		
+		const FOvrlItemEntry ItemEntry = FindFirstItemEntryByInstance(ItemToDrop);
+		if (ItemEntry.Quantity > 0)
+		{
+			// Drop quantity should not exceed the actual quantity of the item.
+			Quantity = FMath::Min(Quantity, ItemEntry.Quantity);
+		}
+		
 		ItemPickupActor->SetCachedItemInstance(ItemToDrop, Quantity);
 		UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform());
 
@@ -177,5 +184,18 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByDefinition(TSubclass
 		}
 	}
 
+	return FOvrlItemEntry();
+}
+
+FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByInstance(UOvrlItemInstance* Item) const
+{
+	for (const FOvrlItemEntry& ItemEntry : ItemEntries)
+	{
+		if (ItemEntry.Instance == Item)
+		{
+			return ItemEntry;
+		}
+	}
+	
 	return FOvrlItemEntry();
 }

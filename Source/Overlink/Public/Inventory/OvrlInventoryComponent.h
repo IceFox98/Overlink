@@ -66,6 +66,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FOvrlItemEntry FindFirstItemEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
+	FOvrlItemEntry FindFirstItemEntryByInstance(UOvrlItemInstance* Item) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component", meta=(AdvancedDisplay="bCreateItemIfMissing"))
 	void AddItemQuantity(UOvrlItemInstance* Item, int32 QuantityToAdd, bool bCreateItemIfMissing);
