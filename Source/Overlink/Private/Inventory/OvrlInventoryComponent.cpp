@@ -5,6 +5,7 @@
 #include "Inventory/OvrlItemFragment_SetStats.h"
 #include "Inventory/OvrlItemPickupActor.h"
 #include "Inventory/OvrlPickupDefinition.h"
+#include "SaveSystem/OvrlSaveTypes.h"
 #include "OvrlItemUtils.h"
 #include "OvrlLogUtils.h"
 
@@ -19,16 +20,27 @@ void UOvrlInventoryComponent::BeginPlay()
 	{
 		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.Quantity);
 	}
+
+	InitialItems.Empty();
 }
 
 UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity/* = 1*/)
+{
+	UOvrlItemInstance* ItemInstance = CreateUniqueItem(ItemDefinition);
+	
+	AddItem(ItemInstance, Quantity);
+
+	return ItemInstance;
+}
+
+UOvrlItemInstance* UOvrlInventoryComponent::CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const
 {
 	if (!ItemDefinition)
 	{
 		OVRL_LOG_ERR(LogOverlink, true, "ItemDefinition is NULL!");
 		return nullptr;
 	}
-
+	
 	const FName ItemName = MakeUniqueObjectName(GetOwner(), UOvrlItemInstance::StaticClass(), ItemDefinition->GetFName());
 	UOvrlItemInstance* ItemInstance = NewObject<UOvrlItemInstance>(GetOwner(), ItemName);
 	ItemInstance->SetItemDef(ItemDefinition);
@@ -41,8 +53,6 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 			Fragment->OnInstanceCreated(ItemInstance);
 		}
 	}
-
-	AddItem(ItemInstance, Quantity);
 
 	return ItemInstance;
 }
@@ -138,9 +148,9 @@ void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop, int32 Quan
 		OVRL_LOG_WARN(LogOverlink, true, "ItemToDrop is NULL!");
 		return;
 	}
-	
+
 	const UOvrlPickupDefinition* PickupDefinition = UOvrlItemUtils::GetPickupDefinitionFromItemInstance(ItemToDrop);
-	
+
 	if (PickupDefinition)
 	{
 		// Deferred spawn so we can set cached item before BeginPlay is called
@@ -150,20 +160,20 @@ void UOvrlInventoryComponent::DropItem(UOvrlItemInstance* ItemToDrop, int32 Quan
 			OVRL_LOG_ERR(LogOverlink, true, "Failed to spawn the Pickup Actor of the item '%s'. Check if the BasePickupClass of '%s' is set", *ItemToDrop->GetName(), *PickupDefinition->GetName());
 			return;
 		}
-		
+
 		const FOvrlItemEntry ItemEntry = FindFirstItemEntryByInstance(ItemToDrop);
 		if (ItemEntry.Quantity > 0)
 		{
 			// Drop quantity should not exceed the actual quantity of the item.
 			Quantity = FMath::Min(Quantity, ItemEntry.Quantity);
 		}
-		
+
 		ItemPickupActor->SetCachedItemInstance(ItemToDrop, Quantity);
 		UGameplayStatics::FinishSpawningActor(ItemPickupActor, GetOwner()->GetActorTransform());
 
 		// Let pickup actor handle the drop logic
-		ItemPickupActor->Drop(); 
-	
+		ItemPickupActor->Drop();
+
 		OnItemDropped.Broadcast(ItemToDrop);
 
 		RemoveItem(ItemToDrop);
@@ -196,6 +206,42 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByInstance(UOvrlItemIn
 			return ItemEntry;
 		}
 	}
-	
+
 	return FOvrlItemEntry();
 }
+
+// void UOvrlInventoryComponent::Serialize(FArchive& Ar)
+// {
+// 	Super::Serialize(Ar);
+//
+// 	if (Ar.IsSaving())
+// 	{
+// 		// TArray<FInventoryItemEntrySaveData> SaveDataList;
+// 		//
+// 		// for (const FOvrlItemEntry& ItemEntry : ItemEntries)
+// 		// {
+// 		// 	FInventoryItemEntrySaveData SaveData;
+// 		// 	SaveData.ItemDefinition = ItemEntry.Instance->GetItemDefClass();
+// 		// 	SaveData.Stacks = ItemEntry.Instance->Stacks;
+// 		// 	SaveData.Quantity = ItemEntry.Quantity;
+// 		// 	SaveDataList.Add(SaveData);
+// 		// }
+// 		//
+// 		// Ar << SaveDataList;
+// 	}
+// 	else if (Ar.IsLoading())
+// 	{
+// 		// TArray<FInventoryItemEntrySaveData> SaveDataList;
+// 		// Ar << SaveDataList;
+// 		//
+// 		// for (const FInventoryItemEntrySaveData& SaveData : SaveDataList)
+// 		// {
+// 		// 	UOvrlItemInstance* ItemInstance = CreateUniqueItem(SaveData.ItemDefinition);
+// 		// 	if (ItemInstance)
+// 		// 	{
+// 		// 		ItemInstance->Stacks = SaveData.Stacks; // Override any existing item stacks
+// 		// 		AddItem(ItemInstance);
+// 		// 	}
+// 		// }
+// 	}
+// }

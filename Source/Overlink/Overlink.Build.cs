@@ -20,6 +20,7 @@ public class Overlink : ModuleRules
 			"GameplayAbilities",
 			"MotionWarping",
 			"EngineSettings",
+			"CoreOnline", 
 			"UMG",
 			"Slate",
 			"SlateCore",

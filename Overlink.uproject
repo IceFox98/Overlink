@@ -15,7 +15,8 @@
 				"CoreUObject",
 				"UMG",
 				"CommonUI",
-				"AIModule"
+				"AIModule",
+				"DeveloperSettings"
 			]
 		},
 		{

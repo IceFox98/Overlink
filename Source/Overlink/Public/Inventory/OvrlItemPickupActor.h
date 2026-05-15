@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/Interfaces/OvrlSaveableObject.h"
 #include "GameFramework/Actor.h"
 #include "OvrlItemPickupActor.generated.h"
 
@@ -15,7 +16,7 @@ class UOvrlInventoryComponent;
 /**
  *
  */
-UCLASS(Blueprintable, BlueprintType, meta = (PrioritizeCategories = "OvrlItemPickupActor"))
+UCLASS(Blueprintable, BlueprintType)
 class OVERLINK_API AOvrlItemPickupActor : public AActor
 {
 private:
@@ -81,15 +82,15 @@ protected:
 
 	// If true, the item will be added to the inventory even if there's already an instance of it.
 	// Otherwise, you can manage the item pickup behavior using ManageDuplicatedItem() of this class.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", SaveGame)
 	bool bAddDuplicatedItem;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", SaveGame)
 	TSubclassOf<UOvrlItemDefinition> ItemDefinitionClass;
 
 	// The quantity assigned to the item when it will be added to the inventory.
 	// E.g.: ID_HealthPotion - 20 -> In the inventory you will have 1 item entry (Health Potion) with 20 count
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", meta = (ClampMin = 1))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", meta = (ClampMin = 1), SaveGame)
 	int32 Quantity = 1;
 
 	// Reference used when an entity drops an item.

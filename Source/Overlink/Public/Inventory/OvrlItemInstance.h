@@ -48,8 +48,8 @@ UCLASS(BlueprintType)
 class OVERLINK_API UOvrlItemInstance : public UObject
 {
 	GENERATED_BODY()
-	
-	UOvrlItemInstance();
+
+	friend class UOvrlSaveGameSubsystem;
 
 public:
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
@@ -63,13 +63,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	int32 GetTagStackCount(FGameplayTag Tag) const;
 
-	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDefClass) { ItemDefClass = InItemDefClass; };
+	void SetItemDef(const TSubclassOf<UOvrlItemDefinition>& InItemDefClass) { ItemDefClass = InItemDefClass; }
 	FORCEINLINE TSubclassOf<UOvrlItemDefinition> GetItemDefClass() const { return ItemDefClass; }
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	UOvrlItemDefinition* GetItemDef() const;
 
-	FOvrlAbilitySet_GrantedHandles& GetGrantedHandles() { return GrantedHandles; } ;
+	FORCEINLINE FOvrlAbilitySet_GrantedHandles& GetGrantedHandles() { return GrantedHandles; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
@@ -79,15 +79,8 @@ public:
 	{
 		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
 	}
-	
-	// bool operator==(const UOvrlItemInstance* Other) const
-	// {
-	// 	return this == Other && ;
-	// }
 
 private:
-	FGuid ID;
-	
 	TSubclassOf<UOvrlItemDefinition> ItemDefClass;
 
 	// List of gameplay tag stacks
@@ -95,7 +88,6 @@ private:
 	TArray<FGameplayTagStack> Stacks;
 
 	// Accelerated list of tag stacks for queries
-	UPROPERTY()
 	TMap<FGameplayTag, int32> TagToCountMap;
 
 	// List of granted handles

@@ -3,11 +3,6 @@
 #include "Inventory/OvrlItemInstance.h"
 #include "Inventory/OvrlItemDefinition.h"
 
-UOvrlItemInstance::UOvrlItemInstance()
-{
-	ID = FGuid::NewGuid();
-}
-
 void UOvrlItemInstance::AddStack(FGameplayTag Tag, int32 StackCount)
 {
 	if (!Tag.IsValid())

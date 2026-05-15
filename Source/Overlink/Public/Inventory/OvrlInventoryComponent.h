@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "OvrlItemPickupActor.h"
 #include "Components/ActorComponent.h"
+#include "Core/Interfaces/OvrlSaveableObject.h"
 #include "OvrlInventoryComponent.generated.h"
 
 class UOvrlAbilitySystemComponent;
@@ -19,10 +20,10 @@ struct FOvrlItemEntry
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
 	TObjectPtr<UOvrlItemInstance> Instance;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
 	int32 Quantity = 0;
 };
 
@@ -45,16 +46,19 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemDropped, UOvrlItemInstance*, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemUpdated, const FOvrlItemEntry&, UpdatedItem);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class OVERLINK_API UOvrlInventoryComponent : public UActorComponent
+class OVERLINK_API UOvrlInventoryComponent : public UActorComponent, public IOvrlSaveableObject
 {
+private:
 	GENERATED_BODY()
 
 public:
 	virtual void BeginPlay() override;
+	// virtual void Serialize(FArchive& Ar) override;
 
 public:
 	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity = 1);
-
+	UOvrlItemInstance* CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
+	
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void AddItem(UOvrlItemInstance* Item, int32 Quantity = 1);
 
@@ -66,7 +70,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FOvrlItemEntry FindFirstItemEntryByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
-	
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FOvrlItemEntry FindFirstItemEntryByInstance(UOvrlItemInstance* Item) const;
 
@@ -77,10 +81,13 @@ public:
 		meta=(AdvancedDisplay="bCreateItemIfMissing", ReturnDisplayName="Item Instance"))
 	UOvrlItemInstance* AddItemQuantityByDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 QuantityToAdd, bool bCreateItemIfMissing);
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
+	FORCEINLINE TArray<FOvrlItemEntry> GetItemEntries() const { return ItemEntries; }
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemAdded OnItemAdded;
-	
+
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemUpdated OnItemUpdated;
 
@@ -95,8 +102,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FOvrlInitialItemData> InitialItems;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly)
 	TArray<FOvrlItemEntry> ItemEntries;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, SaveGame)
+	bool bTestSave;
 
 private:
 	FTimerHandle TimerHandle_EquipItem;
