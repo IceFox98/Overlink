@@ -61,6 +61,17 @@ void UOvrlItemInstance::RemoveStack(FGameplayTag Tag, int32 StackCount)
 	}
 }
 
+void UOvrlItemInstance::ReplaceStacks(const TArray<FGameplayTagStack>& InStacks)
+{
+	TagToCountMap.Empty();
+	Stacks.Empty();
+	
+	for (const FGameplayTagStack& Stack : InStacks)
+	{
+		AddStack(Stack.Tag, Stack.StackCount);
+	}
+}
+
 int32 UOvrlItemInstance::GetTagStackCount(FGameplayTag Tag) const
 {
 	if (TagToCountMap.IsEmpty() || TagToCountMap.Num() <= 0)

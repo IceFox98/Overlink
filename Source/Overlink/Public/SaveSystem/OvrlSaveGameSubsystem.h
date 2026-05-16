@@ -11,7 +11,7 @@
 struct FOvrlSaveGameArchive : public FObjectAndNameAsStringProxyArchive
 {
 	FOvrlSaveGameArchive(FArchive& InInnerArchive)
-	  : FObjectAndNameAsStringProxyArchive(InInnerArchive, false)
+		: FObjectAndNameAsStringProxyArchive(InInnerArchive, false)
 	{
 		ArIsSaveGame = true;
 		// If true, even though the property values have not been altered from the default value, the serializer will still serialize these properties.
@@ -34,18 +34,18 @@ public:
 
 	void SerializeObject(UObject* Object, TArray<uint8>& OutResult);
 	void DeserializeObject(const TArray<uint8>& Data, UObject* Object);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void CreateNewSaveGame(FString SlotName);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void SaveCurrentSlot();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void LoadGame(FString SlotName);
-	
-	// Restore serialized data from PlayerState into player
-	void HandleStartingNewPlayer(AController* NewPlayer);
+
+	void LoadPlayerData(APawn* Player);
+	void OnPostPlayerPossesed();
 
 	// Restore spawn transform using stored data per PlayerState after being fully initialized.
 	UFUNCTION(BlueprintCallable)
@@ -61,21 +61,24 @@ public:
 	// // Load from disk, optional slot name
 	// UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	// void LoadSaveGame(FString InSlotName = "");
-	
-	
+
+	FActorSaveData GetPlayerSaveData() const;
+
 protected:
-	
 	FEntitySaveData TryCreateEntitySaveData(const AActor* Actor, const FActorSaveData& ActorSaveData);
-	
+
 	void ExecuteOnPreSaveSafe(UObject* Target);
 	void ExecuteOnSaveSafe(UObject* Target);
 	void ExecuteOnPreLoadSafe(UObject* Target);
 	void ExecuteOnLoadSafe(UObject* Target);
-	
+
 private:
 	void PopulateCurrentSlot();
 	void PopulateFromCurrentSlot();
 
+	void LoadActor(AActor* Actor, const FActorSaveData& ActorSaveData);
+
+public:
 	UPROPERTY(BlueprintAssignable)
 	FOnSaveGame OnSaveGameLoaded;
 

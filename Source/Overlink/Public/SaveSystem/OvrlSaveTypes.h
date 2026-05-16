@@ -21,7 +21,7 @@ public:
 
 	// Used if it's at least a scene component
 	UPROPERTY()
-	FTransform Transform;
+	FTransform RelativeTransform;
 
 	UPROPERTY()
 	TSubclassOf<UActorComponent> ComponentClass;
@@ -37,13 +37,13 @@ struct FInventoryItemEntrySaveData
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	TSubclassOf<UOvrlItemDefinition> ItemDefinition;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	TArray<FGameplayTagStack> Stacks;
 
-	UPROPERTY()
+	UPROPERTY(SaveGame)
 	int32 Quantity;
 };
 
@@ -65,9 +65,6 @@ public:
 	UObject* Outer;
 
 	UPROPERTY()
-	int32 OuterId;
-
-	UPROPERTY()
 	TSubclassOf<AActor> ActorClass;
 
 	// Contains all 'SaveGame' marked variables of the Actor
@@ -76,6 +73,13 @@ public:
 
 	UPROPERTY()
 	TArray<FComponentSaveData> ComponentsSaveData;
+	
+public:
+	
+	bool IsValid() const
+	{
+		return !Name.IsNone();
+	}
 };
 
 USTRUCT()
@@ -96,7 +100,6 @@ public:
 		Name = InActorSaveData.Name;
 		Transform = InActorSaveData.Transform;
 		Outer = InActorSaveData.Outer;
-		OuterId = InActorSaveData.OuterId;
 		ActorClass = InActorSaveData.ActorClass;
 		ByteData = InActorSaveData.ByteData;
 		ComponentsSaveData = InActorSaveData.ComponentsSaveData;

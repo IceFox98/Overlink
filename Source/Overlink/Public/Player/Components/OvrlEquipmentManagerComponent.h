@@ -17,10 +17,10 @@ struct FQuickSlotEntry
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TObjectPtr<UOvrlItemInstance> ItemInstance = nullptr;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TObjectPtr<AOvrlEquipmentInstance> EquipmentInstance = nullptr;
 
 	void Invalidate()
@@ -99,24 +99,24 @@ public:
 
 protected:
 	// Number of quick slots available.
-	UPROPERTY(EditDefaultsOnly, meta=(ClampMin = 1, ClampMax = 30))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin = 1, ClampMax = 30))
 	int32 NumQuickSlots = 1;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	int32 QuickSlotIndex = -1;
 
 	// List of items currently equipped, active quick slot included
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<UOvrlItemInstance*> EquippedItems;
 
 	// List of items that are currently placed in the quick slot bar.
 	// They can be equipped changing the quick slot index.
 	// NOTE: It has a fixed size! See NumQuickSlots
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	TArray<FQuickSlotEntry> QuickSlotEntries;
 
 	// Current active quick slot item.
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
 	FQuickSlotEntry CurrentActiveSlotEntry;
 
 	UPROPERTY()

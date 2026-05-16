@@ -114,7 +114,7 @@ bool AOvrlPlayerCharacter::CanJumpInternal_Implementation() const
 void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
+
 	UOvrlInputComponent* OvrlIC = Cast<UOvrlInputComponent>(PlayerInputComponent);
 
 	if (ensureMsgf(OvrlIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UOvrlInputComponent or a subclass of it.")))
@@ -122,7 +122,7 @@ void AOvrlPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 		// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 		// be triggered directly by these input actions Triggered events. 
 		TArray<uint32> BindHandles;
-		OvrlIC->BindAbilityActions(InputConfig, this,  &ThisClass::OnAbilityInputStarted, &ThisClass::OnAbilityInputTriggered, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
+		OvrlIC->BindAbilityActions(InputConfig, this, &ThisClass::OnAbilityInputStarted, &ThisClass::OnAbilityInputTriggered, &ThisClass::OnAbilityInputReleased, /*out*/ BindHandles);
 
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 		OvrlIC->BindNativeAction(InputConfig, OvrlInputTags::Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
@@ -327,7 +327,6 @@ void AOvrlPlayerCharacter::UnequipObject()
 		EquippedObjectMesh->MarkComponentsRenderStateDirty();
 	}
 }
-
 
 void AOvrlPlayerCharacter::OnAbilityInputStarted(FGameplayTag InputTag)
 {

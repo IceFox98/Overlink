@@ -20,8 +20,16 @@ void UOvrlInventoryComponent::BeginPlay()
 	{
 		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.Quantity);
 	}
-
-	InitialItems.Empty();
+	
+	for (FInventoryItemEntrySaveData InventoryEntry : SavedItems)
+	{
+		UOvrlItemInstance* ItemInstance = CreateUniqueItem(InventoryEntry.ItemDefinition);
+		if (ItemInstance)
+		{
+			ItemInstance->ReplaceStacks(InventoryEntry.Stacks); // Override any existing item stacks
+			AddItem(ItemInstance, InventoryEntry.Quantity);
+		}
+	}
 }
 
 UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity/* = 1*/)
@@ -210,38 +218,21 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByInstance(UOvrlItemIn
 	return FOvrlItemEntry();
 }
 
-// void UOvrlInventoryComponent::Serialize(FArchive& Ar)
-// {
-// 	Super::Serialize(Ar);
-//
-// 	if (Ar.IsSaving())
-// 	{
-// 		// TArray<FInventoryItemEntrySaveData> SaveDataList;
-// 		//
-// 		// for (const FOvrlItemEntry& ItemEntry : ItemEntries)
-// 		// {
-// 		// 	FInventoryItemEntrySaveData SaveData;
-// 		// 	SaveData.ItemDefinition = ItemEntry.Instance->GetItemDefClass();
-// 		// 	SaveData.Stacks = ItemEntry.Instance->Stacks;
-// 		// 	SaveData.Quantity = ItemEntry.Quantity;
-// 		// 	SaveDataList.Add(SaveData);
-// 		// }
-// 		//
-// 		// Ar << SaveDataList;
-// 	}
-// 	else if (Ar.IsLoading())
-// 	{
-// 		// TArray<FInventoryItemEntrySaveData> SaveDataList;
-// 		// Ar << SaveDataList;
-// 		//
-// 		// for (const FInventoryItemEntrySaveData& SaveData : SaveDataList)
-// 		// {
-// 		// 	UOvrlItemInstance* ItemInstance = CreateUniqueItem(SaveData.ItemDefinition);
-// 		// 	if (ItemInstance)
-// 		// 	{
-// 		// 		ItemInstance->Stacks = SaveData.Stacks; // Override any existing item stacks
-// 		// 		AddItem(ItemInstance);
-// 		// 	}
-// 		// }
-// 	}
-// }
+void UOvrlInventoryComponent::OnPreSave_Implementation()
+{
+	SavedItems.Empty();
+	
+	for (const FOvrlItemEntry& ItemEntry : GetItemEntries())
+	{
+		FInventoryItemEntrySaveData SaveData;
+		SaveData.ItemDefinition = ItemEntry.Instance->GetItemDefClass();
+		SaveData.Stacks = ItemEntry.Instance->GetStacks();
+		SaveData.Quantity = ItemEntry.Quantity;
+		SavedItems.Add(SaveData);
+	}
+}
+
+void UOvrlInventoryComponent::OnLoad_Implementation()
+{
+	InitialItems.Empty();
+}

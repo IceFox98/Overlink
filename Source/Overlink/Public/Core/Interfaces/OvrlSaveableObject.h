@@ -33,4 +33,7 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Saveable Object")
 	void OnSave();
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "Ovrl Saveable Object")
+	bool SaveAsPlayer();
 };

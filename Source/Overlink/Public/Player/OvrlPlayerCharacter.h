@@ -5,6 +5,7 @@
 #include "OvrlCharacterBase.h"
 #include "AbilitySystemInterface.h"
 #include "OvrlGameplayTags.h"
+#include "Core/Interfaces/OvrlSaveableObject.h"
 
 #include "OvrlPlayerCharacter.generated.h"
 
@@ -26,7 +27,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerJumped);
  *
  */
 UCLASS(Blueprintable)
-class OVERLINK_API AOvrlPlayerCharacter : public AOvrlCharacterBase
+class OVERLINK_API AOvrlPlayerCharacter : public AOvrlCharacterBase, public IOvrlSaveableObject
 {
 
 private:
@@ -40,7 +41,11 @@ public:
 	virtual void OnJumped_Implementation() override;
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void PostInitializeComponents() override;
-
+	
+	// ---- IOvrlSaveableObject interface
+	virtual bool SaveAsPlayer_Implementation() override { return true; };
+	// ---- IOvrlSaveableObject interface
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual bool CanJumpInternal_Implementation() const override;

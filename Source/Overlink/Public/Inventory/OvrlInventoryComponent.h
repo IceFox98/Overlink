@@ -8,6 +8,7 @@
 #include "Core/Interfaces/OvrlSaveableObject.h"
 #include "OvrlInventoryComponent.generated.h"
 
+struct FInventoryItemEntrySaveData;
 class UOvrlAbilitySystemComponent;
 class UOvrlItemDefinition;
 class UOvrlItemInstance;
@@ -53,12 +54,11 @@ private:
 
 public:
 	virtual void BeginPlay() override;
-	// virtual void Serialize(FArchive& Ar) override;
 
 public:
 	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity = 1);
 	UOvrlItemInstance* CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void AddItem(UOvrlItemInstance* Item, int32 Quantity = 1);
 
@@ -84,6 +84,11 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FORCEINLINE TArray<FOvrlItemEntry> GetItemEntries() const { return ItemEntries; }
 
+	// ---- IOvrlSaveableObject interface
+	virtual void OnPreSave_Implementation() override;
+	virtual void OnLoad_Implementation() override;
+	// ---- IOvrlSaveableObject interface
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Ovrl Inventory Component")
 	FOnItemAdded OnItemAdded;
@@ -104,10 +109,10 @@ protected:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TArray<FOvrlItemEntry> ItemEntries;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, SaveGame)
-	bool bTestSave;
 
 private:
 	FTimerHandle TimerHandle_EquipItem;
+
+	UPROPERTY(SaveGame)
+	TArray<FInventoryItemEntrySaveData> SavedItems;
 };

@@ -34,10 +34,10 @@ public:
 private:
 	friend class UOvrlItemInstance;
 
-	UPROPERTY(VisibleInstanceOnly)
+	UPROPERTY(VisibleInstanceOnly, SaveGame)
 	FGameplayTag Tag;
 
-	UPROPERTY(VisibleInstanceOnly)
+	UPROPERTY(VisibleInstanceOnly, SaveGame)
 	int32 StackCount = 0;
 };
 
@@ -49,8 +49,6 @@ class OVERLINK_API UOvrlItemInstance : public UObject
 {
 	GENERATED_BODY()
 
-	friend class UOvrlSaveGameSubsystem;
-
 public:
 	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
@@ -59,6 +57,9 @@ public:
 	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	void RemoveStack(FGameplayTag Tag, int32 StackCount);
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
+	void ReplaceStacks(const TArray<FGameplayTagStack>& InStacks);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	int32 GetTagStackCount(FGameplayTag Tag) const;
@@ -70,6 +71,7 @@ public:
 	UOvrlItemDefinition* GetItemDef() const;
 
 	FORCEINLINE FOvrlAbilitySet_GrantedHandles& GetGrantedHandles() { return GrantedHandles; }
+	FORCEINLINE const TArray<FGameplayTagStack>& GetStacks() { return Stacks; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Ovrl Item Instance", meta = (DeterminesOutputType = FragmentClass))
 	const UOvrlItemFragment* FindFragmentByClass(TSubclassOf<UOvrlItemFragment> FragmentClass) const;
