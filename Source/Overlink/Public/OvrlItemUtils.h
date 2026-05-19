@@ -6,9 +6,11 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "OvrlItemUtils.generated.h"
 
+class AOvrlEquipmentInstance;
 class UOvrlEquipmentDefinition;
 class UOvrlItemInstance;
 class UOvrlPickupDefinition;
+class UOvrlItemDefinition;
 struct FOvrlItemEntry;
 
 /**

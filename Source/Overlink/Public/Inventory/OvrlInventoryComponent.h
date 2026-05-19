@@ -57,6 +57,7 @@ public:
 
 public:
 	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity = 1);
+	UOvrlItemInstance* AddItemFromSaveData(const FInventoryItemEntrySaveData& ItemSaveData);
 	UOvrlItemInstance* CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition, FGuid ItemGuid = FGuid::NewGuid()) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
@@ -84,6 +85,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Inventory Component")
 	FORCEINLINE TArray<FOvrlItemEntry> GetItemEntries() const { return ItemEntries; }
 
+protected:
 	// ---- IOvrlSaveableObject interface
 	virtual void OnPreSave_Implementation() override;
 	virtual void OnLoad_Implementation() override;

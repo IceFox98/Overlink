@@ -21,14 +21,9 @@ void UOvrlInventoryComponent::BeginPlay()
 		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.Quantity);
 	}
 
-	for (FInventoryItemEntrySaveData InventoryEntry : SavedItems)
+	for (const FInventoryItemEntrySaveData& ItemSaveData : SavedItems)
 	{
-		UOvrlItemInstance* ItemInstance = CreateUniqueItem(InventoryEntry.ItemDefinition, InventoryEntry.ItemGuid);
-		if (ItemInstance)
-		{
-			ItemInstance->ReplaceStacks(InventoryEntry.Stacks); // Override any existing item stacks
-			AddItem(ItemInstance, InventoryEntry.Quantity);
-		}
+		AddItemFromSaveData(ItemSaveData);
 	}
 }
 
@@ -41,11 +36,29 @@ UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UO
 	return ItemInstance;
 }
 
+UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromSaveData(const FInventoryItemEntrySaveData& ItemSaveData)
+{
+	UOvrlItemInstance* ItemInstance = CreateUniqueItem(ItemSaveData.ItemDefinition, ItemSaveData.ItemGuid);
+	if (ItemInstance)
+	{
+		ItemInstance->ReplaceStacks(ItemSaveData.Stacks); // Override any existing item stacks
+		AddItem(ItemInstance, ItemSaveData.Quantity);
+	}
+	
+	return ItemInstance;
+}
+
 UOvrlItemInstance* UOvrlInventoryComponent::CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition, FGuid ItemGuid /*= FGuid::NewGuid()*/) const
 {
 	if (!ItemDefinition)
 	{
 		OVRL_LOG_ERR(LogOverlink, true, "ItemDefinition is NULL!");
+		return nullptr;
+	}
+	
+	if (!ItemGuid.IsValid())
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Invalid Item GUID!");
 		return nullptr;
 	}
 

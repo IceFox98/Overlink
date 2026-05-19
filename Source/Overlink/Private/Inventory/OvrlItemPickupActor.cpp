@@ -116,7 +116,11 @@ void AOvrlItemPickupActor::AddItemToInventory(UOvrlInventoryComponent* TargetInv
 {
 	if (TargetInventoryComponent)
 	{
-		if (HasCachedItem())
+		if (SavedItem.ItemGuid.IsValid())
+		{
+			TargetInventoryComponent->AddItemFromSaveData(SavedItem);
+		}
+		else if (HasCachedItem())
 		{
 			TargetInventoryComponent->AddItem(CachedItemInstance, Quantity);
 		}
@@ -171,6 +175,27 @@ void AOvrlItemPickupActor::RefreshData() const
 				PickupCollider->SetCapsuleRadius(PickupDefinition->PickupColliderCapsuleRadius);
 			}
 		}
+	}
+}
+
+void AOvrlItemPickupActor::OnPreSave_Implementation()
+{
+	if (HasCachedItem())
+	{
+		SavedItem.ItemGuid = CachedItemInstance->Guid;
+		SavedItem.ItemDefinition = CachedItemInstance->GetItemDefClass();
+		SavedItem.Stacks = CachedItemInstance->GetStacks();
+		SavedItem.Quantity = Quantity;
+	}
+}
+
+void AOvrlItemPickupActor::OnLoad_Implementation()
+{
+	if (SavedItem.ItemGuid.IsValid())
+	{
+		// Update item pickup info
+		ItemDefinitionClass = SavedItem.ItemDefinition;
+		Quantity = SavedItem.Quantity;
 	}
 }
 

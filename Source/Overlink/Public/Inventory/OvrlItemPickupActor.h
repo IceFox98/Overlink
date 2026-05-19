@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Core/Interfaces/OvrlSaveableObject.h"
 #include "GameFramework/Actor.h"
+#include "SaveSystem/OvrlSaveTypes.h"
 #include "OvrlItemPickupActor.generated.h"
 
 class UOvrlItemDefinition;
@@ -17,7 +18,7 @@ class UOvrlInventoryComponent;
  *
  */
 UCLASS(Blueprintable, BlueprintType)
-class OVERLINK_API AOvrlItemPickupActor : public AActor
+class OVERLINK_API AOvrlItemPickupActor : public AActor, public IOvrlSaveableObject
 {
 private:
 	GENERATED_BODY()
@@ -68,6 +69,11 @@ protected:
 	void AddItemToInventory(UOvrlInventoryComponent* TargetInventoryComponent) const;
 	void RefreshData() const;
 
+	// ---- IOvrlSaveableObject interface
+	virtual void OnPreSave_Implementation() override;
+	virtual void OnLoad_Implementation() override;
+	// ---- IOvrlSaveableObject interface
+
 public:
 	// ------ COMPONENTS ------
 
@@ -82,18 +88,22 @@ protected:
 
 	// If true, the item will be added to the inventory even if there's already an instance of it.
 	// Otherwise, you can manage the item pickup behavior using ManageDuplicatedItem() of this class.
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", SaveGame)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
 	bool bAddDuplicatedItem;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", SaveGame)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor")
 	TSubclassOf<UOvrlItemDefinition> ItemDefinitionClass;
 
 	// The quantity assigned to the item when it will be added to the inventory.
 	// E.g.: ID_HealthPotion - 20 -> In the inventory you will have 1 item entry (Health Potion) with 20 count
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", meta = (ClampMin = 1), SaveGame)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ovrl Item Pickup Actor", meta = (ClampMin = 1))
 	int32 Quantity = 1;
 
 	// Reference used when an entity drops an item.
 	UPROPERTY(VisibleInstanceOnly, Category = "Ovrl Item Pickup Actor")
 	TObjectPtr<UOvrlItemInstance> CachedItemInstance;
+
+private:
+	UPROPERTY(SaveGame)
+	FInventoryItemEntrySaveData SavedItem;
 };
