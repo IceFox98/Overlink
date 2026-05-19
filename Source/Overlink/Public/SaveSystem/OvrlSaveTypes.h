@@ -38,6 +38,9 @@ struct FInventoryItemEntrySaveData
 
 public:
 	UPROPERTY(SaveGame)
+	FGuid ItemGuid;
+	
+	UPROPERTY(SaveGame)
 	TSubclassOf<UOvrlItemDefinition> ItemDefinition;
 
 	UPROPERTY(SaveGame)

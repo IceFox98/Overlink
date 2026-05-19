@@ -57,7 +57,7 @@ public:
 	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	void RemoveStack(FGameplayTag Tag, int32 StackCount);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Item Instance")
 	void ReplaceStacks(const TArray<FGameplayTagStack>& InStacks);
 
@@ -81,6 +81,9 @@ public:
 	{
 		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
 	}
+
+public:
+	FGuid Guid;
 
 private:
 	TSubclassOf<UOvrlItemDefinition> ItemDefClass;

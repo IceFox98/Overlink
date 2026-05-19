@@ -57,7 +57,7 @@ public:
 
 public:
 	UOvrlItemInstance* AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity = 1);
-	UOvrlItemInstance* CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const;
+	UOvrlItemInstance* CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition, FGuid ItemGuid = FGuid::NewGuid()) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Inventory Component")
 	void AddItem(UOvrlItemInstance* Item, int32 Quantity = 1);

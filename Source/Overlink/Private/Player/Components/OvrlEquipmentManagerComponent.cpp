@@ -25,11 +25,6 @@ void UOvrlEquipmentManagerComponent::InitializeFromInventory(UOvrlInventoryCompo
 	QuickSlotEntries.Init(FQuickSlotEntry(), NumQuickSlots);
 }
 
-bool UOvrlEquipmentManagerComponent::HasAnyQuickSlotAvailable() const
-{
-	return GetFirstAvailableQuickSlotIndex() != INDEX_NONE;
-}
-
 void UOvrlEquipmentManagerComponent::OnInventoryItemAdded(UOvrlItemInstance* AddedItem)
 {
 	// Check if it's equippable
@@ -54,13 +49,13 @@ void UOvrlEquipmentManagerComponent::OnInventoryItemAdded(UOvrlItemInstance* Add
 			}
 
 			const int32 SlotIndex = AddItemToQuickSlots(AddedItem);
-			
+
 			if (!bForceSet)
 			{
 				// Force set active index if the new item's index is the same as the current one.
 				bForceSet = SlotIndex == QuickSlotIndex;
 			}
-			
+
 			SetActiveSlotIndex(SlotIndex, bForceSet);
 		}
 	}
@@ -132,7 +127,7 @@ bool UOvrlEquipmentManagerComponent::SelectNearestValidSlot()
 			return true;
 		}
 	}
-	
+
 	// Nothing changed
 	return false;
 }
@@ -262,10 +257,21 @@ void UOvrlEquipmentManagerComponent::UnequipItem(UOvrlItemInstance* ItemToUnequi
 
 int32 UOvrlEquipmentManagerComponent::AddItemToQuickSlots(UOvrlItemInstance* Item)
 {
-	int32 SlotIndex = GetFirstAvailableQuickSlotIndex();
-	if (SlotIndex == INDEX_NONE)
+	int32 SlotIndex = INDEX_NONE;
+	
+	if (!ItemsOrder.Contains(Item->Guid))
 	{
-		SlotIndex = QuickSlotIndex;
+		SlotIndex = GetFirstAvailableQuickSlotIndex();
+		if (SlotIndex == INDEX_NONE)
+		{
+			SlotIndex = QuickSlotIndex;
+		}
+		
+		ItemsOrder.Add(Item->Guid, SlotIndex);
+	}
+	else
+	{
+		SlotIndex = ItemsOrder[Item->Guid];
 	}
 
 	FQuickSlotEntry SlotEntry;
@@ -309,11 +315,17 @@ void UOvrlEquipmentManagerComponent::RemoveItemFromQuickSlots(UOvrlItemInstance*
 				CurrentActiveSlotEntry.Invalidate();
 			}
 
+			ItemsOrder.Remove(Item->Guid);
 			QuickSlotEntry.Invalidate();
 			OnActiveSlotChanged.Broadcast(QuickSlotEntry);
 			return;
 		}
 	}
+}
+
+bool UOvrlEquipmentManagerComponent::HasAnyQuickSlotAvailable() const
+{
+	return GetFirstAvailableQuickSlotIndex() != INDEX_NONE;
 }
 
 int32 UOvrlEquipmentManagerComponent::GetFirstAvailableQuickSlotIndex() const

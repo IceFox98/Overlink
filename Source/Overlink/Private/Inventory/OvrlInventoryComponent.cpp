@@ -20,10 +20,10 @@ void UOvrlInventoryComponent::BeginPlay()
 	{
 		AddItemFromDefinition(InitialItem.ItemDefinition, InitialItem.Quantity);
 	}
-	
+
 	for (FInventoryItemEntrySaveData InventoryEntry : SavedItems)
 	{
-		UOvrlItemInstance* ItemInstance = CreateUniqueItem(InventoryEntry.ItemDefinition);
+		UOvrlItemInstance* ItemInstance = CreateUniqueItem(InventoryEntry.ItemDefinition, InventoryEntry.ItemGuid);
 		if (ItemInstance)
 		{
 			ItemInstance->ReplaceStacks(InventoryEntry.Stacks); // Override any existing item stacks
@@ -35,23 +35,24 @@ void UOvrlInventoryComponent::BeginPlay()
 UOvrlItemInstance* UOvrlInventoryComponent::AddItemFromDefinition(TSubclassOf<UOvrlItemDefinition> ItemDefinition, int32 Quantity/* = 1*/)
 {
 	UOvrlItemInstance* ItemInstance = CreateUniqueItem(ItemDefinition);
-	
+
 	AddItem(ItemInstance, Quantity);
 
 	return ItemInstance;
 }
 
-UOvrlItemInstance* UOvrlInventoryComponent::CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition) const
+UOvrlItemInstance* UOvrlInventoryComponent::CreateUniqueItem(TSubclassOf<UOvrlItemDefinition> ItemDefinition, FGuid ItemGuid /*= FGuid::NewGuid()*/) const
 {
 	if (!ItemDefinition)
 	{
 		OVRL_LOG_ERR(LogOverlink, true, "ItemDefinition is NULL!");
 		return nullptr;
 	}
-	
+
 	const FName ItemName = MakeUniqueObjectName(GetOwner(), UOvrlItemInstance::StaticClass(), ItemDefinition->GetFName());
 	UOvrlItemInstance* ItemInstance = NewObject<UOvrlItemInstance>(GetOwner(), ItemName);
 	ItemInstance->SetItemDef(ItemDefinition);
+	ItemInstance->Guid = ItemGuid;
 
 	// Instantiate the item fragments
 	for (const UOvrlItemFragment* Fragment : GetDefault<UOvrlItemDefinition>(ItemDefinition)->Fragments)
@@ -221,10 +222,11 @@ FOvrlItemEntry UOvrlInventoryComponent::FindFirstItemEntryByInstance(UOvrlItemIn
 void UOvrlInventoryComponent::OnPreSave_Implementation()
 {
 	SavedItems.Empty();
-	
+
 	for (const FOvrlItemEntry& ItemEntry : GetItemEntries())
 	{
 		FInventoryItemEntrySaveData SaveData;
+		SaveData.ItemGuid = ItemEntry.Instance->Guid;
 		SaveData.ItemDefinition = ItemEntry.Instance->GetItemDefClass();
 		SaveData.Stacks = ItemEntry.Instance->GetStacks();
 		SaveData.Quantity = ItemEntry.Quantity;

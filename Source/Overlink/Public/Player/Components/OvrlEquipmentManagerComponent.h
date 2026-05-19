@@ -60,7 +60,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Ovrl Equipment Manager Component")
 	FORCEINLINE int32 GetQuickSlotIndex() const { return QuickSlotIndex; };
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Equipment Manager Component")
 	bool SelectNearestValidSlot();
 
@@ -70,10 +70,10 @@ protected:
 
 	UFUNCTION()
 	void OnInventoryItemRemoved(UOvrlItemInstance* RemovedItem);
-	
+
 	int32 AddItemToQuickSlots(UOvrlItemInstance* Item);
 	void RemoveItemFromQuickSlots(UOvrlItemInstance* Item);
-	
+
 	int32 GetFirstAvailableQuickSlotIndex() const;
 	AOvrlEquipmentInstance* GetOrSpawnEquipmentInstance(int32 Index);
 	UOvrlAbilitySystemComponent* GetOwnerAbilitySystemComponent() const;
@@ -102,7 +102,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin = 1, ClampMax = 30))
 	int32 NumQuickSlots = 1;
 
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, SaveGame)
 	int32 QuickSlotIndex = -1;
 
 	// List of items currently equipped, active quick slot included
@@ -123,5 +123,11 @@ protected:
 	TObjectPtr<UOvrlInventoryComponent> InventoryComponent;
 
 private:
+	// Used to save the quick slot index associated with an item.
+	// This makes it easier to rebuild the quick slot bar after loading a save game.
+	UPROPERTY(SaveGame)
+	TMap<FGuid, int32> ItemsOrder;
+
 	FTimerHandle TimerHandle_EquipItem;
+
 };
