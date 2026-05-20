@@ -15,7 +15,10 @@ public:
 	UOvrlSaveGameSettings();
 
 public:
-	// Default slot name if UI doesn't specify any
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
-	FString SaveSlotName;
+	FString SaveSlotNames;
+	
+	// Default slot name if any cached slot has been found.
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
+	FString DefaultSaveSlotName;
 };

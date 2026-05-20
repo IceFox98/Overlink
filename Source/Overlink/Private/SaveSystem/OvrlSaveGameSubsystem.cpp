@@ -18,8 +18,14 @@ void UOvrlSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	const UOvrlSaveGameSettings* SGSettings = GetDefault<UOvrlSaveGameSettings>();
-	// Access defaults from DefaultGame.ini
-	CurrentSlotName = SGSettings->SaveSlotName;
+	if (UGameplayStatics::DoesSaveGameExist(SGSettings->SaveSlotNames, 0))
+	{
+		SaveGameSlots = Cast<UOvrlSaveGameSlots>(UGameplayStatics::LoadGameFromSlot(SGSettings->SaveSlotNames, 0));
+	}
+	else
+	{
+		UGameplayStatics::SaveGameToSlot(SaveGameSlots, SGSettings->SaveSlotNames, 0);
+	}
 }
 
 void UOvrlSaveGameSubsystem::SerializeObject(UObject* Object, TArray<uint8>& OutResult)
@@ -52,33 +58,60 @@ void UOvrlSaveGameSubsystem::DeserializeObject(const TArray<uint8>& Data, UObjec
 	Object->Serialize(Archive);
 }
 
-void UOvrlSaveGameSubsystem::CreateNewSaveGame(FString SlotName)
+// bool UOvrlSaveGameSubsystem::CreateSaveGameSlot(FString SlotName)
+// {
+// 	// Create save game object
+// 	UOvrlSaveGame* NewSaveGameSlot = CastChecked<UOvrlSaveGame>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGame::StaticClass()));
+// 	if (!NewSaveGameSlot)
+// 	{
+// 		OVRL_LOG_ERR(LogOverlink, true, "Failed to create Save Game Object!");
+// 		return false;
+// 	}
+//
+// 	OVRL_LOG_INFO(LogOverlink, true, "Created New SaveGame Data.");
+//
+// 	NewSaveGameSlot->Initialize(SlotName);
+//
+// 	UGameplayStatics::SaveGameToSlot(NewSaveGameSlot, SlotName, 0);
+//
+// 	return true;
+// }
+
+void UOvrlSaveGameSubsystem::SaveGame(FString SlotName)
 {
-	CurrentSaveGame = CastChecked<UOvrlSaveGame>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGame::StaticClass()));
+	// UOvrlSaveGame* SaveGameObj = nullptr;
+	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	{
+		CurrentSaveGame = Cast<UOvrlSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+	}
+	else
+	{
+		CurrentSaveGame = CastChecked<UOvrlSaveGame>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGame::StaticClass()));
+		CurrentSaveGame->Initialize(SlotName);
+	}
+
 	if (!CurrentSaveGame)
 	{
-		OVRL_LOG_ERR(LogOverlink, true, "Failed to create Save Game Object!");
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to save the game! CurrentSaveGame is not valid.");
 		return;
 	}
 
-	OVRL_LOG_INFO(LogOverlink, true, "Created New SaveGame Data.");
+	FSaveSlotMetadata SlotMetadata;
+	const bool bFound = FindExistingSlotMetadata(SlotName, SlotMetadata);
+	SlotMetadata.SlotName = SlotName;
+	SlotMetadata.Date = FDateTime::UtcNow();
 
-	CurrentSaveGame->Initialize(SlotName);
-	SaveCurrentSlot();
-}
-
-void UOvrlSaveGameSubsystem::SaveCurrentSlot()
-{
-	if (!CurrentSaveGame)
+	if (!bFound)
 	{
-		OVRL_LOG_ERR(LogOverlink, true, "Failed to save the current slot!");
-		return;
+		SaveGameSlots->SaveSlotMetas.Add(SlotMetadata);
 	}
 
-	PopulateCurrentSlot();
+	// Write the data in the CurrentSaveGame object
+	PopulateCurrentSaveObject();
 
+	// Write save object on disk
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, CurrentSaveGame->SlotName, 0);
-	
+
 	OnGameSaved.Broadcast(CurrentSaveGame);
 }
 
@@ -86,13 +119,27 @@ void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
 {
 	if (!UGameplayStatics::DoesSaveGameExist(SlotName, 0))
 	{
-		OVRL_LOG_WARN(LogOverlink, true, "Failed to load the Game, SlotName does not exist!");
+		OVRL_LOG_WARN(LogOverlink, true, "Failed to load the game, SlotName does not exist! You have to create a new save slot first.");
 		return;
 	}
 
 	CurrentSaveGame = Cast<UOvrlSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+	
+	UGameplayStatics::OpenLevel(this, *CurrentSaveGame->LevelName);
+}
 
-	PopulateFromCurrentSlot();
+bool UOvrlSaveGameSubsystem::FindExistingSlotMetadata(FString SlotName, FSaveSlotMetadata& OutSlotMetadata)
+{
+	for (const FSaveSlotMetadata& SlotMetadata : SaveGameSlots->SaveSlotMetas)
+	{
+		if (SlotMetadata.SlotName.Equals(SlotName, ESearchCase::IgnoreCase))
+		{
+			OutSlotMetadata = SlotMetadata;
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void UOvrlSaveGameSubsystem::LoadPlayerData(APawn* Player)
@@ -110,10 +157,9 @@ void UOvrlSaveGameSubsystem::OnPostPlayerPossessed()
 {
 	if (!CurrentSaveGame)
 	{
-		OVRL_LOG_ERR(LogOverlink, true, "CurrentSaveGame is NULL!");
 		return;
 	}
-	
+
 	// Here we have valid Player Controller and other stuff
 	if (AGameStateBase* GS = UGameplayStatics::GetGameState(GetWorld()))
 	{
@@ -137,8 +183,18 @@ void UOvrlSaveGameSubsystem::OnPostPlayerPossessed()
 		DeserializeObject(CurrentSaveGame->PlayerController, PC);
 		ExecuteOnLoadSafe(PC);
 	}
-	
+
 	OnGameLoaded.Broadcast(CurrentSaveGame);
+}
+
+FString UOvrlSaveGameSubsystem::GetLastSaveSlotName() const
+{
+	if (SaveGameSlots->SaveSlotMetas.IsEmpty())
+	{
+		return {};
+	}
+
+	return SaveGameSlots->SaveSlotMetas.Last().SlotName;
 }
 
 FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
@@ -151,12 +207,14 @@ FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
 	return FActorSaveData();
 }
 
-void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
+void UOvrlSaveGameSubsystem::PopulateCurrentSaveObject()
 {
 	if (!CurrentSaveGame)
 	{
 		return;
 	}
+
+	CurrentSaveGame->LevelName = GetWorld()->GetMapName();
 
 	// Save game framework related objects
 	if (AGameStateBase* GS = UGameplayStatics::GetGameState(GetWorld()))
@@ -207,7 +265,7 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 		ActorData.Transform = Actor->GetActorTransform();
 		ActorData.ActorClass = Actor->GetClass();
 		const bool bWasSpawned = !Actor->IsNetStartupActor();
-		
+
 		// Serialize all its SaveGame properties
 		SerializeObject(Actor, ActorData.ByteData);
 
@@ -262,17 +320,23 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 	}
 }
 
-void UOvrlSaveGameSubsystem::PopulateFromCurrentSlot()
+void UOvrlSaveGameSubsystem::LoadSelectedSlot()
 {
 	if (!CurrentSaveGame)
 	{
 		return;
 	}
 
+	if (CurrentSaveGame->LevelActors.IsEmpty() && CurrentSaveGame->SpawnedActors.IsEmpty())
+	{
+		// No data to load, skip.
+		return;
+	}
+
 	// NOTE: This code is executed BEFORE the BeginPlay of any Actor (even the runtime-spawned ones).
 	// This is useful because when BeginPlay is called, you already have the Actor properties loaded in memory, and you can
 	// easily handle different logic depending on that data.
-	
+
 	TArray<AActor*> SaveableActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UOvrlSaveableObject::StaticClass(), SaveableActors);
 
@@ -305,7 +369,7 @@ void UOvrlSaveGameSubsystem::PopulateFromCurrentSlot()
 		FActorSpawnParameters SpawnInfo;
 		SpawnInfo.bDeferConstruction = true; // Manually set deferred spawn so we can set the Name
 		SpawnInfo.Name = SpawnedActorSaveData.Name;
-		
+
 		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(SpawnedActorSaveData.ActorClass, SpawnedActorSaveData.Transform, SpawnInfo);
 		if (SpawnedActor)
 		{

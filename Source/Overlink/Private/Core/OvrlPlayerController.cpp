@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Core/OvrlPlayerController.h"
 #include "Core/OvrlPlayerCameraManager.h"
 #include "Player/OvrlCharacterBase.h"
@@ -22,13 +21,14 @@ void AOvrlPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	OwningCharacter = Cast<AOvrlCharacterBase>(GetCharacter());
-	ensure(OwningCharacter);
+	if (ensure(OwningCharacter))
+	{
+		CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
+		ensure(CharacterMovementComponent);
 
-	CharacterMovementComponent = Cast<UOvrlCharacterMovementComponent>(OwningCharacter->GetCharacterMovement());
-	ensure(CharacterMovementComponent);
-
-	OvrlPlayerCameraManager = Cast<AOvrlPlayerCameraManager>(PlayerCameraManager);
-	ensure(OvrlPlayerCameraManager);
+		OvrlPlayerCameraManager = Cast<AOvrlPlayerCameraManager>(PlayerCameraManager);
+		ensure(OvrlPlayerCameraManager);
+	}
 }
 
 void AOvrlPlayerController::UpdateRotation(float DeltaTime)

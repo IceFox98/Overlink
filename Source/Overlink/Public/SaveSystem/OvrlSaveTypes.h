@@ -79,3 +79,16 @@ public:
 		return !Name.IsNone();
 	}
 };
+
+USTRUCT(BlueprintType)
+struct FSaveSlotMetadata
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FString SlotName;
+	
+	UPROPERTY()
+	FDateTime Date;
+};

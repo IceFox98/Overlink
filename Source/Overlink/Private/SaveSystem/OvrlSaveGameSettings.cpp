@@ -4,6 +4,6 @@
 
 UOvrlSaveGameSettings::UOvrlSaveGameSettings()
 {
-	// Default value while nothing is specified in the DefaultGame.ini
-	SaveSlotName = "SaveGame02";
+	SaveSlotNames = "SlotNames";
+	DefaultSaveSlotName = "DefaultSaveGame";
 }

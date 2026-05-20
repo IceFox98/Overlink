@@ -3,6 +3,7 @@
 #include "Core/OvrlGameModeBase.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "SaveSystem/OvrlSaveGameSettings.h"
 #include "SaveSystem/OvrlSaveGameSubsystem.h"
 
 void AOvrlGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -14,7 +15,14 @@ void AOvrlGameModeBase::InitGame(const FString& MapName, const FString& Options,
 
 	// Optional slot name (Falls back to slot specified in SaveGameSettings class/INI otherwise)
 	// FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, "SaveGame");
-	SG->LoadGame("TestSave");
+	// FString SelectedSaveSlot = SG->GetLastSaveSlotName();
+	// if (SelectedSaveSlot.IsEmpty())
+	// {
+	// 	const UOvrlSaveGameSettings* SGSettings = GetDefault<UOvrlSaveGameSettings>();
+	// 	SelectedSaveSlot = SGSettings->DefaultSaveSlotName; // Set default slot name
+	// }
+	
+	SG->LoadSelectedSlot();
 }
 
 APawn* AOvrlGameModeBase::SpawnDefaultPawnFor_Implementation(AController* NewPlayer, AActor* StartSpot)

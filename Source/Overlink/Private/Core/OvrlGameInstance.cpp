@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Core/OvrlGameInstance.h"
+
+#include "SaveSystem/OvrlSaveGameSubsystem.h"
 #include "UI/OvrlGameUIManagerSubsystem.h"
 
 
@@ -13,6 +15,8 @@ UOvrlGameInstance::UOvrlGameInstance(const FObjectInitializer& ObjectInitializer
 void UOvrlGameInstance::Init()
 {
 	Super::Init();
+	
+	UOvrlSaveGameSubsystem* SG = GetSubsystem<UOvrlSaveGameSubsystem>();
 }
 
 int32 UOvrlGameInstance::AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId)

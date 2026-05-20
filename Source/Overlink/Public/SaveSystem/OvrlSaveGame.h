@@ -21,19 +21,22 @@ public:
 public:
 	UPROPERTY()
 	FString SlotName;
+	
+	UPROPERTY()
+	FString LevelName;
 
 	UPROPERTY()
 	TArray<uint8> GameState;
 
 	UPROPERTY()
 	TArray<uint8> PlayerController;
-	
+
 	UPROPERTY()
 	TArray<uint8> PlayerState;
 
 	UPROPERTY()
 	FActorSaveData PlayerData;
-	
+
 	UPROPERTY()
 	FRotator ControlRotation;
 
@@ -44,4 +47,17 @@ public:
 	// Only actor spawned at runtime
 	UPROPERTY()
 	TArray<FActorSaveData> SpawnedActors;
+};
+
+UCLASS()
+class OVERLINK_API UOvrlSaveGameSlots : public USaveGame
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	TArray<FSaveSlotMetadata> SaveSlotMetas;
+
+	UPROPERTY()
+	int32 LastPlayerSlotIndex;
 };

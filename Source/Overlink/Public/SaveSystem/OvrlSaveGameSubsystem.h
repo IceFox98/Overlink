@@ -8,6 +8,7 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "OvrlSaveGameSubsystem.generated.h"
 
+class UOvrlSaveGameSlots;
 struct FOvrlSaveGameArchive : public FObjectAndNameAsStringProxyArchive
 {
 	FOvrlSaveGameArchive(FArchive& InInnerArchive)
@@ -29,36 +30,43 @@ class OVERLINK_API UOvrlSaveGameSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-	// Initialize Subsystem, good moment to load in SaveGameSettings variables
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	void SerializeObject(UObject* Object, TArray<uint8>& OutResult);
-	void DeserializeObject(const TArray<uint8>& Data, UObject* Object);
+	// // Create a new save slot and add it to the slot list.
+	// // Duplicates are not allowed.
+	// UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	// bool CreateSaveGameSlot(FString SlotName);
 
+	// Save the game data of the current loaded slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	void CreateNewSaveGame(FString SlotName);
+	void SaveGame(FString SlotName);
 
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	void SaveCurrentSlot();
-
+	// Load game data of the passed slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void LoadGame(FString SlotName);
+	void LoadSelectedSlot();
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	bool FindExistingSlotMetadata(FString SlotName, FSaveSlotMetadata& OutSlotMetadata);
 
 	void LoadPlayerData(APawn* Player);
 	void OnPostPlayerPossessed();
 
+	FString GetLastSaveSlotName() const;
+	
 	FActorSaveData GetPlayerSaveData() const;
-
+	
 protected:
+	void SerializeObject(UObject* Object, TArray<uint8>& OutResult);
+	void DeserializeObject(const TArray<uint8>& Data, UObject* Object);
+
 	void ExecuteOnPreSaveSafe(UObject* Target);
 	void ExecuteOnSaveSafe(UObject* Target);
 	void ExecuteOnPreLoadSafe(UObject* Target);
 	void ExecuteOnLoadSafe(UObject* Target);
 
 private:
-	void PopulateCurrentSlot();
-	void PopulateFromCurrentSlot();
-
+	void PopulateCurrentSaveObject();
 	void LoadActor(AActor* Actor, const FActorSaveData& ActorSaveData);
 
 public:
@@ -69,9 +77,11 @@ public:
 	FOnSaveGame OnGameSaved;
 
 protected:
-	// Name of slot to save/load to disk. Filled by SaveGameSettings (can be overriden from GameMode's InitGame())
-	FString CurrentSlotName;
+	// In this save object we save every game slot that has been created, so we can save info like Date or Play Time.
+	UPROPERTY(BlueprintReadOnly, Transient)
+	TObjectPtr<UOvrlSaveGameSlots> SaveGameSlots;
 
+	// Save game object for every game objects.
 	UPROPERTY(Transient)
 	TObjectPtr<UOvrlSaveGame> CurrentSaveGame;
 };
