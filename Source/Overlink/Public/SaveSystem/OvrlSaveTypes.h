@@ -39,7 +39,7 @@ struct FInventoryItemEntrySaveData
 public:
 	UPROPERTY(SaveGame)
 	FGuid ItemGuid;
-	
+
 	UPROPERTY(SaveGame)
 	TSubclassOf<UOvrlItemDefinition> ItemDefinition;
 
@@ -60,12 +60,8 @@ public:
 	UPROPERTY()
 	FName Name;
 
-	// For movable Actors, keep location,rotation,scale.
 	UPROPERTY()
 	FTransform Transform;
-
-	UPROPERTY()
-	UObject* Outer;
 
 	UPROPERTY()
 	TSubclassOf<AActor> ActorClass;
@@ -76,41 +72,10 @@ public:
 
 	UPROPERTY()
 	TArray<FComponentSaveData> ComponentsSaveData;
-	
+
 public:
-	
 	bool IsValid() const
 	{
 		return !Name.IsNone();
 	}
-};
-
-USTRUCT()
-struct FEntitySaveData : public FActorSaveData
-{
-	GENERATED_BODY()
-
-public:
-	FEntitySaveData() = default;
-
-	FEntitySaveData(const FActorSaveData& InActorSaveData)
-	{
-		*this = InActorSaveData;
-	}
-
-	FEntitySaveData& operator=(const FActorSaveData& InActorSaveData)
-	{
-		Name = InActorSaveData.Name;
-		Transform = InActorSaveData.Transform;
-		Outer = InActorSaveData.Outer;
-		ActorClass = InActorSaveData.ActorClass;
-		ByteData = InActorSaveData.ByteData;
-		ComponentsSaveData = InActorSaveData.ComponentsSaveData;
-		return *this;
-	}
-
-public:
-	UPROPERTY()
-	TArray<FInventoryItemEntrySaveData> InventoryEntries;
-
 };

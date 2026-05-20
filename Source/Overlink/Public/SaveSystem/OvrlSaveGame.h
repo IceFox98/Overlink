@@ -17,7 +17,6 @@ class OVERLINK_API UOvrlSaveGame : public USaveGame
 
 public:
 	void Initialize(const FString& InSlotName);
-	FEntitySaveData* GetPlayerData(APlayerState* InPlayerState);
 
 public:
 	UPROPERTY()
@@ -28,16 +27,15 @@ public:
 
 	UPROPERTY()
 	TArray<uint8> PlayerController;
-
+	
 	UPROPERTY()
 	TArray<uint8> PlayerState;
 
 	UPROPERTY()
 	FActorSaveData PlayerData;
-
-	// // Can be either spawned or place in the level
-	// UPROPERTY()
-	// TArray<FEntitySaveData> EntitiesSaveData;
+	
+	UPROPERTY()
+	FRotator ControlRotation;
 
 	// Only actor placed in the level
 	UPROPERTY()
@@ -46,8 +44,4 @@ public:
 	// Only actor spawned at runtime
 	UPROPERTY()
 	TArray<FActorSaveData> SpawnedActors;
-
-	UPROPERTY()
-	FRotator ControlRotation;
-
 };

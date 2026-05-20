@@ -3,11 +3,10 @@
 #include "SaveSystem/OvrlSaveGameSubsystem.h"
 
 // Internal
-#include "OvrlLogUtils.h"
 #include "Core/Interfaces/OvrlSaveableObject.h"
 #include "SaveSystem/OvrlSaveGame.h"
 #include "SaveSystem/OvrlSaveGameSettings.h"
-#include "Inventory/OvrlInventoryComponent.h"
+#include "OvrlLogUtils.h"
 
 // Engine
 #include "Kismet/GameplayStatics.h"
@@ -27,12 +26,14 @@ void UOvrlSaveGameSubsystem::SerializeObject(UObject* Object, TArray<uint8>& Out
 {
 	if (!Object)
 	{
+		OVRL_LOG_ERR(LogOverlink, false, "Source Object is NULL!");
 		return;
 	}
 
 	FMemoryWriter MemoryWriter = FMemoryWriter(OutResult, true);
 	FOvrlSaveGameArchive Archive = FOvrlSaveGameArchive(MemoryWriter);
 
+	// Serialize all the UPROPERTY(SaveGame)
 	Object->Serialize(Archive);
 }
 
@@ -40,12 +41,14 @@ void UOvrlSaveGameSubsystem::DeserializeObject(const TArray<uint8>& Data, UObjec
 {
 	if (!Object)
 	{
+		OVRL_LOG_ERR(LogOverlink, false, "Target Object is NULL!");
 		return;
 	}
 
 	FMemoryReader MemoryReader(Data, true);
 	FOvrlSaveGameArchive Archive(MemoryReader);
 
+	// Read the SaveGame properties and load their data/value
 	Object->Serialize(Archive);
 }
 
@@ -68,20 +71,22 @@ void UOvrlSaveGameSubsystem::SaveCurrentSlot()
 {
 	if (!CurrentSaveGame)
 	{
-		OVRL_LOG_WARN(LogOverlink, true, "Failed to save the current slot!");
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to save the current slot!");
 		return;
 	}
 
 	PopulateCurrentSlot();
 
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, CurrentSaveGame->SlotName, 0);
-
+	
+	OnGameSaved.Broadcast(CurrentSaveGame);
 }
 
 void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
 {
 	if (!UGameplayStatics::DoesSaveGameExist(SlotName, 0))
 	{
+		OVRL_LOG_WARN(LogOverlink, true, "Failed to load the Game, SlotName does not exist!");
 		return;
 	}
 
@@ -92,8 +97,8 @@ void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
 
 void UOvrlSaveGameSubsystem::LoadPlayerData(APawn* Player)
 {
-	// Load player character data
-	// Here, the player has still not finish to spawn, so we can load the data BEFORE the BeginPlay and components initialization
+	// Load player character data.
+	// Here, the player has still not finish to spawn, so we can load the data BEFORE the BeginPlay and components initialization.
 	const FActorSaveData PlayerSaveData = GetPlayerSaveData();
 	if (PlayerSaveData.IsValid())
 	{
@@ -101,10 +106,11 @@ void UOvrlSaveGameSubsystem::LoadPlayerData(APawn* Player)
 	}
 }
 
-void UOvrlSaveGameSubsystem::OnPostPlayerPossesed()
+void UOvrlSaveGameSubsystem::OnPostPlayerPossessed()
 {
 	if (!CurrentSaveGame)
 	{
+		OVRL_LOG_ERR(LogOverlink, true, "CurrentSaveGame is NULL!");
 		return;
 	}
 	
@@ -131,43 +137,8 @@ void UOvrlSaveGameSubsystem::OnPostPlayerPossesed()
 		DeserializeObject(CurrentSaveGame->PlayerController, PC);
 		ExecuteOnLoadSafe(PC);
 	}
-}
-
-bool UOvrlSaveGameSubsystem::OverrideSpawnTransform(AController* NewPlayer)
-{
-	// check(NewPlayer);
-	//
-	// APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
-	// check(PS);
-	//
-	// if (APawn* MyPawn = PS->GetPawn())
-	// {
-	// 	FPlayerSaveData* FoundData = CurrentSaveGame->GetPlayerData(PS);
-	// 	if (FoundData)
-	// 	{
-	// 		MyPawn->SetActorLocation(FoundData->Location);
-	// 		MyPawn->SetActorRotation(FoundData->Rotation);
-	//
-	// 		// PlayerState owner is a (Player)Controller
-	// 		AController* PC = CastChecked<AController>(PS->GetOwner());
-	// 		// Set control rotation to change camera direction, setting Pawn rotation is not enough
-	// 		PC->SetControlRotation(FoundData->Rotation);
-	//
-	// 		return true;
-	// 	}
-	// }
-
-	return false;
-}
-
-void UOvrlSaveGameSubsystem::SetSlotName(FString NewSlotName)
-{
-	if (NewSlotName.IsEmpty())
-	{
-		return;
-	}
-
-	CurrentSlotName = NewSlotName;
+	
+	OnGameLoaded.Broadcast(CurrentSaveGame);
 }
 
 FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
@@ -180,183 +151,6 @@ FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
 	return FActorSaveData();
 }
 
-//
-// void UOvrlSaveGameSubsystem::WriteSaveGame()
-// {
-// 	// Clear arrays, may contain data from previously loaded SaveGame
-// 	CurrentSaveGame->SavedPlayers.Empty();
-// 	CurrentSaveGame->SavedActorMap.Empty();
-//
-// 	AGameStateBase* GS = GetWorld()->GetGameState();
-// 	check(GS);
-//
-// 	// // Iterate all player states, we don't have proper ID to match yet (requires Steam or EOS)
-// 	// for (int32 i = 0; i < GS->PlayerArray.Num(); i++)
-// 	// {
-// 	// 	AOvrlPlayerState* PS = CastChecked<AOvrlPlayerState>(GS->PlayerArray[i]);
-// 	// 	if (PS)
-// 	// 	{
-// 	// 		PS->SavePlayerState(CurrentSaveGame);
-// 	// 		break; // single player only supported at this point
-// 	// 	}
-// 	// }
-//
-// 	// Iterate the entire world of actors
-// 	for (AActor* Actor : TActorRange<AActor>(GetWorld()))
-// 	{
-// 		// Only interested in our 'gameplay actors', skip actors that are being destroyed
-// 		// Note: You might instead use a dedicated SavableObject interface for Actors you want to save instead of re-using GameplayInterface
-// 		if (!IsValid(Actor) || !Actor->Implements<UOvrlSaveableObject>())
-// 		{
-// 			continue;
-// 		}
-//
-// 		// Actor->IsNetStartupActor();
-//
-// 		FActorSaveData ActorData;
-// 		ActorData.ActorName = Actor->GetFName();
-// 		ActorData.Transform = Actor->GetActorTransform();
-// 		ActorData.ActorClass = Actor->GetClass();
-// 		ActorData.bWasSpawned = !Actor->IsNetStartupActor();
-//
-// 		{
-// 			// Pass the array to fill with data from Actor
-// 			FMemoryWriter MemWriter(ActorData.ByteData);
-//
-// 			FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
-// 			// Find only variables with UPROPERTY(SaveGame)
-// 			Ar.ArIsSaveGame = true;
-// 			// Converts Actor's SaveGame UPROPERTIES into binary array
-// 			Actor->Serialize(Ar);
-// 		}
-//
-// 		// TArray<UActorComponent*> Components;
-// 		// Actor->GetComponents(Components);
-// 		//
-// 		// for (UActorComponent* Comp : Components)
-// 		// {
-// 		// 	if (Comp->Implements<UOvrlSaveableObject>())
-// 		// 	{
-// 		// 		// Pass the array to fill with data from Actor
-// 		// 		FMemoryWriter MemWriter(ActorData.ByteData);
-// 		//
-// 		// 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
-// 		// 		// Find only variables with UPROPERTY(SaveGame)
-// 		// 		Ar.ArIsSaveGame = true;
-// 		// 		// Converts Actor's SaveGame UPROPERTIES into binary array
-// 		// 		Comp->Serialize(Ar);
-// 		// 	}
-// 		// }
-//
-// 		CurrentSaveGame->SavedActorMap.Add(Actor->GetFName(), ActorData);
-// 	}
-//
-// 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, CurrentSlotName, 0);
-//
-// 	OnSaveGameWritten.Broadcast(CurrentSaveGame);
-// }
-//
-// void UOvrlSaveGameSubsystem::LoadSaveGame(FString InSlotName)
-// {
-// 	// Update slot name first if specified, otherwise keeps default name
-// 	SetSlotName(InSlotName);
-//
-// 	if (UGameplayStatics::DoesSaveGameExist(CurrentSlotName, 0))
-// 	{
-// 		CurrentSaveGame = Cast<UOvrlSaveGame>(UGameplayStatics::LoadGameFromSlot(CurrentSlotName, 0));
-// 		if (CurrentSaveGame == nullptr)
-// 		{
-// 			OVRL_LOG_WARN(LogOverlink, true, "Failed to load SaveGame Data.");
-// 			return;
-// 		}
-//
-// 		OVRL_LOG_INFO(LogOverlink, true, "Loaded SaveGame Data.");
-//
-// 		// Iterate the entire world of actors
-// 		for (AActor* Actor : TActorRange<AActor>(GetWorld()))
-// 		{
-// 			// Only interested in our 'gameplay actors'
-// 			if (!Actor->Implements<UOvrlSaveableObject>())
-// 			{
-// 				continue;
-// 			}
-//
-// 			if (FActorSaveData* FoundData = CurrentSaveGame->SavedActorMap.Find(Actor->GetFName()))
-// 			{
-// 				Actor->SetActorTransform(FoundData->Transform);
-//
-// 				{
-// 					FMemoryReader MemReader(FoundData->ByteData);
-//
-// 					FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
-// 					Ar.ArIsSaveGame = true;
-// 					// Convert binary array back into actor's variables
-// 					Actor->Serialize(Ar);
-// 				}
-//
-// 				// TArray<UActorComponent*> Components;
-// 				// Actor->GetComponents(Components);
-// 				//
-// 				// for (UActorComponent* Comp : Components)
-// 				// {
-// 				// 	if (Comp->Implements<UOvrlSaveableObject>())
-// 				// 	{
-// 				// 		// Pass the array to fill with data from Actor
-// 				// 		FMemoryWriter MemWriter(ActorData.ByteData);
-// 				//
-// 				// 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
-// 				// 		// Find only variables with UPROPERTY(SaveGame)
-// 				// 		Ar.ArIsSaveGame = true;
-// 				// 		// Converts Actor's SaveGame UPROPERTIES into binary array
-// 				// 		Comp->Serialize(Ar);
-// 				// 	}
-// 				// }
-//
-// 				// UOvrlSaveableObject::Execute_OnActorLoaded(Actor);
-// 			}
-// 		}
-//
-// 		// // Check for runtime-spawned actors
-// 		// for (const TPair Pair : CurrentSaveGame->SavedActorMap)
-// 		// {
-// 		// 	const FActorSaveData ActorSaveData = Pair.Value;
-// 		// 	
-// 		// 	if (ActorSaveData.bWasSpawned)
-// 		// 	{
-// 		// 		AActor* Actor = GetWorld()->SpawnActor<AActor>(ActorSaveData.ActorClass);
-// 		// 		if (Actor)
-// 		// 		{
-// 		// 			Actor->SetActorTransform(ActorSaveData.Transform);
-// 		//
-// 		// 			FMemoryReader MemReader(ActorSaveData.ByteData);
-// 		//
-// 		// 			FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
-// 		// 			Ar.ArIsSaveGame = true;
-// 		// 			// Convert binary array back into actor's variables
-// 		// 			Actor->Serialize(Ar);
-// 		//
-// 		// 			IOvrlSaveableActor::Execute_OnActorLoaded(Actor);
-// 		// 		}
-// 		// 	}
-// 		// }
-//
-// 		OnSaveGameLoaded.Broadcast(CurrentSaveGame);
-// 	}
-// 	else
-// 	{
-// 		// CurrentSaveGame = CastChecked<UOvrlSaveGame>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGame::StaticClass()));
-// 		// if (!CurrentSaveGame)
-// 		// {
-// 		// 	OVRL_LOG_ERR(LogOverlink, true, "Failed to create Save Game Object!");
-// 		// 	return;
-// 		// }
-// 		//
-// 		// CurrentSaveGame->Initialize(InSlotName);
-// 		//
-// 		// OVRL_LOG_INFO(LogOverlink, true, "Created New SaveGame Data.");
-// 	}
-// }
-
 void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 {
 	if (!CurrentSaveGame)
@@ -364,6 +158,7 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 		return;
 	}
 
+	// Save game framework related objects
 	if (AGameStateBase* GS = UGameplayStatics::GetGameState(GetWorld()))
 	{
 		ExecuteOnPreSaveSafe(GS);
@@ -386,28 +181,7 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 		ExecuteOnSaveSafe(PC);
 	}
 
-	// ACharacter* Character = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	// if (Character)
-	// {
-	// 	FPlayerSaveData PlayerSaveData;
-	// 	PlayerSaveData.PlayerTransform = Character->GetActorTransform();
-	// 	SerializeObject(Character, CurrentSaveGame->PlayerCharacter);
-	//
-	// 	if (UOvrlInventoryComponent* InventoryComponent = Character->GetComponentByClass<UOvrlInventoryComponent>())
-	// 	{
-	// 		for (const FOvrlItemEntry& ItemEntry : InventoryComponent->GetItemEntries())
-	// 		{
-	// 			FInventoryItemEntrySaveData SaveData;
-	// 			SaveData.ItemDefinition = ItemEntry.Instance->GetItemDefClass();
-	// 			SaveData.Stacks = ItemEntry.Instance->Stacks;
-	// 			SaveData.Quantity = ItemEntry.Quantity;
-	// 			PlayerSaveData.Inventory.Add(SaveData);
-	// 		}
-	//
-	// 		CurrentSaveGame->SavedPlayers.Add(PlayerSaveData);
-	// 	}
-	// }
-
+	// Save only Actors with Saveable Object interface
 	TArray<AActor*> SaveableActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UOvrlSaveableObject::StaticClass(), SaveableActors);
 
@@ -425,19 +199,22 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 			continue;
 		}
 
+		// Notify Actor that we're going to save its data
 		IOvrlSaveableObject::Execute_OnPreSave(Actor);
 
 		FActorSaveData ActorData;
 		ActorData.Name = Actor->GetFName();
 		ActorData.Transform = Actor->GetActorTransform();
 		ActorData.ActorClass = Actor->GetClass();
-		ActorData.Outer = Actor->GetOuter();
 		const bool bWasSpawned = !Actor->IsNetStartupActor();
+		
+		// Serialize all its SaveGame properties
 		SerializeObject(Actor, ActorData.ByteData);
 
 		TArray<UActorComponent*> Components;
 		Actor->GetComponents(Components);
 
+		// Serialize Actor's component too
 		for (UActorComponent* Component : Components)
 		{
 			FComponentSaveData ComponentSaveData;
@@ -449,6 +226,7 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 				ComponentSaveData.RelativeTransform = SceneComponent->GetRelativeTransform();
 			}
 
+			// Serialize component data 
 			ExecuteOnPreSaveSafe(Component);
 			SerializeObject(Component, ComponentSaveData.ByteData);
 			ExecuteOnSaveSafe(Component);
@@ -456,60 +234,32 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSlot()
 			ActorData.ComponentsSaveData.Add(ComponentSaveData);
 		}
 
+		// We treat Player as a special Actor since it's spawned by the GameMode
 		const bool bIsPlayer = IOvrlSaveableObject::Execute_SaveAsPlayer(Actor);
 
 		if (bIsPlayer) // We found the player!
 		{
 			if (ensureMsgf(!CurrentSaveGame->PlayerData.IsValid(),
 				TEXT("PlayerData has already been saved once! For now, only 1 PlayerData can be saved per slot."
-					"Ensure that only one Actor in the level returns 'true' from the SaveAsPlayer() interface function.")))
+					"Ensure that only one Actor (player pawn) in the level returns 'true' from the SaveAsPlayer() interface function.")))
 			{
 				CurrentSaveGame->PlayerData = ActorData;
 			}
 		}
 		else if (bWasSpawned)
 		{
+			// Save runtime Actors so that we can re-spawn them on game load.
 			CurrentSaveGame->SpawnedActors.Add(ActorData);
 		}
 		else
 		{
+			// Save level Actors in case they have been moved or changed.
 			CurrentSaveGame->LevelActors.Add(ActorData.Name, ActorData);
 		}
 
+		// Notify Actor that we're done saving its data
 		IOvrlSaveableObject::Execute_OnSave(Actor);
 	}
-}
-
-FEntitySaveData UOvrlSaveGameSubsystem::TryCreateEntitySaveData(const AActor* Actor, const FActorSaveData& ActorSaveData)
-{
-	if (!Actor)
-	{
-		return FEntitySaveData();
-	}
-
-	const UOvrlInventoryComponent* InventoryComponent = Actor->GetComponentByClass<UOvrlInventoryComponent>();
-
-	// If no one of these components are valid, then it's not considered as an entity 
-	if (!InventoryComponent)
-	{
-		return FEntitySaveData();
-	}
-
-	FEntitySaveData PlayerSaveData = ActorSaveData;
-
-	if (InventoryComponent)
-	{
-		for (const FOvrlItemEntry& ItemEntry : InventoryComponent->GetItemEntries())
-		{
-			FInventoryItemEntrySaveData SaveData;
-			SaveData.ItemDefinition = ItemEntry.Instance->GetItemDefClass();
-			// SaveData.Stacks = ItemEntry.Instance->Stacks;
-			SaveData.Quantity = ItemEntry.Quantity;
-			PlayerSaveData.InventoryEntries.Add(SaveData);
-		}
-	}
-
-	return PlayerSaveData;
 }
 
 void UOvrlSaveGameSubsystem::PopulateFromCurrentSlot()
@@ -519,45 +269,14 @@ void UOvrlSaveGameSubsystem::PopulateFromCurrentSlot()
 		return;
 	}
 
-	// ACharacter* Character = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	// if (Character)
-	// {
-	// 	DeserializeObject(CurrentSaveGame->PlayerCharacter, Character);
-	//
-	// 	if (!CurrentSaveGame->SavedPlayers.IsValidIndex(0))
-	// 	{
-	// 		return;
-	// 	}
-	//
-	// 	Character->SetActorTransform(CurrentSaveGame->SavedPlayers[0].PlayerTransform);
-	//
-	// 	if (CurrentSaveGame->SavedPlayers[0].Inventory.Num() > 0)
-	// 	{
-	// 		if (UOvrlInventoryComponent* InventoryComponent = Character->GetComponentByClass<UOvrlInventoryComponent>())
-	// 		{
-	// 			for (FInventoryItemEntrySaveData SaveData : CurrentSaveGame->SavedPlayers[0].Inventory)
-	// 			{
-	// 				UOvrlItemInstance* ItemInstance = InventoryComponent->CreateUniqueItem(SaveData.ItemDefinition);
-	// 				if (ItemInstance)
-	// 				{
-	// 					ItemInstance->Stacks = SaveData.Stacks; // Override any existing item stacks
-	// 					InventoryComponent->AddItem(ItemInstance);
-	// 				}
-	//
-	// 				// FInventoryEntry NewEntry;
-	// 				// NewEntry.Instance = NewObject<UInventoryItemInstance>();
-	// 				// NewEntry.Instance->SetItemDefinition(Entry.ItemDefinition);
-	// 				// NewEntry.Count = Entry.Count;
-	// 				//
-	// 				// InventoryComponent->AddItem(NewEntry);
-	// 			}
-	// 		}
-	// 	}
-	// }
-
+	// NOTE: This code is executed BEFORE the BeginPlay of any Actor (even the runtime-spawned ones).
+	// This is useful because when BeginPlay is called, you already have the Actor properties loaded in memory, and you can
+	// easily handle different logic depending on that data.
+	
 	TArray<AActor*> SaveableActors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UOvrlSaveableObject::StaticClass(), SaveableActors);
 
+	// Loop through level actors
 	for (AActor* Actor : SaveableActors)
 	{
 		if (!Actor)
@@ -565,12 +284,12 @@ void UOvrlSaveGameSubsystem::PopulateFromCurrentSlot()
 			continue;
 		}
 
-		// Check if the actor exists in the world objects on the save game object.
+		// Check if the current level Actor has any Save Data
 		FActorSaveData* LevelActorSaveData = CurrentSaveGame->LevelActors.Find(Actor->GetFName());
 
-		// If a matching record has been found.
 		if (LevelActorSaveData)
 		{
+			// If it exists, load its properties
 			LoadActor(Actor, *LevelActorSaveData);
 		}
 		else
@@ -578,70 +297,16 @@ void UOvrlSaveGameSubsystem::PopulateFromCurrentSlot()
 			// If we found a Saveable Actor placed in the level, but without Save Data, it means it was destroyed during gameplay.
 			Actor->Destroy();
 		}
-
-		// FEntitySaveData* EntitySaveData = CurrentSaveGame->EntitiesSaveData.FindByPredicate([Actor](const FEntitySaveData& EntitySaveData) {
-		// 		return EntitySaveData.Name == Actor->GetFName();
-		// 	}
-		// );
-
-		// if (EntitySaveData)
-		// {
-		// 	IOvrlSaveableObject::Execute_OnPreLoad(Actor);
-		//
-		// 	Actor->SetActorTransform(EntitySaveData->Transform);
-		// 	DeserializeObject(EntitySaveData->ByteData, Actor);
-		//
-		// 	TArray<UActorComponent*> Components;
-		// 	Actor->GetComponents(Components);
-		//
-		// 	for (const FComponentSaveData& ComponentSaveData : EntitySaveData->ComponentsSaveData)
-		// 	{
-		// 		for (UActorComponent* Component : Components)
-		// 		{
-		// 			if (ComponentSaveData.Name == Component->GetFName())
-		// 			{
-		// 				ExecuteOnPreLoadSafe(Component);
-		//
-		// 				if (USceneComponent* SceneComponent = Cast<USceneComponent>(Component))
-		// 				{
-		// 					SceneComponent->SetWorldTransform(ComponentSaveData.Transform);
-		// 				}
-		//
-		// 				if (UOvrlInventoryComponent* InventoryComponent = Cast<UOvrlInventoryComponent>(Component))
-		// 				{
-		// 					for (FInventoryItemEntrySaveData InventoryEntry : EntitySaveData->InventoryEntries)
-		// 					{
-		// 						UOvrlItemInstance* ItemInstance = InventoryComponent->CreateUniqueItem(InventoryEntry.ItemDefinition);
-		// 						if (ItemInstance)
-		// 						{
-		// 							// ItemInstance->Stacks = InventoryEntry.Stacks; // Override any existing item stacks
-		// 							InventoryComponent->AddItem(ItemInstance);
-		// 						}
-		// 					}
-		//
-		// 					DeserializeObject(ComponentSaveData.ByteData, Component);
-		//
-		// 					ExecuteOnLoadSafe(Component);
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		//
-		// 	IOvrlSaveableObject::Execute_OnLoad(Actor);
-		// 	
-		// 	// // If we couldn't find the world object, check if the world object is considered a "unique" collectible and has already been collected.
-		// 	// if (CurrentSaveGame->UniqueCollectiblesCollected.Contains(Actor->GetName()))
-		// 	// {
-		// 	// 	// Despawn actor as the player should not be able to collect this collectible again.
-		// 	// 	Actor->Destroy();
-		// 	// 	continue;
-		// 	// }
-		// }
 	}
 
+	// Re-spawn the actors spawned during gameplay
 	for (const FActorSaveData& SpawnedActorSaveData : CurrentSaveGame->SpawnedActors)
 	{
-		AActor* SpawnedActor = GetWorld()->SpawnActorDeferred<AActor>(SpawnedActorSaveData.ActorClass, SpawnedActorSaveData.Transform);
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.bDeferConstruction = true; // Manually set deferred spawn so we can set the Name
+		SpawnInfo.Name = SpawnedActorSaveData.Name;
+		
+		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(SpawnedActorSaveData.ActorClass, SpawnedActorSaveData.Transform, SpawnInfo);
 		if (SpawnedActor)
 		{
 			LoadActor(SpawnedActor, SpawnedActorSaveData);
@@ -658,6 +323,7 @@ void UOvrlSaveGameSubsystem::LoadActor(AActor* Actor, const FActorSaveData& Acto
 		return;
 	}
 
+	// Notify Actor that we're going to load its data
 	ExecuteOnPreLoadSafe(Actor);
 
 	Actor->SetActorTransform(ActorSaveData.Transform);
@@ -666,6 +332,7 @@ void UOvrlSaveGameSubsystem::LoadActor(AActor* Actor, const FActorSaveData& Acto
 	TArray<UActorComponent*> Components;
 	Actor->GetComponents(Components);
 
+	// Load Actor's component data
 	for (const FComponentSaveData& ComponentSaveData : ActorSaveData.ComponentsSaveData)
 	{
 		for (UActorComponent* Component : Components)
@@ -686,6 +353,7 @@ void UOvrlSaveGameSubsystem::LoadActor(AActor* Actor, const FActorSaveData& Acto
 		}
 	}
 
+	// Notify Actor that we're done loading its data
 	ExecuteOnLoadSafe(Actor);
 }
 

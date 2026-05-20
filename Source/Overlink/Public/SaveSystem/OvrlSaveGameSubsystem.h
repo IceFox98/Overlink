@@ -45,28 +45,11 @@ public:
 	void LoadGame(FString SlotName);
 
 	void LoadPlayerData(APawn* Player);
-	void OnPostPlayerPossesed();
-
-	// Restore spawn transform using stored data per PlayerState after being fully initialized.
-	UFUNCTION(BlueprintCallable)
-	bool OverrideSpawnTransform(AController* NewPlayer);
-
-	// Change slot name, will be used next time we load/save data
-	UFUNCTION(BlueprintCallable)
-	void SetSlotName(FString NewSlotName);
-
-	// UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	// void WriteSaveGame();
-	//
-	// // Load from disk, optional slot name
-	// UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	// void LoadSaveGame(FString InSlotName = "");
+	void OnPostPlayerPossessed();
 
 	FActorSaveData GetPlayerSaveData() const;
 
 protected:
-	FEntitySaveData TryCreateEntitySaveData(const AActor* Actor, const FActorSaveData& ActorSaveData);
-
 	void ExecuteOnPreSaveSafe(UObject* Target);
 	void ExecuteOnSaveSafe(UObject* Target);
 	void ExecuteOnPreLoadSafe(UObject* Target);
@@ -80,10 +63,10 @@ private:
 
 public:
 	UPROPERTY(BlueprintAssignable)
-	FOnSaveGame OnSaveGameLoaded;
+	FOnSaveGame OnGameLoaded;
 
 	UPROPERTY(BlueprintAssignable)
-	FOnSaveGame OnSaveGameWritten;
+	FOnSaveGame OnGameSaved;
 
 protected:
 	// Name of slot to save/load to disk. Filled by SaveGameSettings (can be overriden from GameMode's InitGame())
