@@ -10,18 +10,7 @@ void AOvrlGameModeBase::InitGame(const FString& MapName, const FString& Options,
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
-	// (Save/Load logic moved into new SaveGameSubsystem)
 	UOvrlSaveGameSubsystem* SG = GetGameInstance()->GetSubsystem<UOvrlSaveGameSubsystem>();
-
-	// Optional slot name (Falls back to slot specified in SaveGameSettings class/INI otherwise)
-	// FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, "SaveGame");
-	// FString SelectedSaveSlot = SG->GetLastSaveSlotName();
-	// if (SelectedSaveSlot.IsEmpty())
-	// {
-	// 	const UOvrlSaveGameSettings* SGSettings = GetDefault<UOvrlSaveGameSettings>();
-	// 	SelectedSaveSlot = SGSettings->DefaultSaveSlotName; // Set default slot name
-	// }
-	
 	SG->LoadSelectedSlot();
 }
 

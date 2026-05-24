@@ -88,7 +88,7 @@ void UOvrlSaveGameSubsystem::CreateNewSaveSlot(FString SlotDisplayName, bool bUs
 	}
 
 	CurrentSaveGame->Initialize(SlotName);
-	FSaveSlotMetadata UpdatedSlotMetadata = UpdateSlotMetadata(SlotName, SlotDisplayName);
+	SaveSlotMetadata(SlotName, SlotDisplayName);
 
 	if (bUseDefaultLevel)
 	{
@@ -125,7 +125,7 @@ void UOvrlSaveGameSubsystem::SaveGame(FString SlotName)
 		return;
 	}
 
-	UpdateSlotMetadata(SlotName);
+	SaveSlotMetadata(SlotName);
 
 	// Write the data in the CurrentSaveGame object
 	PopulateCurrentSaveObject();
@@ -146,7 +146,7 @@ void UOvrlSaveGameSubsystem::SaveCurrentSlot()
 	}
 }
 
-void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
+void UOvrlSaveGameSubsystem::LoadGame(const FString& SlotName)
 {
 	if (!UGameplayStatics::DoesSaveGameExist(SlotName, 0))
 	{
@@ -157,6 +157,38 @@ void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
 	CurrentSaveGame = Cast<UOvrlSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
 
 	UGameplayStatics::OpenLevel(this, *CurrentSaveGame->LevelName);
+}
+
+bool UOvrlSaveGameSubsystem::DeleteSaveSlot(const FString& SlotName)
+{
+	if (!UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	{
+		OVRL_LOG_WARN(LogOverlink, true, "Failed to load the game, SlotName does not exist! You have to create a new save slot first.");
+		return false;
+	}
+
+	// Remove slot metadata
+	for (auto It = SaveGameSlots->SaveSlotMetas.CreateIterator(); It; ++It)
+	{
+		FSaveSlotMetadata& SlotMetadata = *It;
+		if (SlotMetadata.SlotName == SlotName)
+		{
+			It.RemoveCurrent();
+			break;
+		}
+	}
+
+	SaveGameSlots->LastPlayerSlotIndex = INDEX_NONE;
+	SaveSlotNames();
+
+	// Delete the actual save game slot
+	UGameplayStatics::DeleteGameInSlot(SlotName, 0);
+
+	CurrentSaveGame = nullptr;
+	
+	OVRL_LOG_INFO(LogOverlink, true, "Slot '%s' deleted successfully!", *SlotName);
+	
+	return true;
 }
 
 void UOvrlSaveGameSubsystem::LoadPlayerData(APawn* Player)
@@ -202,31 +234,6 @@ void UOvrlSaveGameSubsystem::OnPostPlayerPossessed()
 	}
 
 	OnGameLoaded.Broadcast(CurrentSaveGame);
-}
-
-FString UOvrlSaveGameSubsystem::GetLastSaveSlotName() const
-{
-	if (SaveGameSlots->SaveSlotMetas.IsEmpty())
-	{
-		return {};
-	}
-
-	return SaveGameSlots->SaveSlotMetas.Last().SlotName;
-}
-
-TArray<FSaveSlotMetadata> UOvrlSaveGameSubsystem::GetSaveSlotsMetadata() const
-{
-	return SaveGameSlots->SaveSlotMetas;
-}
-
-FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
-{
-	if (CurrentSaveGame)
-	{
-		return CurrentSaveGame->PlayerData;
-	}
-
-	return FActorSaveData();
 }
 
 void UOvrlSaveGameSubsystem::PopulateCurrentSaveObject()
@@ -445,14 +452,39 @@ void UOvrlSaveGameSubsystem::LoadActor(AActor* Actor, const FActorSaveData& Acto
 	ExecuteOnLoadSafe(Actor);
 }
 
-FSaveSlotMetadata UOvrlSaveGameSubsystem::UpdateSlotMetadata(const FString& SlotName, const FString& DisplayName/* = ""*/)
+TArray<FSaveSlotMetadata> UOvrlSaveGameSubsystem::GetSaveSlotsMetadata() const
+{
+	return SaveGameSlots->SaveSlotMetas;
+}
+
+FSaveSlotMetadata UOvrlSaveGameSubsystem::GetMostRecentSaveSlotMetadata() const
+{
+	if (SaveGameSlots->SaveSlotMetas.IsValidIndex(SaveGameSlots->LastPlayerSlotIndex))
+	{
+		return SaveGameSlots->SaveSlotMetas[SaveGameSlots->LastPlayerSlotIndex];
+	}
+	
+	return FSaveSlotMetadata();
+}
+
+FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
+{
+	if (CurrentSaveGame)
+	{
+		return CurrentSaveGame->PlayerData;
+	}
+
+	return FActorSaveData();
+}
+
+void UOvrlSaveGameSubsystem::SaveSlotMetadata(const FString& SlotName, const FString& DisplayName/* = ""*/)
 {
 	FSaveSlotMetadata* SlotMetadata = new FSaveSlotMetadata();
 	const bool bFound = FindExistingSlotMetadata(SlotName, SlotMetadata);
 
 	if (!SlotMetadata)
 	{
-		return {};
+		return;
 	}
 
 	SlotMetadata->SlotName = SlotName;
@@ -464,13 +496,13 @@ FSaveSlotMetadata UOvrlSaveGameSubsystem::UpdateSlotMetadata(const FString& Slot
 
 	if (!bFound)
 	{
-		SaveGameSlots->SaveSlotMetas.Add(*SlotMetadata);
+		const int32 Index = SaveGameSlots->SaveSlotMetas.Add(*SlotMetadata);
+		SaveGameSlots->SaveSlotMetas[Index].SlotIndex = Index;
 	}
-
-	const UOvrlSaveGameSettings* SGSettings = GetDefault<UOvrlSaveGameSettings>();
-	UGameplayStatics::SaveGameToSlot(SaveGameSlots, SGSettings->SaveSlotNames, 0);
-
-	return *SlotMetadata;
+	
+	SaveGameSlots->LastPlayerSlotIndex = SlotMetadata->SlotIndex;
+	
+	SaveSlotNames();
 }
 
 bool UOvrlSaveGameSubsystem::FindExistingSlotMetadata(const FString& SlotName, FSaveSlotMetadata*& OutSlotMetadata) const
@@ -485,6 +517,12 @@ bool UOvrlSaveGameSubsystem::FindExistingSlotMetadata(const FString& SlotName, F
 	}
 
 	return false;
+}
+
+void UOvrlSaveGameSubsystem::SaveSlotNames() const
+{
+	const UOvrlSaveGameSettings* SGSettings = GetDefault<UOvrlSaveGameSettings>();
+	UGameplayStatics::SaveGameToSlot(SaveGameSlots, SGSettings->SaveSlotNames, 0);
 }
 
 FString UOvrlSaveGameSubsystem::SanitizeSlotName(const FString& SlotName)

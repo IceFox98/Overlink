@@ -24,7 +24,7 @@ class UOvrlSaveGame;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSaveGame, class UOvrlSaveGame*, SaveObject);
 
-UCLASS(meta=(DisplayName="Ovrl SaveGame System"))
+UCLASS(meta=(DisplayName="Ovrl Save Game System"))
 class OVERLINK_API UOvrlSaveGameSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
@@ -43,16 +43,24 @@ public:
 
 	// Load game data of the passed slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	void LoadGame(FString SlotName);
-	void LoadSelectedSlot();
+	void LoadGame(const FString& SlotName);
 
+	void LoadSelectedSlot();
 	void LoadPlayerData(APawn* Player);
 	void OnPostPlayerPossessed();
 
-	FString GetLastSaveSlotName() const;
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	bool DeleteSaveSlot(const FString& SlotName);
 
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	FORCEINLINE UOvrlSaveGame* GetCurrentSaveGame() const { return CurrentSaveGame; }
+
+	// Returns the list of metadata of the available slots.
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	TArray<FSaveSlotMetadata> GetSaveSlotsMetadata() const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	FSaveSlotMetadata GetMostRecentSaveSlotMetadata() const;
 
 	FActorSaveData GetPlayerSaveData() const;
 
@@ -70,9 +78,9 @@ protected:
 private:
 	void PopulateCurrentSaveObject();
 	void LoadActor(AActor* Actor, const FActorSaveData& ActorSaveData);
-	FSaveSlotMetadata UpdateSlotMetadata(const FString& SlotName, const FString& DisplayName = "");
-
+	void SaveSlotMetadata(const FString& SlotName, const FString& DisplayName = "");
 	FString SanitizeSlotName(const FString& SlotName);
+	void SaveSlotNames() const;
 
 public:
 	UPROPERTY(BlueprintAssignable)

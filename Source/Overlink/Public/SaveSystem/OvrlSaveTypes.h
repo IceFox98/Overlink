@@ -95,9 +95,6 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FDateTime Date;
 	
-public:
-	bool IsValid() const
-	{
-		return !SlotName.IsEmpty();
-	}
+	UPROPERTY(BlueprintReadOnly)
+	int32 SlotIndex;
 };

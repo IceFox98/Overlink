@@ -10,7 +10,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class OVERLINK_API UOvrlSaveGame : public USaveGame
 {
 	GENERATED_BODY()
@@ -20,10 +20,10 @@ public:
 	void Reset();
 
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FString SlotName;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FString LevelName;
 
 	UPROPERTY()
@@ -60,5 +60,5 @@ public:
 	TArray<FSaveSlotMetadata> SaveSlotMetas;
 
 	UPROPERTY()
-	int32 LastPlayerSlotIndex;
+	int32 LastPlayerSlotIndex = -1;
 };
