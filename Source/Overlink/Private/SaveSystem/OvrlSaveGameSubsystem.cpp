@@ -4,6 +4,7 @@
 
 // Internal
 #include "Core/Interfaces/OvrlSaveableObject.h"
+#include "Core/OvrlGameConstants.h"
 #include "SaveSystem/OvrlSaveGame.h"
 #include "SaveSystem/OvrlSaveGameSettings.h"
 #include "OvrlLogUtils.h"
@@ -24,6 +25,7 @@ void UOvrlSaveGameSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	}
 	else
 	{
+		SaveGameSlots = CastChecked<UOvrlSaveGameSlots>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGameSlots::StaticClass()));
 		UGameplayStatics::SaveGameToSlot(SaveGameSlots, SGSettings->SaveSlotNames, 0);
 	}
 }
@@ -58,28 +60,55 @@ void UOvrlSaveGameSubsystem::DeserializeObject(const TArray<uint8>& Data, UObjec
 	Object->Serialize(Archive);
 }
 
-// bool UOvrlSaveGameSubsystem::CreateSaveGameSlot(FString SlotName)
-// {
-// 	// Create save game object
-// 	UOvrlSaveGame* NewSaveGameSlot = CastChecked<UOvrlSaveGame>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGame::StaticClass()));
-// 	if (!NewSaveGameSlot)
-// 	{
-// 		OVRL_LOG_ERR(LogOverlink, true, "Failed to create Save Game Object!");
-// 		return false;
-// 	}
-//
-// 	OVRL_LOG_INFO(LogOverlink, true, "Created New SaveGame Data.");
-//
-// 	NewSaveGameSlot->Initialize(SlotName);
-//
-// 	UGameplayStatics::SaveGameToSlot(NewSaveGameSlot, SlotName, 0);
-//
-// 	return true;
-// }
+void UOvrlSaveGameSubsystem::CreateNewSaveSlot(FString SlotDisplayName, bool bUseDefaultLevel, FSaveSlotMetadata& NewSlotMetadata, bool& bSuccess)
+{
+	const UOvrlGameConstants* GameConstants = UOvrlGameConstants::Get(this);
+	if (!GameConstants->GameDefaultLevel.ToSoftObjectPath().IsValid())
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to create new save slot! DefaultLevel is NULL!");
+		return;
+	}
+
+	FString SlotName = SanitizeSlotName(SlotDisplayName);
+	if (SlotName.IsEmpty())
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to create new save slot! SlotName is empty!");
+		return;
+	}
+
+	// Append timestamp so the name will be 100% unique.
+	SlotName = FString::Format(TEXT("{0}_{1}"), { SlotName, FDateTime::Now().ToUnixTimestamp() });
+
+	// Create save game object
+	CurrentSaveGame = CastChecked<UOvrlSaveGame>(UGameplayStatics::CreateSaveGameObject(UOvrlSaveGame::StaticClass()));
+	if (!CurrentSaveGame)
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to create Save Game Object!");
+		return;
+	}
+
+	CurrentSaveGame->Initialize(SlotName);
+	FSaveSlotMetadata UpdatedSlotMetadata = UpdateSlotMetadata(SlotName, SlotDisplayName);
+
+	if (bUseDefaultLevel)
+	{
+		CurrentSaveGame->LevelName = GameConstants->GameDefaultLevel.ToSoftObjectPath().GetAssetName();
+	}
+	else
+	{
+		CurrentSaveGame->LevelName = UGameplayStatics::GetCurrentLevelName(this);
+	}
+
+	// Write new slot on disk
+	bSuccess = UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SlotName, 0);
+	if (!bSuccess)
+	{
+		OVRL_LOG_ERR(LogOverlink, true, "Failed to save file on disk!");
+	}
+}
 
 void UOvrlSaveGameSubsystem::SaveGame(FString SlotName)
 {
-	// UOvrlSaveGame* SaveGameObj = nullptr;
 	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
 	{
 		CurrentSaveGame = Cast<UOvrlSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
@@ -96,15 +125,7 @@ void UOvrlSaveGameSubsystem::SaveGame(FString SlotName)
 		return;
 	}
 
-	FSaveSlotMetadata SlotMetadata;
-	const bool bFound = FindExistingSlotMetadata(SlotName, SlotMetadata);
-	SlotMetadata.SlotName = SlotName;
-	SlotMetadata.Date = FDateTime::UtcNow();
-
-	if (!bFound)
-	{
-		SaveGameSlots->SaveSlotMetas.Add(SlotMetadata);
-	}
+	UpdateSlotMetadata(SlotName);
 
 	// Write the data in the CurrentSaveGame object
 	PopulateCurrentSaveObject();
@@ -113,6 +134,16 @@ void UOvrlSaveGameSubsystem::SaveGame(FString SlotName)
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, CurrentSaveGame->SlotName, 0);
 
 	OnGameSaved.Broadcast(CurrentSaveGame);
+
+	OVRL_LOG_INFO(LogOverlink, true, "Game Saved!");
+}
+
+void UOvrlSaveGameSubsystem::SaveCurrentSlot()
+{
+	if (CurrentSaveGame)
+	{
+		SaveGame(CurrentSaveGame->SlotName);
+	}
 }
 
 void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
@@ -124,22 +155,8 @@ void UOvrlSaveGameSubsystem::LoadGame(FString SlotName)
 	}
 
 	CurrentSaveGame = Cast<UOvrlSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
-	
+
 	UGameplayStatics::OpenLevel(this, *CurrentSaveGame->LevelName);
-}
-
-bool UOvrlSaveGameSubsystem::FindExistingSlotMetadata(FString SlotName, FSaveSlotMetadata& OutSlotMetadata)
-{
-	for (const FSaveSlotMetadata& SlotMetadata : SaveGameSlots->SaveSlotMetas)
-	{
-		if (SlotMetadata.SlotName.Equals(SlotName, ESearchCase::IgnoreCase))
-		{
-			OutSlotMetadata = SlotMetadata;
-			return true;
-		}
-	}
-
-	return false;
 }
 
 void UOvrlSaveGameSubsystem::LoadPlayerData(APawn* Player)
@@ -197,6 +214,11 @@ FString UOvrlSaveGameSubsystem::GetLastSaveSlotName() const
 	return SaveGameSlots->SaveSlotMetas.Last().SlotName;
 }
 
+TArray<FSaveSlotMetadata> UOvrlSaveGameSubsystem::GetSaveSlotsMetadata() const
+{
+	return SaveGameSlots->SaveSlotMetas;
+}
+
 FActorSaveData UOvrlSaveGameSubsystem::GetPlayerSaveData() const
 {
 	if (CurrentSaveGame)
@@ -214,7 +236,9 @@ void UOvrlSaveGameSubsystem::PopulateCurrentSaveObject()
 		return;
 	}
 
-	CurrentSaveGame->LevelName = GetWorld()->GetMapName();
+	CurrentSaveGame->Reset();
+
+	CurrentSaveGame->LevelName = UGameplayStatics::GetCurrentLevelName(this);
 
 	// Save game framework related objects
 	if (AGameStateBase* GS = UGameplayStatics::GetGameState(GetWorld()))
@@ -419,6 +443,56 @@ void UOvrlSaveGameSubsystem::LoadActor(AActor* Actor, const FActorSaveData& Acto
 
 	// Notify Actor that we're done loading its data
 	ExecuteOnLoadSafe(Actor);
+}
+
+FSaveSlotMetadata UOvrlSaveGameSubsystem::UpdateSlotMetadata(const FString& SlotName, const FString& DisplayName/* = ""*/)
+{
+	FSaveSlotMetadata* SlotMetadata = new FSaveSlotMetadata();
+	const bool bFound = FindExistingSlotMetadata(SlotName, SlotMetadata);
+
+	if (!SlotMetadata)
+	{
+		return {};
+	}
+
+	SlotMetadata->SlotName = SlotName;
+	SlotMetadata->Date = FDateTime::Now();
+	if (!DisplayName.IsEmpty())
+	{
+		SlotMetadata->DisplayName = DisplayName;
+	}
+
+	if (!bFound)
+	{
+		SaveGameSlots->SaveSlotMetas.Add(*SlotMetadata);
+	}
+
+	const UOvrlSaveGameSettings* SGSettings = GetDefault<UOvrlSaveGameSettings>();
+	UGameplayStatics::SaveGameToSlot(SaveGameSlots, SGSettings->SaveSlotNames, 0);
+
+	return *SlotMetadata;
+}
+
+bool UOvrlSaveGameSubsystem::FindExistingSlotMetadata(const FString& SlotName, FSaveSlotMetadata*& OutSlotMetadata) const
+{
+	for (FSaveSlotMetadata& SlotMetadata : SaveGameSlots->SaveSlotMetas)
+	{
+		if (SlotMetadata.SlotName.Equals(SlotName, ESearchCase::IgnoreCase))
+		{
+			OutSlotMetadata = &SlotMetadata;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+FString UOvrlSaveGameSubsystem::SanitizeSlotName(const FString& SlotName)
+{
+	FString FinalName = FPaths::MakeValidFileName(SlotName);
+	FinalName.TrimStartAndEndInline();
+	FinalName.ReplaceInline(TEXT(" "), TEXT(""));
+	return FinalName;
 }
 
 void UOvrlSaveGameSubsystem::ExecuteOnPreSaveSafe(UObject* Target)

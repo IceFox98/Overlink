@@ -17,6 +17,7 @@ class OVERLINK_API UOvrlSaveGame : public USaveGame
 
 public:
 	void Initialize(const FString& InSlotName);
+	void Reset();
 
 public:
 	UPROPERTY()
@@ -55,7 +56,7 @@ class OVERLINK_API UOvrlSaveGameSlots : public USaveGame
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TArray<FSaveSlotMetadata> SaveSlotMetas;
 
 	UPROPERTY()

@@ -19,7 +19,6 @@ class OVERLINK_API UOvrlStanceStatesAnimManager : public UObject
 	GENERATED_BODY()
 
 public:
-
 	void Initialize(AOvrlCharacterBase* PlayerCharacter, const UOvrlAnimManagerData* ManagerData);
 
 	FORCEINLINE bool IsActive() { return bShouldUpdateStartPosition; };
@@ -28,7 +27,6 @@ public:
 	void GetStartingPosition(float DeltaTime, FVector& OutTranslation, FRotator& OutRotation);
 
 protected:
-
 	UFUNCTION()
 	void OnStanceChanged(const FGameplayTag& OldStance, const FGameplayTag& NewStance);
 
@@ -36,16 +34,14 @@ protected:
 	void OnGaitChanged(const FGameplayTag& OldGait, const FGameplayTag& NewGait);
 
 protected:
-
 	FGameplayTag StanceToCheck = OvrlStanceTags::Standing;
 	FVector StartTranslation;
 	FRotator StartRotation;
-	
+
 	UPROPERTY()
 	TArray<TObjectPtr<UOvrlAnimModifierBase>> Modifiers;
 
 private:
-
 	bool bShouldUpdateStartPosition = false;
 	float Alpha = 1.f;
 };

@@ -20,7 +20,6 @@ class OVERLINK_API UOvrlGameUIManagerSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Game UI Manager")
 	void CreateBaseWidget(TSoftClassPtr<UOvrlBaseUILayers> BaseLayerWidgetClass);
 
@@ -30,7 +29,6 @@ public:
 	void NotifyPlayerDestroyed(ULocalPlayer* LocalPlayer);
 
 private:
-
 	UPROPERTY()
 	TObjectPtr<UOvrlBaseUILayers> BaseLayersWidget;
 };

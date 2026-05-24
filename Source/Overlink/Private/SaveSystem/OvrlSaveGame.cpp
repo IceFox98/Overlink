@@ -5,8 +5,11 @@
 void UOvrlSaveGame::Initialize(const FString& InSlotName)
 {
 	SlotName = InSlotName;
+}
 
-	// // Reset all data in case this slot has already be used before.
-	// SavedPlayers.Empty();
-	// SavedActorMap.Empty();
+void UOvrlSaveGame::Reset()
+{
+	PlayerData = {};
+	LevelActors.Empty();
+	SpawnedActors.Empty();
 }

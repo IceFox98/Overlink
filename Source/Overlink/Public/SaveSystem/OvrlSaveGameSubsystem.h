@@ -32,31 +32,33 @@ class OVERLINK_API UOvrlSaveGameSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	// // Create a new save slot and add it to the slot list.
-	// // Duplicates are not allowed.
-	// UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	// bool CreateSaveGameSlot(FString SlotName);
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem", meta = (AdvancedDisplay = "SlotDisplayName"))
+	void CreateNewSaveSlot(FString SlotDisplayName, bool bUseDefaultLevel, FSaveSlotMetadata& NewSlotMetadata, bool& bSuccess);
 
-	// Save the game data of the current loaded slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void SaveGame(FString SlotName);
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	void SaveCurrentSlot();
 
 	// Load game data of the passed slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void LoadGame(FString SlotName);
 	void LoadSelectedSlot();
-	
-	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
-	bool FindExistingSlotMetadata(FString SlotName, FSaveSlotMetadata& OutSlotMetadata);
 
 	void LoadPlayerData(APawn* Player);
 	void OnPostPlayerPossessed();
 
 	FString GetLastSaveSlotName() const;
-	
+
+	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
+	TArray<FSaveSlotMetadata> GetSaveSlotsMetadata() const;
+
 	FActorSaveData GetPlayerSaveData() const;
-	
+
 protected:
+	bool FindExistingSlotMetadata(const FString& SlotName, FSaveSlotMetadata*& OutSlotMetadata) const;
+
 	void SerializeObject(UObject* Object, TArray<uint8>& OutResult);
 	void DeserializeObject(const TArray<uint8>& Data, UObject* Object);
 
@@ -68,6 +70,9 @@ protected:
 private:
 	void PopulateCurrentSaveObject();
 	void LoadActor(AActor* Actor, const FActorSaveData& ActorSaveData);
+	FSaveSlotMetadata UpdateSlotMetadata(const FString& SlotName, const FString& DisplayName = "");
+
+	FString SanitizeSlotName(const FString& SlotName);
 
 public:
 	UPROPERTY(BlueprintAssignable)
@@ -78,7 +83,7 @@ public:
 
 protected:
 	// In this save object we save every game slot that has been created, so we can save info like Date or Play Time.
-	UPROPERTY(BlueprintReadOnly, Transient)
+	UPROPERTY(Transient)
 	TObjectPtr<UOvrlSaveGameSlots> SaveGameSlots;
 
 	// Save game object for every game objects.

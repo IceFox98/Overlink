@@ -86,9 +86,18 @@ struct FSaveSlotMetadata
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FString SlotName;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
+	FString DisplayName;
+	
+	UPROPERTY(BlueprintReadOnly)
 	FDateTime Date;
+	
+public:
+	bool IsValid() const
+	{
+		return !SlotName.IsEmpty();
+	}
 };

@@ -6,6 +6,7 @@
 
 #include "OvrlGameInstance.generated.h"
 
+class UOvrlGameConstants;
 
 UCLASS(Config = Game)
 class OVERLINK_API UOvrlGameInstance : public UGameInstance
@@ -14,11 +15,19 @@ class OVERLINK_API UOvrlGameInstance : public UGameInstance
 
 public:
 	UOvrlGameInstance(const FObjectInitializer& ObjectInitializer);
-	
-public:
 
+public:
 	virtual void Init() override;
+	
+	UFUNCTION(BlueprintPure, Category = "Ovrl Game Instance", DisplayName = "Get Ovrl Game Instance", meta = (WorldContext = "WorldContextObject"))
+	static UOvrlGameInstance* Get(const UObject* WorldContextObject);
 
 	virtual int32 AddLocalPlayer(ULocalPlayer* NewPlayer, FPlatformUserId UserId) override;
 	virtual bool RemoveLocalPlayer(ULocalPlayer* ExistingPlayer) override;
+
+	FORCEINLINE const UOvrlGameConstants* GetGameConstants() const { return GameConstants; }
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = Game)
+	TObjectPtr<UOvrlGameConstants> GameConstants;
 };
