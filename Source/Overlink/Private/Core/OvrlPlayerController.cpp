@@ -5,11 +5,12 @@
 #include "Player/OvrlCharacterBase.h"
 #include "Player/Components/OvrlCharacterMovementComponent.h"
 #include "AbilitySystem/OvrlAbilitySystemComponent.h"
+#include "OvrlUtils.h"
 
+// Engine
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/Character.h"
-
-#include "OvrlUtils.h"
+#include "Camera/CameraModifier.h"
 
 AOvrlPlayerController::AOvrlPlayerController()
 {
@@ -33,15 +34,10 @@ void AOvrlPlayerController::BeginPlay()
 
 void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 {
-	//Super::UpdateRotation(DeltaTime);
-	//return;
-
 	if (!CharacterMovementComponent)
 	{
 		return;
 	}
-
-	// @TODO: Call ProcessViewRotation() of camera manager modifiers, since we skip the Super call
 
 	const FVector GravityDirection = CharacterMovementComponent->GetGravityDirection();
 
@@ -57,6 +53,20 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 	// Calculate Delta to be applied on ViewRotation
 	FRotator DeltaRot(RotationInput);
 
+	PlayerCameraManager->ForEachCameraModifier([DeltaTime, &ViewRotation, &DeltaRot, this](UCameraModifier* CameraModifier) {
+		if (CameraModifier != NULL && !CameraModifier->IsDisabled())
+		{
+			if (CameraModifier->ProcessViewRotation(PlayerCameraManager->ViewTarget.Target, DeltaTime, ViewRotation, DeltaRot))
+			{
+				// Stop looping
+				return false;
+			}
+		}
+
+		// Continue looping
+		return true;
+	});
+
 	if (OvrlPlayerCameraManager)
 	{
 		// Add Delta Rotation
@@ -64,11 +74,11 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 
 		float ViewPitchMin = OvrlPlayerCameraManager->ViewPitchMin;
 		float ViewPitchMax = OvrlPlayerCameraManager->ViewPitchMax;
-		//CharacterMovementComponent->ApplyCameraPitchLimits(ViewPitchMin, ViewPitchMax);
+		// CharacterMovementComponent->ApplyCameraPitchLimits(ViewPitchMin, ViewPitchMax);
 
 		float ViewYawMin = OvrlPlayerCameraManager->ViewYawMin;
 		float ViewYawMax = OvrlPlayerCameraManager->ViewYawMax;
-		//CharacterMovementComponent->ApplyCameraYawLimits(ViewYawMin, ViewYawMax);
+		// CharacterMovementComponent->ApplyCameraYawLimits(ViewYawMin, ViewYawMax);
 
 		// Limit Player View Axes (skip Roll to avoid rotation optimizations) 
 		OvrlPlayerCameraManager->LimitViewPitch(ViewRotation, ViewPitchMin, ViewPitchMax);
@@ -81,12 +91,12 @@ void AOvrlPlayerController::UpdateRotation(float DeltaTime)
 		SetControlRotation(UOvrlUtils::GetGravityWorldRotation(ViewRotation, GravityDirection));
 	}
 
-	APawn* const P = GetPawnOrSpectator();
-	if (P)
-	{
-		// This is useless since we disabled all the pawn "Use Controller Rotation" bool
-		//P->FaceRotation(ViewRotation, DeltaTime);
-	}
+	// // This is useless since we disabled all the pawn "Use Controller Rotation" bool
+	// APawn* const P = GetPawnOrSpectator();
+	// if (P)
+	// {
+	// 	P->FaceRotation(ViewRotation, DeltaTime);
+	// }
 }
 
 void AOvrlPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
