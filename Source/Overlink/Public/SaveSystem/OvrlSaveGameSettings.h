@@ -6,7 +6,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "OvrlSaveGameSettings.generated.h"
 
-UCLASS(Config=Game, DefaultConfig, meta = (DisplayName="Save Game Settings")) // 'DefaultConfig' = "Save object config only to Default INIs, never to local INIs."
+UCLASS(Config=Game, DefaultConfig, meta = (DisplayName="Ovrl Save Game Settings"))
 class OVERLINK_API UOvrlSaveGameSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -15,6 +15,8 @@ public:
 	UOvrlSaveGameSettings();
 
 public:
+	// The name of the slot (.sav) where the game slot names are saved.
+	// It's used to show the available game slot in load/save game UI page.
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "General")
 	FString SaveSlotNames;
 	

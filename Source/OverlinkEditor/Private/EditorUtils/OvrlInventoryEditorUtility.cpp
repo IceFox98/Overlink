@@ -10,6 +10,7 @@
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
 #include "Inventory/OvrlItemFragment_SetStats.h"
 #include "Inventory/OvrlPickupDefinition.h"
+#include "OvrlItemCreationSettings.h"
 
 // Engine
 #include "AssetToolsModule.h"
@@ -147,7 +148,8 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentInstance(const FInventoryItemDat
 		return nullptr;
 	}
 
-	UBlueprint* EquipmentBlueprint = FindOrCreateBlueprint(ItemData, "BP_", ItemData.EquipmentInstanceClass);
+	const UOvrlItemCreationSettings* ItemCreationSettings = GetDefault<UOvrlItemCreationSettings>();
+	UBlueprint* EquipmentBlueprint = FindOrCreateBlueprint(ItemData, ItemCreationSettings->BlueprintPrefix, ItemData.EquipmentInstanceClass);
 
 	if (!EquipmentBlueprint)
 	{
@@ -205,7 +207,8 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemD
 		return nullptr;
 	}
 
-	UBlueprint* EquipDefBlueprint = FindOrCreateBlueprint(ItemData, "ED_", UOvrlEquipmentDefinition::StaticClass());
+	const UOvrlItemCreationSettings* ItemCreationSettings = GetDefault<UOvrlItemCreationSettings>();
+	UBlueprint* EquipDefBlueprint = FindOrCreateBlueprint(ItemData, ItemCreationSettings->EquipmentDefinitionPrefix, UOvrlEquipmentDefinition::StaticClass());
 
 	if (!EquipDefBlueprint)
 	{
@@ -247,7 +250,8 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemD
 
 UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentDefinitionBP)
 {
-	UBlueprint* ItemDefBlueprint = FindOrCreateBlueprint(ItemData, "ID_", UOvrlItemDefinition::StaticClass());
+	const UOvrlItemCreationSettings* ItemCreationSettings = GetDefault<UOvrlItemCreationSettings>();
+	UBlueprint* ItemDefBlueprint = FindOrCreateBlueprint(ItemData, ItemCreationSettings->ItemDefinitionPrefix, UOvrlItemDefinition::StaticClass());
 
 	if (!ItemDefBlueprint)
 	{
@@ -309,7 +313,8 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 
 UDataAsset* UOvrlInventoryUtils::CreatePickupDefinition(const FInventoryItemData& ItemData, const UBlueprint* ItemDefinitionBP)
 {
-	UDataAsset* PickupDefinitionDA = FindOrCreateDataAsset(ItemData, "PickupDefinition_", UOvrlPickupDefinition::StaticClass());
+	const UOvrlItemCreationSettings* ItemCreationSettings = GetDefault<UOvrlItemCreationSettings>();
+	UDataAsset* PickupDefinitionDA = FindOrCreateDataAsset(ItemData, ItemCreationSettings->PickupDefinitionPrefix, UOvrlPickupDefinition::StaticClass());
 
 	if (!PickupDefinitionDA)
 	{

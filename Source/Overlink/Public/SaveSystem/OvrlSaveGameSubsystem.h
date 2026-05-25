@@ -32,16 +32,22 @@ class OVERLINK_API UOvrlSaveGameSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	// Create a brand new save slot.
+	// If bUseDefaultLevel is true, the default level defined in GameConstants asset will be saved with the new slot.
+	// Otherwise, the current level will be used.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem", meta = (AdvancedDisplay = "SlotDisplayName"))
 	void CreateNewSaveSlot(FString SlotDisplayName, bool bUseDefaultLevel, FSaveSlotMetadata& NewSlotMetadata, bool& bSuccess);
 
+	// Save the current level data to the passed slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void SaveGame(FString SlotName);
 
+	// Save the current level data to the current loaded slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void SaveCurrentSlot();
 
 	// Load game data of the passed slot.
+	// It will also load the level saved in the slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	void LoadGame(const FString& SlotName);
 
@@ -59,6 +65,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	TArray<FSaveSlotMetadata> GetSaveSlotsMetadata() const;
 	
+	// Returns the metadata of the most recently saved slot.
 	UFUNCTION(BlueprintCallable, Category = "Ovrl Save Game Subsystem")
 	FSaveSlotMetadata GetMostRecentSaveSlotMetadata() const;
 

@@ -18,6 +18,7 @@ public class OverlinkEditor : ModuleRules
 				"AnimGraph",
 				"AnimGraphRuntime",
 				"SlateCore",
+				"DeveloperSettings",
 			});
 
 		if (Target.bBuildEditor == true)

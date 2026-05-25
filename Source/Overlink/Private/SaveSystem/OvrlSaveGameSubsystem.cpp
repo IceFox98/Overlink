@@ -69,6 +69,7 @@ void UOvrlSaveGameSubsystem::CreateNewSaveSlot(FString SlotDisplayName, bool bUs
 		return;
 	}
 
+	// Remove empty spaces or special characters
 	FString SlotName = SanitizeSlotName(SlotDisplayName);
 	if (SlotName.IsEmpty())
 	{
