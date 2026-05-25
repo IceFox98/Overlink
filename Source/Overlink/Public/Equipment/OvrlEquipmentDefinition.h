@@ -23,14 +23,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition")
 	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrantToOwner;
 
-	// If true, the item will be immediately added to the quick slots and set as currently active.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition")
-	bool bSetAsActiveSlotOnAdded = false;
-
 	// If true, an actor instance of the item will be spawned and attached to the player.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition")
 	bool bShouldSpawnEquipmentInstance = false;
 
+	// If true, when the item is added to the inventory, it will be immediately added to the quick slots and set as currently active.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
+	bool bSetAsActiveSlotOnAdded = false;
+	
 	// Sets of ability to grant to the item itself when equipped.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipment Definition", meta=(EditCondition = "bShouldSpawnEquipmentInstance", EditConditionHides))
 	TArray<TObjectPtr<UOvrlAbilitySet>> AbilitySetsToGrantToItem;

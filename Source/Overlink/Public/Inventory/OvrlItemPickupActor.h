@@ -57,7 +57,8 @@ public:
 	void Drop();
 
 #if WITH_EDITOR
-	// If pressed, all the pickup-related info will be copied to the relative pickup definition asset of the selected item.
+	// If pressed, all the Pickup Info will be copied to the relative pickup definition Asset of the selected item.
+	// (See 'Ovrl Pickup Info' section of the Pickup definition asset).
 	UFUNCTION(CallInEditor, Category = "Ovrl Item Pickup Actor", DisplayName = "Update Pickup Definition")
 	void UpdatePickupDefinition() const;
 #endif

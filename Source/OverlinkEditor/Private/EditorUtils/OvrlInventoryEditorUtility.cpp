@@ -8,6 +8,8 @@
 #include "Weapons/AmmoTypes/OvrlItemAmmoBase.h"
 #include "Inventory/OvrlItemDefinition.h"
 #include "Inventory/OvrlItemFragment_EquippableItem.h"
+#include "Inventory/OvrlItemFragment_SetStats.h"
+#include "Inventory/OvrlPickupDefinition.h"
 
 // Engine
 #include "AssetToolsModule.h"
@@ -21,9 +23,6 @@
 #include "Dialog/SMessageDialog.h"
 #include "Factories/BlueprintFactory.h"
 #include "Factories/DataAssetFactory.h"
-#include "Inventory/OvrlItemFragment_SetStats.h"
-#include "Inventory/OvrlItemPickupActor.h"
-#include "Inventory/OvrlPickupDefinition.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Subsystems/AssetEditorSubsystem.h"
@@ -126,7 +125,6 @@ void UOvrlInventoryUtils::CreateItemInternal(UObject* WorldContextObject, const 
 	const UBlueprint* EquipmentDefinitionBP = CreateEquipmentDefinition(ItemData, EquipmentInstanceBP);
 	const UBlueprint* ItemDefBP = CreateItemDefinition(ItemData, EquipmentDefinitionBP);
 	UDataAsset* PickupDefinitionDA = CreatePickupDefinition(ItemData, ItemDefBP);
-	UBlueprint* PickupActor = CreatePickupActor(ItemData, PickupDefinitionDA);
 
 	// Navigate to the created asset.
 	if (ItemDefBP)
@@ -219,15 +217,24 @@ UBlueprint* UOvrlInventoryUtils::CreateEquipmentDefinition(const FInventoryItemD
 	if (EquipDef)
 	{
 		EquipDef->AbilitySetsToGrantToItem.Empty();
-		EquipDef->AbilitySetsToGrantToItem.Add(ItemData.AbilitySet);
+		EquipDef->AbilitySetsToGrantToOwner.Empty();
+		EquipDef->AbilitySetsToGrantToOwner.Add(ItemData.OwnerAbilitySet);
 
-		EquipDef->bSetAsActiveSlotOnAdded = ItemData.bAllowQuickSlot;
+		// Reset in case we're overwriting the same object and we changed bShouldSpawnInstance
+		EquipDef->EquipmentClass = nullptr;
+		EquipDef->AttachSocketName = FName();
+		EquipDef->bSetAsActiveSlotOnAdded = false;
+
 		EquipDef->bShouldSpawnEquipmentInstance = ItemData.bShouldSpawnInstance;
 
 		if (ItemData.bShouldSpawnInstance && EquipmentInstanceBP)
 		{
+			EquipDef->bSetAsActiveSlotOnAdded = ItemData.bSetAsActiveSlotOnAdded;
+
 			EquipDef->EquipmentClass = EquipmentInstanceBP->GeneratedClass;
 			EquipDef->AttachSocketName = ItemData.AttachSocketName;
+
+			EquipDef->AbilitySetsToGrantToItem.Add(ItemData.ItemAbilitySet);
 		}
 	}
 
@@ -254,6 +261,8 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 		ItemDef->DisplayName = ItemData.DisplayName;
 		ItemDef->DisplayMesh = ItemData.DisplayMesh;
 		ItemDef->DisplayTexture = ItemData.DisplayTexture;
+		
+		ItemDef->Fragments.Empty();
 
 		if (ItemData.bIsEquippable && EquipmentDefinitionBP)
 		{
@@ -267,7 +276,6 @@ UBlueprint* UOvrlInventoryUtils::CreateItemDefinition(const FInventoryItemData& 
 
 			Fragment_EquippableItem->EquipmentDefinition = EquipmentDefinitionBP->GeneratedClass;
 
-			ItemDef->Fragments.Empty();
 			ItemDef->Fragments.Add(Fragment_EquippableItem);
 
 			if (UOvrlEquipmentDefinition* EquipmentDefinitionCDO = Cast<UOvrlEquipmentDefinition>(EquipmentDefinitionBP->GeneratedClass->GetDefaultObject()))
@@ -310,38 +318,14 @@ UDataAsset* UOvrlInventoryUtils::CreatePickupDefinition(const FInventoryItemData
 
 	UOvrlPickupDefinition* PickupDef = Cast<UOvrlPickupDefinition>(PickupDefinitionDA);
 
-	if (PickupDef && ItemDefinitionBP)
+	if (PickupDef)
 	{
-		// PickupDef->ItemDefinition = ItemDefinitionBP->GeneratedClass;
+		PickupDef->BasePickupClass = ItemData.PickupActorClass;
 	}
 
 	UEditorLoadingAndSavingUtils::SavePackages({ PickupDefinitionDA->GetPackage() }, false);
 
 	return PickupDefinitionDA;
-}
-
-UBlueprint* UOvrlInventoryUtils::CreatePickupActor(const FInventoryItemData& ItemData, UDataAsset* PickupDefinitionDA)
-{
-	UBlueprint* PickupActorBlueprint = FindOrCreateBlueprint(ItemData, "BP_ItemPickupActor_", ItemData.PickupActorClass);
-
-	if (!PickupActorBlueprint)
-	{
-		return nullptr;
-	}
-
-	AOvrlItemPickupActor* PickupActor = Cast<AOvrlItemPickupActor>(PickupActorBlueprint->GeneratedClass->GetDefaultObject());
-
-	if (PickupActor)
-	{
-		// PickupActor->ItemPickupDefinition = Cast<UOvrlPickupDefinition>(PickupDefinitionDA);
-		PickupActor->ItemMesh->SetStaticMesh(ItemData.DisplayMesh);
-	}
-
-	FBlueprintEditorUtils::MarkBlueprintAsModified(PickupActorBlueprint);
-	FKismetEditorUtilities::CompileBlueprint(PickupActorBlueprint);
-	UEditorLoadingAndSavingUtils::SavePackages({ PickupActorBlueprint->GetPackage() }, false);
-
-	return PickupActorBlueprint;
 }
 
 UBlueprint* UOvrlInventoryUtils::FindOrCreateBlueprint(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass)

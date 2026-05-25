@@ -22,12 +22,11 @@ struct FInventoryItemData
 {
 	GENERATED_BODY()
 
+	FString FolderPath;
+	
 	UPROPERTY(BlueprintReadWrite)
 	bool bAlwaysOverwrite;
-
-	UPROPERTY(BlueprintReadWrite)
-	FString FolderPath = "/Game";
-
+	
 	UPROPERTY(BlueprintReadWrite)
 	FString AssetName;
 
@@ -47,10 +46,13 @@ struct FInventoryItemData
 	TSubclassOf<AOvrlItemPickupActor> PickupActorClass;
 
 	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UOvrlAbilitySet> AbilitySet;
+	TObjectPtr<UOvrlAbilitySet> OwnerAbilitySet;
+	
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UOvrlAbilitySet> ItemAbilitySet;
 
 	UPROPERTY(BlueprintReadWrite)
-	bool bAllowQuickSlot;
+	bool bSetAsActiveSlotOnAdded;
 
 	UPROPERTY(BlueprintReadWrite)
 	bool bShouldSpawnInstance;
@@ -105,7 +107,6 @@ private:
 	static UBlueprint* CreateEquipmentDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentInstanceBP);
 	static UBlueprint* CreateItemDefinition(const FInventoryItemData& ItemData, const UBlueprint* EquipmentDefinitionBP);
 	static UDataAsset* CreatePickupDefinition(const FInventoryItemData& ItemData, const UBlueprint* ItemDefinitionBP);
-	static UBlueprint* CreatePickupActor(const FInventoryItemData& ItemData, UDataAsset* PickupDefinitionDA);
 
 	static UBlueprint* FindOrCreateBlueprint(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass);
 	static UDataAsset* FindOrCreateDataAsset(const FInventoryItemData& ItemData, const FString& Prefix, TSubclassOf<UObject> ParentClass);
